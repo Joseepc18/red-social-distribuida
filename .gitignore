@@ -1,0 +1,26 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Backend (Maven / Quarkus)
+backend/target/
+backend/.quarkus/
+
+# Frontend (Node)
+node_modules/
+frontend/dist/
+frontend/build/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local context (shared privately)
+CLAUDE.md
+.claude/
+.atl/
+docs/

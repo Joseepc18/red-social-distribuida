@@ -22,5 +22,8 @@ Thumbs.db
 # Local context (shared privately)
 CLAUDE.md
 .claude/
+AGENTS.md
+AGENTS.override.md
+.codex/
 .atl/
 docs/

@@ -1,6 +1,5 @@
 package com.redsocial.shared;
 
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -15,6 +14,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import com.redsocial.shared.error.ApiException;
+
+import io.quarkus.security.Authenticated;
 
 /**
  * Endpoints that exist only in tests, to exercise error mapping and security.
@@ -31,31 +32,28 @@ public class TestOnlyResource {
 
     @GET
     @Path("/api-exception")
-    @PermitAll
     public String apiException() {
         throw ApiException.conflict("PRUEBA_CONFLICTO", "Mensaje de prueba");
     }
 
     @GET
     @Path("/boom")
-    @PermitAll
     public String boom() {
         throw new IllegalStateException("internal detail that must not leak");
     }
 
     @POST
     @Path("/validation")
-    @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Body validation(@Valid Body body) {
         return body;
     }
 
-    // No security annotation: protected by quarkus.security.jaxrs.default-roles-allowed=**
     @GET
     @Path("/protected")
+    @Authenticated
     @Produces(MediaType.TEXT_PLAIN)
-    public String protectedByDefault() {
+    public String authenticatedOnly() {
         return jwt.getSubject();
     }
 

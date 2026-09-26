@@ -1,6 +1,5 @@
 package com.redsocial.shared.info;
 
-import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -15,7 +14,6 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  */
 @Path("/info")
 @Tag(name = "Info")
-@PermitAll
 public class InfoResource {
 
     public record InfoResponse(String instancia) {

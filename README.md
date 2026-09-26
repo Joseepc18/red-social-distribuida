@@ -47,6 +47,8 @@ docker compose ps -a
 
 Si Neo4j ya tiene datos, editar `.env` no cambia su contraseña: primero debe actualizarse dentro de la base existente.
 
+El valor de ejemplo `NEO4J_PASSWORD=devpassword` coincide con el predeterminado del backend. Si se usa una contraseña propia, el backend debe recibir el mismo `NEO4J_PASSWORD` que Neo4j. Al ejecutar Quarkus desde `backend/`, la configuración `.env` de la raíz utilizada por Compose no se carga automáticamente: hay que proporcionar esa variable también al proceso del backend.
+
 El primer arranque requiere internet y tarda más porque descarga dependencias y compila MinIO automáticamente. No hace falta instalar Go ni MinIO en la laptop. Las siguientes ejecuciones reutilizan las imágenes construidas.
 
 Esperar a que Neo4j, MinIO y Redis aparezcan como `healthy`. El servicio `minio-init` debe mostrar `Exited (0)`: significa que creó o verificó el bucket y terminó correctamente.
@@ -65,3 +67,11 @@ Para revisar un fallo de arranque: `docker compose logs --tail=50`. Para detener
 - Neo4j y MinIO conservan datos en volúmenes; Redis funciona solo en memoria para Pub/Sub.
 - El bucket `media` permite lectura pública y requiere autenticación para escribir.
 - MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Así todos usan las mismas fuentes.
+
+### Integración posterior del backend
+
+Al incorporar el backend al Compose en la issue #12, se configurarán sus credenciales y el montaje de claves JWT en `/keys` como solo lectura. Cuando se añada la segunda instancia, ambas deberán usar el mismo par de claves para aceptar los tokens emitidos por cualquiera de ellas. Las instrucciones de generación están en `backend/README.md` del PR #17; las claves privadas no se versionan.
+
+## Flujo de trabajo
+
+Las ramas de trabajo parten de `develop` y los PR se dirigen a `develop`. La rama `main` se reserva para las versiones listas para la entrega.

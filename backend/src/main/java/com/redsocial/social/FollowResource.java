@@ -15,20 +15,21 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import com.redsocial.shared.error.ErrorResponse;
 
+import io.quarkus.security.Authenticated;
+
 /**
  * Follow relationships between users. Shares the {@code /usuarios} root with the
  * profile resource; Quarkus REST routes each sub-path to the class that declares it.
- * No security annotation: every method requires a valid JWT (default-roles-allowed).
+ * Every method requires a valid JWT.
  */
 @Path("/usuarios")
 @Tag(name = "Social", description = "Seguir y dejar de seguir usuarios")
-@SecurityRequirement(name = "SecurityScheme")
 @Produces(MediaType.APPLICATION_JSON)
+@Authenticated
 public class FollowResource {
 
     private final FollowService service;
@@ -57,11 +58,9 @@ public class FollowResource {
     @DELETE
     @Path("{id}/seguir")
     @Operation(summary = "Dejar de seguir a un usuario",
-            description = "Idempotente: responde 204 aunque no siguieras al usuario.")
+            description = "Responde 204 aunque no siguieras al usuario o este no exista.")
     @APIResponse(responseCode = "204", description = "Ya no sigues al usuario")
     @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    @APIResponse(responseCode = "404", description = "El usuario no existe (USUARIO_NO_ENCONTRADO)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public void unfollow(@PathParam("id") String id) {
         service.unfollow(jwt.getSubject(), id);
@@ -73,8 +72,6 @@ public class FollowResource {
     @APIResponse(responseCode = "200", description = "Lista de seguidores (puede estar vacía)")
     @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    @APIResponse(responseCode = "404", description = "El usuario no existe (USUARIO_NO_ENCONTRADO)",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public List<UsuarioResumen> followers(@PathParam("id") String id) {
         return service.followers(id);
     }
@@ -84,8 +81,6 @@ public class FollowResource {
     @Operation(summary = "Usuarios que sigue un usuario", description = "Ordenados por nombre de usuario.")
     @APIResponse(responseCode = "200", description = "Lista de seguidos (puede estar vacía)")
     @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    @APIResponse(responseCode = "404", description = "El usuario no existe (USUARIO_NO_ENCONTRADO)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public List<UsuarioResumen> followed(@PathParam("id") String id) {
         return service.followed(id);

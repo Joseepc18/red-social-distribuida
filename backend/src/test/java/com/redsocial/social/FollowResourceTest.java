@@ -3,6 +3,7 @@ package com.redsocial.social;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -118,12 +119,10 @@ class FollowResourceTest {
     }
 
     @Test
-    void unfollowUnknownUserReturns404() {
+    void unfollowUnknownUserReturns204() {
         String me = users.create();
 
-        unfollow(me, UUID.randomUUID().toString()).then()
-                .statusCode(404)
-                .body("error", is("USUARIO_NO_ENCONTRADO"));
+        unfollow(me, UUID.randomUUID().toString()).then().statusCode(204);
     }
 
     @Test
@@ -178,7 +177,7 @@ class FollowResourceTest {
     }
 
     @Test
-    void listsOfUnknownUserReturn404() {
+    void listsOfUnknownUserAreEmpty() {
         String token = TestUsers.tokenFor(users.create());
         String unknown = UUID.randomUUID().toString();
 
@@ -186,8 +185,8 @@ class FollowResourceTest {
             given().auth().oauth2(token)
                     .when().get("/api/usuarios/{id}/" + list, unknown)
                     .then()
-                    .statusCode(404)
-                    .body("error", is("USUARIO_NO_ENCONTRADO"));
+                    .statusCode(200)
+                    .body("$", empty());
         }
     }
 
@@ -230,8 +229,11 @@ class FollowResourceTest {
                 .body("paths.'/api/usuarios/{id}/seguir'.post.responses.'204'", notNullValue())
                 .body("paths.'/api/usuarios/{id}/seguir'.post.responses.'400'", notNullValue())
                 .body("paths.'/api/usuarios/{id}/seguir'.delete.summary", is("Dejar de seguir a un usuario"))
+                .body("paths.'/api/usuarios/{id}/seguir'.post.responses.'404'", notNullValue())
                 .body("paths.'/api/usuarios/{id}/seguidores'.get.tags", contains("Social"))
-                .body("paths.'/api/usuarios/{id}/seguidos'.get.responses.'404'", notNullValue());
+                .body("paths.'/api/usuarios/{id}/seguidos'.get.responses.'200'", notNullValue())
+                .body("paths.'/api/usuarios/{id}/seguir'.delete.security[0]", hasKey("SecurityScheme"))
+                .body("paths.'/api/usuarios/{id}/seguidores'.get.security[0]", hasKey("SecurityScheme"));
     }
 
     private static Response follow(String callerId, String targetId) {

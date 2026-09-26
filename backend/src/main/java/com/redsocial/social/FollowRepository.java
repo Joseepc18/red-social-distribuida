@@ -2,13 +2,11 @@ package com.redsocial.social;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.Value;
 
 /**
  * Cypher access to the {@code (:Usuario)-[:SIGUE {desde}]->(:Usuario)} relationship.
@@ -26,31 +24,22 @@ public class FollowRepository {
             RETURN r.desde AS desde
             """;
 
-    // One row while the followed user exists; deleting a missing (null) relationship is a no-op.
+    // Matches nothing when the relationship (or either user) does not exist, so it never fails.
     static final String UNFOLLOW = """
-            MATCH (b:Usuario {id: $followedId})
-            OPTIONAL MATCH (:Usuario {id: $followerId})-[r:SIGUE]->(b)
+            MATCH (:Usuario {id: $followerId})-[r:SIGUE]->(:Usuario {id: $followedId})
             DELETE r
-            RETURN b.id AS id
             """;
 
-    // One row with a (possibly empty) list while the user exists, no row when it does not.
-    // "u" is kept as grouping key: collect() without one would return a row even for a missing user.
-    // collect() skips the null produced by OPTIONAL MATCH when there are no relationships.
     static final String FOLLOWERS = """
-            MATCH (u:Usuario {id: $userId})
-            OPTIONAL MATCH (u)<-[:SIGUE]-(other:Usuario)
-            WITH u, other ORDER BY other.username
-            WITH u, collect(other {.id, .username, .nombre}) AS usuarios
-            RETURN usuarios
+            MATCH (u:Usuario {id: $userId})<-[:SIGUE]-(other:Usuario)
+            RETURN other.id AS id, other.username AS username, other.nombre AS nombre
+            ORDER BY username
             """;
 
     static final String FOLLOWED = """
-            MATCH (u:Usuario {id: $userId})
-            OPTIONAL MATCH (u)-[:SIGUE]->(other:Usuario)
-            WITH u, other ORDER BY other.username
-            WITH u, collect(other {.id, .username, .nombre}) AS usuarios
-            RETURN usuarios
+            MATCH (u:Usuario {id: $userId})-[:SIGUE]->(other:Usuario)
+            RETURN other.id AS id, other.username AS username, other.nombre AS nombre
+            ORDER BY username
             """;
 
     private final Driver driver;
@@ -64,25 +53,22 @@ public class FollowRepository {
         return !run(FOLLOW, Map.of("followerId", followerId, "followedId", followedId)).isEmpty();
     }
 
-    /** @return {@code false} when the followed user does not exist */
-    public boolean unfollow(String followerId, String followedId) {
-        return !run(UNFOLLOW, Map.of("followerId", followerId, "followedId", followedId)).isEmpty();
+    public void unfollow(String followerId, String followedId) {
+        run(UNFOLLOW, Map.of("followerId", followerId, "followedId", followedId));
     }
 
-    /** @return empty when the user does not exist */
-    public Optional<List<UsuarioResumen>> followers(String userId) {
+    public List<UsuarioResumen> followers(String userId) {
         return users(FOLLOWERS, userId);
     }
 
-    /** @return empty when the user does not exist */
-    public Optional<List<UsuarioResumen>> followed(String userId) {
+    public List<UsuarioResumen> followed(String userId) {
         return users(FOLLOWED, userId);
     }
 
-    private Optional<List<UsuarioResumen>> users(String query, String userId) {
+    private List<UsuarioResumen> users(String query, String userId) {
         return run(query, Map.of("userId", userId)).stream()
-                .findFirst()
-                .map(row -> row.get("usuarios").asList(FollowRepository::toResumen));
+                .map(FollowRepository::toResumen)
+                .toList();
     }
 
     private List<Record> run(String query, Map<String, Object> parameters) {
@@ -92,10 +78,10 @@ public class FollowRepository {
                 .records();
     }
 
-    private static UsuarioResumen toResumen(Value user) {
+    private static UsuarioResumen toResumen(Record r) {
         return new UsuarioResumen(
-                user.get("id").asString(),
-                user.get("username").asString(),
-                user.get("nombre").asString(null));
+                r.get("id").asString(),
+                r.get("username").asString(),
+                r.get("nombre").asString(null));
     }
 }

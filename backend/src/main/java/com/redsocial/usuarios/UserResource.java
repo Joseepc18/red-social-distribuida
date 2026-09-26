@@ -4,7 +4,6 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
@@ -18,18 +17,18 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+import io.quarkus.security.Authenticated;
+
 /**
- * User profiles and search. No security annotation: every endpoint requires a valid JWT
- * ({@code quarkus.security.jaxrs.default-roles-allowed=**}). The "/me" endpoints take the
- * identity from the token subject, never from the URL or the body.
+ * User profiles and search. Every endpoint requires a valid JWT. The "/me" endpoints take
+ * the identity from the token subject, never from the URL or the body.
  */
 @Path("/usuarios")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Usuarios")
-@SecurityRequirement(name = "SecurityScheme")
+@Authenticated
 public class UserResource {
 
     private final UserService service;
@@ -43,10 +42,11 @@ public class UserResource {
     @GET
     @Path("/me")
     @Operation(summary = "Perfil propio (identidad tomada del JWT)")
-    @APIResponse(responseCode = "200", description = "Perfil propio, incluye el email")
-    @APIResponse(responseCode = "401", description = "NO_AUTENTICADO, o USUARIO_NO_ENCONTRADO si la cuenta del token ya no existe")
-    public OwnProfile me() {
-        return service.ownProfile(jwt.getSubject());
+    @APIResponse(responseCode = "200", description = "Perfil propio")
+    @APIResponse(responseCode = "401", description = "NO_AUTENTICADO")
+    @APIResponse(responseCode = "404", description = "USUARIO_NO_ENCONTRADO: la cuenta del token ya no existe")
+    public Profile me() {
+        return service.profile(jwt.getSubject());
     }
 
     @PUT
@@ -55,29 +55,29 @@ public class UserResource {
     @Operation(summary = "Edita el perfil propio (solo nombre y bio)")
     @APIResponse(responseCode = "200", description = "Perfil actualizado")
     @APIResponse(responseCode = "400", description = "VALIDACION: datos inválidos")
-    @APIResponse(responseCode = "401", description = "NO_AUTENTICADO, o USUARIO_NO_ENCONTRADO si la cuenta del token ya no existe")
-    public OwnProfile updateMe(@Valid @NotNull(message = "el cuerpo es obligatorio") UpdateProfileRequest request) {
+    @APIResponse(responseCode = "401", description = "NO_AUTENTICADO")
+    @APIResponse(responseCode = "404", description = "USUARIO_NO_ENCONTRADO: la cuenta del token ya no existe")
+    public Profile updateMe(@Valid @NotNull(message = "el cuerpo es obligatorio") UpdateProfileRequest request) {
         return service.updateOwnProfile(jwt.getSubject(), request);
     }
 
     @GET
     @Path("/{id}")
-    @Operation(summary = "Perfil público de un usuario")
-    @APIResponse(responseCode = "200", description = "Perfil público, sin email")
+    @Operation(summary = "Perfil de un usuario")
+    @APIResponse(responseCode = "200", description = "Perfil del usuario")
     @APIResponse(responseCode = "401", description = "NO_AUTENTICADO")
     @APIResponse(responseCode = "404", description = "USUARIO_NO_ENCONTRADO")
-    public PublicProfile byId(@PathParam("id") String id) {
-        return service.publicProfile(id);
+    public Profile byId(@PathParam("id") String id) {
+        return service.profile(id);
     }
 
     @GET
-    @Operation(summary = "Busca usuarios por username o nombre (máximo 20, ordenados por username)")
-    @APIResponse(responseCode = "200", description = "Resultados; lista vacía si q está vacío")
-    @APIResponse(responseCode = "400", description = "VALIDACION: q supera 50 caracteres")
+    @Operation(summary = "Busca usuarios por username o nombre, ordenados por username")
+    @APIResponse(responseCode = "200", description = "Usuarios encontrados")
     @APIResponse(responseCode = "401", description = "NO_AUTENTICADO")
     public List<UserSummary> search(
             @Parameter(description = "Texto a buscar, sin distinguir mayúsculas")
-            @QueryParam("q") @Size(max = 50, message = "debe tener como máximo 50 caracteres") String q) {
+            @QueryParam("q") String q) {
         return service.search(q);
     }
 }

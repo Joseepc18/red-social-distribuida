@@ -48,14 +48,12 @@ public class AuthRepository {
                 .asBoolean();
     }
 
-    /** Finds by username or email; a username cannot contain "@", so at most one node matches. */
-    public Optional<Credentials> findCredentials(String usernameOrEmail) {
+    public Optional<Credentials> findCredentials(String username) {
         return driver.executableQuery("""
-                        MATCH (u:Usuario)
-                        WHERE u.username = $login OR u.email = $login
+                        MATCH (u:Usuario {username: $username})
                         RETURN u.id AS id, u.username AS username, u.passwordHash AS passwordHash
                         """)
-                .withParameters(Map.of("login", usernameOrEmail))
+                .withParameters(Map.of("username", username))
                 .execute()
                 .records()
                 .stream()

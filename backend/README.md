@@ -20,6 +20,9 @@ docker compose up neo4j redis minio minio-init
 - Swagger UI: `http://localhost:8080/api/docs`
 - Salud: `http://localhost:8080/q/health`
 
+En modo desarrollo y en las pruebas no hace falta configurar claves JWT: Quarkus genera un par de claves RSA al iniciar.
+Los tokens emitidos dejan de ser válidos cada vez que la aplicación se reinicia.
+
 ## Pruebas
 
 ```bash
@@ -33,6 +36,20 @@ docker build -t red-social-backend .
 ```
 
 El build es multi-stage (Maven con JDK 21 → JRE 21) y genera el layout *fast-jar* de Quarkus.
+
+### Claves JWT para Docker
+
+En producción el backend lee el par de claves desde archivos montados en el contenedor. Se generan una sola vez
+y **nunca se versionan** (`*.pem` y `keys/` están en `.gitignore`):
+
+```bash
+mkdir -p keys
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/privateKey.pem
+openssl pkey -in keys/privateKey.pem -pubout -out keys/publicKey.pem
+```
+
+Montar la carpeta en `/keys` (por ejemplo `./backend/keys:/keys:ro`). Todas las instancias del backend deben usar
+el mismo par de claves para aceptar los tokens emitidos por cualquiera de ellas.
 
 ### Sin Java instalado
 
@@ -60,6 +77,10 @@ Se usa `mvn` de la imagen y no `./mvnw`: la imagen no incluye `unzip` y el wrapp
 | `MINIO_ACCESS_KEY` | `minioadmin` | Credencial de acceso a MinIO |
 | `MINIO_SECRET_KEY` | `minioadmin` | Credencial secreta de MinIO |
 | `MINIO_BUCKET` | `media` | Bucket de archivos |
+| `JWT_ISSUER` | `red-social` | Emisor (`iss`) de los tokens, validado al recibirlos |
+| `JWT_LIFESPAN_SECONDS` | `86400` | Vigencia de los tokens emitidos (24 h) |
+| `JWT_PUBLIC_KEY_LOCATION` | `file:/keys/publicKey.pem` | Clave pública para verificar tokens (solo producción) |
+| `JWT_PRIVATE_KEY_LOCATION` | `file:/keys/privateKey.pem` | Clave privada para firmar tokens (solo producción) |
 
 En las pruebas, Neo4j y Redis no usan estas variables: Dev Services levanta contenedores temporales.
 

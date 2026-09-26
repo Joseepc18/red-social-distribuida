@@ -1,5 +1,6 @@
 package com.redsocial.usuarios;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,11 +17,7 @@ import org.neo4j.driver.Record;
 @ApplicationScoped
 public class UserRepository {
 
-    // Follower counts are COUNT {} subqueries: they count relationships without loading the nodes.
-    private static final String PROFILE_FIELDS = """
-            u.id AS id, u.username AS username, u.nombre AS nombre, u.bio AS bio, u.creadoEn AS creadoEn,
-            COUNT { (u)<-[:SIGUE]-(:Usuario) } AS seguidores,
-            COUNT { (u)-[:SIGUE]->(:Usuario) } AS seguidos""";
+    private static final String PROFILE_FIELDS = "u.id AS id, u.username AS username, u.nombre AS nombre, u.bio AS bio";
 
     private final Driver driver;
 
@@ -28,45 +25,37 @@ public class UserRepository {
         this.driver = driver;
     }
 
-    public Optional<OwnProfile> findOwnProfile(String id) {
-        return single("""
-                MATCH (u:Usuario {id: $id})
-                RETURN u.email AS email, %s
-                """.formatted(PROFILE_FIELDS), Map.of("id", id))
-                .map(UserRepository::toOwnProfile);
-    }
-
-    public Optional<PublicProfile> findPublicProfile(String id) {
+    public Optional<Profile> findProfile(String id) {
         return single("""
                 MATCH (u:Usuario {id: $id})
                 RETURN %s
                 """.formatted(PROFILE_FIELDS), Map.of("id", id))
-                .map(UserRepository::toPublicProfile);
+                .map(UserRepository::toProfile);
     }
 
-    public Optional<OwnProfile> updateProfile(String id, String nombre, String bio) {
+    public Optional<Profile> updateProfile(String id, String nombre, String bio) {
         return single("""
                 MATCH (u:Usuario {id: $id})
                 SET u.nombre = $nombre, u.bio = $bio
-                RETURN u.email AS email, %s
+                RETURN %s
                 """.formatted(PROFILE_FIELDS), Map.of("id", id, "nombre", nombre, "bio", bio))
-                .map(UserRepository::toOwnProfile);
+                .map(UserRepository::toProfile);
     }
 
     /**
-     * Case-insensitive substring search on username or nombre. It scans the Usuario label,
-     * which is fine at this project's scale; a full-text index would be the next step.
+     * Case-insensitive substring search on username or nombre. A missing text is a null
+     * parameter: {@code CONTAINS null} is never true, so the query returns no users.
      */
-    public List<UserSummary> search(String text, int limit) {
+    public List<UserSummary> search(String text) {
         return driver.executableQuery("""
                         MATCH (u:Usuario)
                         WHERE toLower(u.username) CONTAINS toLower($text)
                            OR toLower(u.nombre) CONTAINS toLower($text)
                         RETURN u.id AS id, u.username AS username, u.nombre AS nombre
                         ORDER BY u.username
-                        LIMIT $limit
                         """)
-                .withParameters(Map.of("text", text, "limit", limit))
+                // Map.of rejects null values; singletonMap accepts them
+                .withParameters(Collections.singletonMap("text", text))
                 .execute()
                 .records()
                 .stream()
@@ -84,26 +73,11 @@ public class UserRepository {
                 .findFirst();
     }
 
-    private static OwnProfile toOwnProfile(Record r) {
-        return new OwnProfile(
-                r.get("id").asString(),
-                r.get("username").asString(),
-                r.get("email").asString(),
-                r.get("nombre").asString(),
-                r.get("bio").asString(""),
-                r.get("creadoEn").asOffsetDateTime(),
-                r.get("seguidores").asLong(),
-                r.get("seguidos").asLong());
-    }
-
-    private static PublicProfile toPublicProfile(Record r) {
-        return new PublicProfile(
+    private static Profile toProfile(Record r) {
+        return new Profile(
                 r.get("id").asString(),
                 r.get("username").asString(),
                 r.get("nombre").asString(),
-                r.get("bio").asString(""),
-                r.get("creadoEn").asOffsetDateTime(),
-                r.get("seguidores").asLong(),
-                r.get("seguidos").asLong());
+                r.get("bio").asString(""));
     }
 }

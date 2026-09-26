@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -16,10 +15,7 @@ import static org.hamcrest.Matchers.nullValue;
 import java.util.Map;
 import java.util.UUID;
 
-import jakarta.inject.Inject;
-
 import org.junit.jupiter.api.Test;
-import org.neo4j.driver.Driver;
 
 import com.redsocial.auth.TestUsers;
 import com.redsocial.auth.TestUsers.TestUser;
@@ -30,9 +26,6 @@ import io.smallrye.jwt.build.Jwt;
 
 @QuarkusTest
 class UserResourceTest {
-
-    @Inject
-    Driver driver;
 
     @Test
     void protectedEndpointsRequireToken() {
@@ -63,20 +56,20 @@ class UserResourceTest {
                 .statusCode(200)
                 .body("id", is(user.id()))
                 .body("username", is(user.username()))
-                .body("email", is(user.email()))
-                .body("creadoEn", notNullValue())
+                .body("nombre", is("Nombre " + user.username()))
+                .body("bio", is(""))
                 .body(not(containsString("passwordHash")));
     }
 
     @Test
-    void meWithTokenOfMissingUserReturns401() {
+    void meWithTokenOfMissingUserReturns404() {
         String token = Jwt.subject(UUID.randomUUID().toString()).sign();
 
         given()
                 .auth().oauth2(token)
                 .when().get("/api/usuarios/me")
                 .then()
-                .statusCode(401)
+                .statusCode(404)
                 .body("error", is("USUARIO_NO_ENCONTRADO"));
     }
 
@@ -96,7 +89,6 @@ class UserResourceTest {
                 .body("nombre", is("Nuevo Nombre"))
                 .body("bio", is("Hola mundo"))
                 .body("username", is(user.username()))
-                .body("email", is(user.email()))
                 .body(not(containsString("passwordHash")));
 
         given()
@@ -109,35 +101,24 @@ class UserResourceTest {
     }
 
     @Test
-    void updateMeValidatesFields() {
+    void updateMeRequiresNombre() {
         TestUser user = TestUsers.create();
 
         given()
                 .auth().oauth2(user.token())
                 .contentType(ContentType.JSON)
-                .body(Map.of("nombre", " ", "bio", "x".repeat(161)))
+                .body(Map.of("nombre", " ", "bio", "Hola"))
                 .when().put("/api/usuarios/me")
                 .then()
                 .statusCode(400)
                 .body("error", is("VALIDACION"))
-                .body("mensaje", containsString("nombre"))
-                .body("mensaje", containsString("bio"));
+                .body("mensaje", containsString("nombre"));
     }
 
     @Test
-    void byIdReturnsPublicProfileWithFollowCounts() {
+    void byIdReturnsProfileWithoutPrivateData() {
         TestUser viewer = TestUsers.create();
         TestUser target = TestUsers.create();
-        TestUser other = TestUsers.create();
-        // SIGUE relationships are created directly: this test only checks the profile counts.
-        driver.executableQuery("""
-                        MATCH (v:Usuario {id: $viewer}), (t:Usuario {id: $target}), (o:Usuario {id: $other})
-                        CREATE (v)-[:SIGUE {desde: datetime()}]->(t),
-                               (o)-[:SIGUE {desde: datetime()}]->(t),
-                               (t)-[:SIGUE {desde: datetime()}]->(o)
-                        """)
-                .withParameters(Map.of("viewer", viewer.id(), "target", target.id(), "other", other.id()))
-                .execute();
 
         given()
                 .auth().oauth2(viewer.token())
@@ -147,8 +128,7 @@ class UserResourceTest {
                 .body("id", is(target.id()))
                 .body("username", is(target.username()))
                 .body("nombre", is("Nombre " + target.username()))
-                .body("seguidores", is(2))
-                .body("seguidos", is(1))
+                .body("bio", is(""))
                 .body("email", nullValue())
                 .body(not(containsString("passwordHash")))
                 .body(not(containsString(target.email())));
@@ -199,29 +179,8 @@ class UserResourceTest {
     }
 
     @Test
-    void searchIsLimitedTo20() {
+    void searchWithoutQReturnsEmptyList() {
         TestUser viewer = TestUsers.create();
-
-        given()
-                .auth().oauth2(viewer.token())
-                .queryParam("q", "u_")
-                .when().get("/api/usuarios")
-                .then()
-                .statusCode(200)
-                .body("size()", lessThanOrEqualTo(UserService.SEARCH_LIMIT));
-    }
-
-    @Test
-    void blankSearchReturnsEmptyList() {
-        TestUser viewer = TestUsers.create();
-
-        given()
-                .auth().oauth2(viewer.token())
-                .queryParam("q", "  ")
-                .when().get("/api/usuarios")
-                .then()
-                .statusCode(200)
-                .body("$", empty());
 
         given()
                 .auth().oauth2(viewer.token())
@@ -229,19 +188,6 @@ class UserResourceTest {
                 .then()
                 .statusCode(200)
                 .body("$", empty());
-    }
-
-    @Test
-    void tooLongSearchReturns400() {
-        TestUser viewer = TestUsers.create();
-
-        given()
-                .auth().oauth2(viewer.token())
-                .queryParam("q", "x".repeat(51))
-                .when().get("/api/usuarios")
-                .then()
-                .statusCode(400)
-                .body("error", is("VALIDACION"));
     }
 
     @Test
@@ -252,12 +198,12 @@ class UserResourceTest {
                 .then()
                 .statusCode(200)
                 .body("paths.'/api/auth/registro'.post.responses.'201'.content.'application/json'.schema.'$ref'",
-                        endsWith("/OwnProfile"))
+                        endsWith("/Profile"))
                 .body("paths.'/api/auth/login'.post.responses.'200'.content.'application/json'.schema.'$ref'",
                         endsWith("/LoginResponse"))
                 .body("paths.'/api/usuarios/{id}'.get.responses.'200'.content.'application/json'.schema.'$ref'",
-                        endsWith("/PublicProfile"))
-                .body("components.schemas.OwnProfile.properties", not(hasKey("passwordHash")))
+                        endsWith("/Profile"))
+                .body("components.schemas.Profile.properties", not(hasKey("passwordHash")))
                 .body("paths.'/api/auth/registro'.post.responses.'409'", notNullValue())
                 .body("paths.'/api/auth/login'.post.responses.'401'", notNullValue())
                 .body("paths.'/api/auth/login'.post.security", nullValue())

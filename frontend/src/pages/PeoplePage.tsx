@@ -5,7 +5,7 @@ import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { StatusMessage } from "../components/StatusMessage";
 import { UserCard } from "../components/UserCard";
-import { copy, peopleCopy } from "../data/mockData";
+import { copy, peopleCopy } from "../content/copy";
 interface PeoplePageProps {
   readonly children?: never;
 }

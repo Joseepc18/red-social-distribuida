@@ -2,7 +2,7 @@ import type { SubmitEvent } from "react";
 import type { Profile } from "../types/api";
 import { Input } from "./Input";
 import { Button } from "./Button";
-import { profileCopy, copy } from "../data/mockData";
+import { profileCopy, copy } from "../content/copy";
 interface ProfileEditorProps {
   readonly profile: Profile;
   readonly busy: boolean;

@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Card } from "../components/Card";
 import { Icon } from "../components/Icon";
-import { copy } from "../data/mockData";
+import { copy } from "../content/copy";
 interface PlaceholderPageProps {
   readonly title: string;
   readonly description: string;

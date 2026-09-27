@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { copy } from "../data/mockData";
+import { copy } from "../content/copy";
 interface BrandProps {
   readonly compact?: boolean;
 }

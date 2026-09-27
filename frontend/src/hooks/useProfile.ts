@@ -4,7 +4,7 @@ import { users } from "../services/users";
 import { useAuth } from "./useAuth";
 import { useRemote } from "./useRemote";
 import { errorMessage } from "../lib/api";
-import { profileCopy } from "../data/mockData";
+import { profileCopy } from "../content/copy";
 
 export function useProfile(id: string) {
   const { session, updateUser } = useAuth();

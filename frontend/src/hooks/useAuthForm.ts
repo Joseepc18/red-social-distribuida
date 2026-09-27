@@ -4,7 +4,7 @@ import { useAuth } from "./useAuth";
 import { users } from "../services/users";
 import { errorMessage } from "../lib/api";
 import { tokenExpiresAt } from "../lib/session";
-import { authCopy } from "../data/mockData";
+import { authCopy } from "../content/copy";
 
 export function useAuthForm(mode: "login" | "register") {
   const { startSession } = useAuth();
@@ -41,7 +41,7 @@ export function useAuthForm(mode: "login" | "register") {
     if (
       !credentials.username ||
       !credentials.password.trim() ||
-      (mode === "register" && !nombre)
+      (mode === "register" && (!nombre || !email))
     ) {
       setError(authCopy.required);
       return;

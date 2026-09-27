@@ -6,7 +6,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { PeoplePage } from "./pages/PeoplePage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { pages } from "./data/mockData";
+import { pages } from "./content/copy";
 interface AppProps {
   readonly children?: never;
 }

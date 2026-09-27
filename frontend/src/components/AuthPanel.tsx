@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Brand } from "./Brand";
-import { authCopy, copy } from "../data/mockData";
+import { authCopy, copy } from "../content/copy";
 interface AuthPanelProps {
   readonly children?: never;
 }

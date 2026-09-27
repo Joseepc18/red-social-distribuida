@@ -1,4 +1,4 @@
-import { copy } from "../data/mockData";
+import { copy } from "../content/copy";
 import { Button } from "./Button";
 interface StatusMessageProps {
   readonly message: string;

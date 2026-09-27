@@ -33,7 +33,7 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el futuro client
 ## Autenticación y datos (#13)
 
 1. `POST /api/auth/registro` crea la cuenta y devuelve el perfil (201). La pantalla confirma el registro y dirige al login; no repite el registro ni presupone que devuelva un token.
-2. `POST /api/auth/login` devuelve `{ token }`. El frontend consulta `GET /api/usuarios/me` con ese token antes de establecer la sesión.
+2. `POST /api/auth/login` devuelve `{ token }`. El frontend consulta `GET /api/usuarios/me` con ese token antes de establecer la sesión. El guard de rutas reutiliza esa validación durante el acceso inicial, sin repetir la petición; al recargar o recibir cambios de sesión desde otra pestaña, vuelve a validar con el servidor.
 3. Auth Context guarda token y perfil en localStorage, restaura la sesión al recargar y sincroniza cambios entre pestañas. Las rutas privadas validan el perfil con el servidor antes de mostrar su contenido. La expiración o una respuesta privada 401 requieren otro login.
 4. `src/lib/api.ts` adjunta `Authorization: Bearer <token>`, preserva FormData, admite respuestas 204 y expone los errores `{ error, mensaje }`.
 5. La edición usa `PUT /api/usuarios/me` y actualiza el Context. Seguir y dejar de seguir usan POST y DELETE de `/api/usuarios/{id}/seguir`; después se vuelven a consultar las listas.
@@ -43,6 +43,8 @@ Se usa REST para operaciones puntuales con respuesta, y Context para la sesión 
 La persistencia en localStorage sigue el contrato del proyecto. La autorización definitiva siempre la valida Quarkus. No existe un endpoint de renovación de sesión; al expirar el token se requiere un nuevo login. Las contraseñas no se persisten.
 
 El código de la aplicación consume la API real. Las respuestas simuladas existen solamente en las pruebas, sin modo de demostración ni sustitución automática cuando falla el backend.
+
+Los textos estáticos de la interfaz se centralizan en `src/content/copy.ts`; ese archivo no contiene usuarios ni publicaciones simuladas.
 
 ## Comprobaciones
 
@@ -62,7 +64,22 @@ npm run test:e2e
 
 En otro entorno se puede proporcionar la ruta de otro navegador Chromium mediante `BROWSER_EXECUTABLE`, o instalar el navegador de Playwright con `npx playwright install chromium`.
 
-Estas pruebas no sustituyen la validación de integración con Quarkus y Neo4j, pendiente hasta disponer del motor Docker local.
+### Integración con el backend real
+
+Las pruebas de integración están separadas de las respuestas controladas. Requieren Quarkus y Neo4j en un entorno de pruebas: crean dos cuentas con prefijo `qa_` por ejecución y comprueban persistencia al recargar. No interceptan las peticiones HTTP.
+
+Con el backend disponible en el puerto 8080:
+
+```powershell
+$env:BROWSER_EXECUTABLE = 'C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe'
+npm run test:integration
+```
+
+El comando inicia Vite automáticamente. Para un backend en otro puerto, configurar `BACKEND_PROXY_TARGET` antes de ejecutarlo. Para comprobar una aplicación ya servida por Nginx, configurar `INTEGRATION_BASE_URL` con su URL; en ese caso no se inicia Vite.
+
+Se comprobaron los flujos reales de registro, inicio y cierre de sesión, edición de perfil, búsqueda, seguir/dejar de seguir, listas, rechazo de peticiones sin JWT y publicación del contrato OpenAPI. La misma prueba pasó mediante Vite y mediante la imagen de producción con un proxy Nginx temporal de validación.
+
+También pasaron las 52 pruebas del backend (`mvnw verify`) con Neo4j y Redis temporales. Esta validación cubre #6 y #13; no sustituye la implementación del despliegue definitivo de #12.
 
 ## Docker y coordinación
 

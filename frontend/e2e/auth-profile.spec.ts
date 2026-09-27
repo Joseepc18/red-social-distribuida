@@ -135,14 +135,21 @@ test("registro respeta el contrato y lleva al login con confirmación", async ({
 test("login recupera la ruta privada, persiste la sesión y permite salir", async ({
   page,
 }) => {
+  let profileRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/usuarios/me")
+      profileRequests += 1;
+  });
   await login(page, "/perfil");
   await expect(
     page.getByRole("heading", { name: "Mi perfil", exact: true }),
   ).toBeVisible();
+  expect(profileRequests).toBe(1);
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Mi perfil", exact: true }),
   ).toBeVisible();
+  expect(profileRequests).toBeGreaterThan(1);
   await page
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();
@@ -351,4 +358,30 @@ test("restauración fallida permite reintentar o cerrar sesión sin quedar atrap
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();
   await expect(page).toHaveURL(/\/login$/);
+});
+
+test("el registro rechaza correo vacío antes de llamar al backend", async ({
+  page,
+}) => {
+  let registrations = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/auth/registro")
+      registrations += 1;
+  });
+  await page.goto("/registro");
+  await page.getByLabel("Nombre completo").fill("Persona");
+  await page.getByLabel("Nombre de usuario").fill("persona");
+  await page.getByLabel("Contraseña").fill("prueba-local");
+  await page
+    .getByRole("form", { name: "Crear una cuenta", exact: true })
+    .evaluate((form) => {
+      (form as HTMLFormElement).noValidate = true;
+    });
+  await page
+    .getByRole("button", { name: "Crear una cuenta", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Completa los campos obligatorios",
+  );
+  expect(registrations).toBe(0);
 });

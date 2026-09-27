@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -20,9 +21,13 @@ interface AuthProviderProps {
 }
 export function AuthProvider({ children }: AuthProviderProps) {
   const session = useSyncExternalStore(subscribeSession, getSession);
+  const [validatedToken, setValidatedToken] = useState<string | null>(null);
   useEffect(() => {
     const sync = (event: StorageEvent) => {
-      if (event.key === SESSION_KEY || event.key === null) syncSession();
+      if (event.key === SESSION_KEY || event.key === null) {
+        setValidatedToken(null);
+        syncSession();
+      }
     };
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
@@ -38,18 +43,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
     return () => window.clearTimeout(timer);
   }, [session]);
-  const startSession = useCallback(
-    (token: string, user: Profile) => setSession({ token, user }),
-    [],
-  );
+  const startSession = useCallback((token: string, user: Profile) => {
+    setValidatedToken(token);
+    setSession({ token, user });
+  }, []);
   const updateUser = useCallback((user: Profile) => {
     const active = getSession();
     if (active?.user.id === user.id) setSession({ ...active, user });
   }, []);
-  const logout = useCallback(() => setSession(null), []);
+  const logout = useCallback(() => {
+    setValidatedToken(null);
+    setSession(null);
+  }, []);
   const value = useMemo(
-    () => ({ session, startSession, updateUser, logout }),
-    [session, startSession, updateUser, logout],
+    () => ({ session, validatedToken, startSession, updateUser, logout }),
+    [session, validatedToken, startSession, updateUser, logout],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

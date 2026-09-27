@@ -66,36 +66,16 @@
     "gutter": "1.5rem"
   },
   "fontFamily": {
-    "headline-lg": [
-      "Plus Jakarta Sans"
-    ],
-    "headline-lg-mobile": [
-      "Plus Jakarta Sans"
-    ],
-    "label-sm": [
-      "Plus Jakarta Sans"
-    ],
-    "body-md": [
-      "Plus Jakarta Sans"
-    ],
-    "body-sm": [
-      "Plus Jakarta Sans"
-    ],
-    "headline-md": [
-      "Plus Jakarta Sans"
-    ],
-    "body-lg": [
-      "Plus Jakarta Sans"
-    ],
-    "display-lg": [
-      "Plus Jakarta Sans"
-    ],
-    "label-md": [
-      "Plus Jakarta Sans"
-    ],
-    "display-lg-mobile": [
-      "Plus Jakarta Sans"
-    ]
+    "headline-lg": ["Plus Jakarta Sans"],
+    "headline-lg-mobile": ["Plus Jakarta Sans"],
+    "label-sm": ["Plus Jakarta Sans"],
+    "body-md": ["Plus Jakarta Sans"],
+    "body-sm": ["Plus Jakarta Sans"],
+    "headline-md": ["Plus Jakarta Sans"],
+    "body-lg": ["Plus Jakarta Sans"],
+    "display-lg": ["Plus Jakarta Sans"],
+    "label-md": ["Plus Jakarta Sans"],
+    "display-lg-mobile": ["Plus Jakarta Sans"]
   },
   "fontSize": {
     "headline-lg": [

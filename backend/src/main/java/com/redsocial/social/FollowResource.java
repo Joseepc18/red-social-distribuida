@@ -97,4 +97,45 @@ public class FollowResource {
     public List<Sugerencia> suggestions() {
         return service.suggestions(jwt.getSubject());
     }
+
+    @GET
+    @Path("{id}/en-comun")
+    @Operation(summary = "Seguidos en común con un usuario",
+            description = "Usuarios que sigues tú y también el usuario indicado, ordenados por nombre de usuario.")
+    @APIResponse(responseCode = "200", description = "Lista de seguidos en común (puede estar vacía)")
+    @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(responseCode = "404", description = "El usuario no existe (USUARIO_NO_ENCONTRADO)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public List<UsuarioResumen> mutuals(@PathParam("id") String id) {
+        return service.mutuals(jwt.getSubject(), id);
+    }
+
+    @GET
+    @Path("me/alcance")
+    @Operation(summary = "Usuarios alcanzables",
+            description = "Usuarios a los que llegas siguiendo relaciones SIGUE hasta 3 niveles, con la distancia "
+                    + "mínima a cada uno. Ordenados por distancia y luego por nombre de usuario.")
+    @APIResponse(responseCode = "200", description = "Lista de usuarios alcanzables (puede estar vacía)")
+    @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public List<Alcanzable> reach() {
+        return service.reach(jwt.getSubject());
+    }
+
+    @GET
+    @Path("{id}/separacion")
+    @Operation(summary = "Grados de separación con un usuario",
+            description = "Camino más corto sin dirección (hasta 6 saltos). Si no hay camino, grados es null "
+                    + "y cadena está vacía.")
+    @APIResponse(responseCode = "200", description = "Cadena de usuarios y grados de separación")
+    @APIResponse(responseCode = "400", description = "Consulta con uno mismo (MISMO_USUARIO)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(responseCode = "404", description = "El usuario no existe (USUARIO_NO_ENCONTRADO)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public Separacion separation(@PathParam("id") String id) {
+        return service.separation(jwt.getSubject(), id);
+    }
 }

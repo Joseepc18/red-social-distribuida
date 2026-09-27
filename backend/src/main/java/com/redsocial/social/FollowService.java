@@ -46,4 +46,27 @@ public class FollowService {
                 ? repository.suggestions(callerId)
                 : repository.mostFollowed(callerId);
     }
+
+    public List<UsuarioResumen> mutuals(String callerId, String targetId) {
+        requireExists(targetId);
+        return repository.mutuals(callerId, targetId);
+    }
+
+    public List<Alcanzable> reach(String callerId) {
+        return repository.reach(callerId);
+    }
+
+    public Separacion separation(String callerId, String targetId) {
+        if (callerId.equals(targetId)) {
+            throw ApiException.badRequest("MISMO_USUARIO", "No puedes consultar la separación contigo mismo");
+        }
+        requireExists(targetId);
+        return repository.separation(callerId, targetId);
+    }
+
+    private void requireExists(String userId) {
+        if (!repository.exists(userId)) {
+            throw ApiException.notFound("USUARIO_NO_ENCONTRADO", "El usuario no existe");
+        }
+    }
 }

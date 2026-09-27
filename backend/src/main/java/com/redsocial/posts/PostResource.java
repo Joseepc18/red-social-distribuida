@@ -1,6 +1,7 @@
 package com.redsocial.posts;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -65,4 +66,26 @@ public class PostResource {
         return service.find(id);
     }
 
+    @POST
+    @Path("/{id}/reacciones")
+    @Operation(summary = "Reacciona a una publicación",
+            description = "Crea una reacción LIKE del usuario del JWT. Idempotente: reaccionar de nuevo no la "
+                    + "duplica ni cambia su fecha.")
+    @APIResponse(responseCode = "204", description = "Reacción registrada")
+    @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
+    @APIResponse(responseCode = "404", description = "POST_NO_ENCONTRADO, o USUARIO_NO_ENCONTRADO si el usuario ya no existe")
+    public void react(@PathParam("id") String id) {
+        service.react(jwt.getSubject(), id);
+    }
+
+    @DELETE
+    @Path("/{id}/reacciones")
+    @Operation(summary = "Quita la reacción a una publicación",
+            description = "Elimina la reacción del usuario del JWT. Idempotente: responde 204 aunque no exista.")
+    @APIResponse(responseCode = "204", description = "Reacción eliminada")
+    @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
+    @APIResponse(responseCode = "404", description = "POST_NO_ENCONTRADO")
+    public void unreact(@PathParam("id") String id) {
+        service.unreact(jwt.getSubject(), id);
+    }
 }

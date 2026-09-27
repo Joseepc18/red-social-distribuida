@@ -398,7 +398,29 @@ sequenceDiagram
 
 `com.redsocial.shared.PostCreated` es un record con `String postId`, `String authorId` y `String text` (texto validado sin espacios extremos). Publicaciones lo emite mediante CDI `Event<PostCreated>.fireAsync(...)` **después de confirmar la escritura en Neo4j**, fuera de la transacción que el driver puede reintentar. Si falla la validación, la subida o la persistencia, no se emite.
 
-Notificaciones podrá recibirlo con `void onPost(@ObservesAsync PostCreated event)`. El consumidor debe usar `authorId`, sin depender del JWT ni del contexto HTTP. La respuesta `201` no espera al consumidor; sus errores se registran y no deshacen la publicación. Es un evento local en memoria, sin entrega durable ni reintento automático ante caída del proceso; no usa Redis ni envía todavía Web Push.
+Notificaciones lo recibe con `void onPost(@ObservesAsync PostCreated event)`. El consumidor usa `authorId`, sin depender del JWT ni del contexto HTTP. La respuesta `201` no espera al consumidor; sus errores se registran y no deshacen la publicación. Es un evento local en memoria, sin entrega durable ni reintento automático ante caída del proceso; no usa Redis.
+
+### Notificaciones Web Push (issue #30)
+
+Generar las claves VAPID una sola vez (requiere Node.js) y copiarlas en el `.env` de la raíz; Compose las pasa al backend:
+
+```sh
+npx web-push generate-vapid-keys
+```
+
+```dotenv
+VAPID_PUBLIC_KEY=<Public Key>
+VAPID_PRIVATE_KEY=<Private Key>
+VAPID_SUBJECT=mailto:<correo de contacto>
+```
+
+La clave privada no se versiona. Todas las instancias del backend deben usar el mismo par: las suscripciones existentes quedan ligadas a la clave pública con la que se crearon. Sin claves, la aplicación arranca igual, `GET /api/push/clave-publica` responde `503` (`PUSH_NO_CONFIGURADO`) y no se envían notificaciones. En modo desarrollo del backend, las mismas variables van en `backend/.env`.
+
+- `GET /api/push/clave-publica` (público) devuelve `{ "clavePublica": "..." }`, que el navegador usa como `applicationServerKey`.
+- `POST /api/push/suscripciones` recibe `{ endpoint, p256dh, auth }` y responde `204`. Es idempotente por `endpoint`; si ese endpoint ya estaba registrado por otro usuario, pasa al usuario autenticado.
+- `DELETE /api/push/suscripciones` recibe `{ endpoint }` y responde `204`; solo elimina suscripciones del usuario autenticado.
+- El payload es `{ titulo, cuerpo, url }`: `titulo` es "Nueva publicación de <username>", `cuerpo` es el texto recortado a 120 caracteres (el servicio push limita el payload a unos 4 KB) y `url` es `/posts/{id}`.
+- El envío pasa por la interfaz `PushSender`, implementada con `nl.martijndwars:web-push`. Un `404` o `410` elimina la suscripción; otros errores se registran y la conservan, porque pueden ser transitorios.
 
 ### Publicaciones e imágenes (issue #10)
 
@@ -425,7 +447,7 @@ Copy-Item .env.example .env
 
 La copia de `.env` se hace solo la primera vez; si ya existe, conservar sus valores. En Linux o macOS se puede usar `cp .env.example .env`. El archivo `.env` contiene la configuración local y no se sube a Git.
 
-La plantilla incluye valores predeterminados de desarrollo, compartidos con el equipo. Antes del primer arranque, sustituir las contraseñas de `NEO4J_PASSWORD` y `MINIO_ROOT_PASSWORD` en `.env` por contraseñas propias de al menos 8 caracteres. El usuario de MinIO (`MINIO_ROOT_USER`) debe tener al menos 3 caracteres. Compose exige credenciales no vacías; las variables VAPID se mantienen vacías hasta integrar Web Push.
+La plantilla incluye valores predeterminados de desarrollo, compartidos con el equipo. Antes del primer arranque, sustituir las contraseñas de `NEO4J_PASSWORD` y `MINIO_ROOT_PASSWORD` en `.env` por contraseñas propias de al menos 8 caracteres. El usuario de MinIO (`MINIO_ROOT_USER`) debe tener al menos 3 caracteres. Compose exige credenciales no vacías. Las variables VAPID son opcionales para arrancar, pero necesarias para Web Push: ver [Notificaciones Web Push](#notificaciones-web-push-issue-30).
 
 Con la configuración completa, ejecutar:
 

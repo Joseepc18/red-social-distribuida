@@ -123,6 +123,9 @@ Se usa `mvn` de la imagen y no `./mvnw`: la imagen no incluye `unzip` y el wrapp
 | `JWT_LIFESPAN_SECONDS` | `86400` | Vigencia de los tokens emitidos (24 h) |
 | `JWT_PUBLIC_KEY_LOCATION` | `file:/keys/publicKey.pem` | Clave pública para verificar tokens (solo producción) |
 | `JWT_PRIVATE_KEY_LOCATION` | `file:/keys/privateKey.pem` | Clave privada para firmar tokens (solo producción) |
+| `VAPID_PUBLIC_KEY` | (vacío) | Clave pública VAPID de Web Push; sin ella `GET /api/push/clave-publica` responde `503` |
+| `VAPID_PRIVATE_KEY` | (vacío) | Clave privada VAPID con la que se firman las notificaciones |
+| `VAPID_SUBJECT` | (vacío) | Contacto del servidor para los servicios push (`mailto:...`) |
 
 En las pruebas, Neo4j y Redis no usan estas variables: Dev Services levanta contenedores temporales.
 

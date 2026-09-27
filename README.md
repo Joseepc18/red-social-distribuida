@@ -412,7 +412,7 @@ La plantilla incluye valores predeterminados de desarrollo, compartidos con el e
 Con la configuración completa, ejecutar:
 
 ```sh
-docker compose up -d --build
+docker compose up -d --build neo4j redis minio minio-init
 docker compose ps -a
 ```
 
@@ -439,9 +439,23 @@ Para revisar un fallo de arranque: `docker compose logs --tail=50`. Para detener
 - El bucket `media` permite lectura pública y requiere autenticación para escribir.
 - MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Así todos usan las mismas fuentes.
 
-### Integración posterior del backend
+### Aplicación completa con Nginx (issue #12)
 
-Al incorporar el backend al Compose en la issue #12, se configurarán sus credenciales y el montaje de claves JWT en `/keys` como solo lectura. Cuando se añada la segunda instancia, ambas deberán usar el mismo par de claves para aceptar los tokens emitidos por cualquiera de ellas. Las instrucciones de generación están en el [README del backend](backend/README.md#claves-jwt-para-docker); las claves privadas no se versionan.
+Con `.env` preparado, generar una sola vez el par RSA en `backend/keys/` siguiendo el [README del backend](backend/README.md#claves-jwt-para-docker). Conservar las claves entre arranques; Compose las monta en `/keys` como solo lectura y no se suben a Git.
+
+Desde la raíz:
+
+```sh
+docker compose up -d --build
+docker compose ps -a
+curl http://localhost:8080/api/info
+```
+
+Abrir `http://localhost:8080`; `/api/info` debe devolver `{"instancia":"backend-1"}`. Nginx sirve la SPA y dirige `/api` y `/ws` al backend, y `/media/<clave>` al bucket `media` de MinIO. La API recibe automáticamente las credenciales de `.env` y se conecta por los nombres internos de Docker. No necesita `backend/.env` en este modo.
+
+El backend espera a Neo4j, Redis y MinIO saludables y a que `minio-init` finalice correctamente. Nginx espera al backend saludable en `/q/health`. Solo Nginx publica el puerto de aplicación `8080`; los puertos locales de administración de Neo4j y MinIO se conservan para la demo. La segunda instancia, el balanceo y el chat corresponden a tareas posteriores.
+
+Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo (`docker compose down`, conserva datos) y seguir el modo desarrollo del backend, que inicia únicamente la infraestructura y evita ocupar el puerto `8080` con Nginx.
 
 ## Flujo de trabajo
 

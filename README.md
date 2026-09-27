@@ -392,3 +392,57 @@ sequenceDiagram
 - **Evento de publicación:** la respuesta al autor no espera el envío de notificaciones. El módulo de publicaciones emite el evento `PostCreated` y el módulo de notificaciones lo consume de forma asíncrona.
 - **Envío:** el payload `{ titulo, cuerpo, url }` se cifra con las claves de la suscripción y se firma con VAPID; el servicio push lo transporta sin poder leerlo. Si responde `404` o `410`, la suscripción expiró y se elimina del grafo.
 - **Apertura del recurso:** al hacer clic, el Service Worker abre `/posts/{id}` o enfoca la pestaña si ya está abierta.
+
+## Infraestructura base (issue #4)
+
+Se configuró Docker Compose con Neo4j, MinIO y Redis, una red compartida, comprobaciones de salud y creación automática del bucket `media`.
+
+### Puesta en marcha para el equipo
+
+Después de clonar el repositorio, abrir Docker Desktop con contenedores Linux y copiar la plantilla desde la carpeta raíz del proyecto:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+La copia de `.env` se hace solo la primera vez; si ya existe, conservar sus valores. En Linux o macOS se puede usar `cp .env.example .env`. El archivo `.env` contiene la configuración local y no se sube a Git.
+
+La plantilla incluye valores predeterminados de desarrollo, compartidos con el equipo. Antes del primer arranque, sustituir las contraseñas de `NEO4J_PASSWORD` y `MINIO_ROOT_PASSWORD` en `.env` por contraseñas propias de al menos 8 caracteres. El usuario de MinIO (`MINIO_ROOT_USER`) debe tener al menos 3 caracteres. Compose exige credenciales no vacías; las variables VAPID se mantienen vacías hasta integrar Web Push.
+
+Con la configuración completa, ejecutar:
+
+```sh
+docker compose up -d --build
+docker compose ps -a
+```
+
+Si Neo4j ya tiene datos, editar `.env` no cambia su contraseña: primero debe actualizarse dentro de la base existente.
+
+Para ejecutar el backend desde la terminal o el IDE, seguir el [modo desarrollo del backend](backend/README.md#modo-desarrollo): usar `docker-compose.dev.yml` junto al Compose base y configurar `backend/.env` con las credenciales de tu `.env` raíz. Ese modo habilita Redis y la API de MinIO solo en la propia computadora (`127.0.0.1`). Cada integrante utiliza sus propios contenedores y datos.
+
+El primer arranque requiere internet y tarda más porque descarga dependencias y compila MinIO automáticamente. No hace falta instalar Go ni MinIO en la laptop. Las siguientes ejecuciones reutilizan las imágenes construidas.
+
+Esperar a que Neo4j, MinIO y Redis aparezcan como `healthy`. El servicio `minio-init` debe mostrar `Exited (0)`: significa que creó o verificó el bucket y terminó correctamente.
+
+| Acceso | Inicio de sesión |
+|---|---|
+| [Neo4j Browser](http://localhost:7474) | Conexión `bolt://localhost:7687`, usuario `neo4j` y valor de `NEO4J_PASSWORD` en `.env` |
+| [Consola MinIO](http://localhost:9001) | Valores de `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` en `.env` |
+
+En MinIO debe aparecer el bucket `media`. Redis funciona internamente y no tiene consola web. Si los puertos `7474`, `7687` o `9001` están ocupados, cambiar sus variables en `.env` y ajustar las direcciones de acceso.
+
+Para revisar un fallo de arranque: `docker compose logs --tail=50`. Para detener el entorno conservando los datos: `docker compose down`.
+
+### Decisiones técnicas
+
+- Neo4j y MinIO conservan datos en volúmenes; Redis funciona solo en memoria para Pub/Sub.
+- El bucket `media` permite lectura pública y requiere autenticación para escribir.
+- MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Así todos usan las mismas fuentes.
+
+### Integración posterior del backend
+
+Al incorporar el backend al Compose en la issue #12, se configurarán sus credenciales y el montaje de claves JWT en `/keys` como solo lectura. Cuando se añada la segunda instancia, ambas deberán usar el mismo par de claves para aceptar los tokens emitidos por cualquiera de ellas. Las instrucciones de generación están en el [README del backend](backend/README.md#claves-jwt-para-docker); las claves privadas no se versionan.
+
+## Flujo de trabajo
+
+Las ramas de trabajo parten de `develop` y los PR se dirigen a `develop`. La rama `main` se reserva para las versiones listas para la entrega.

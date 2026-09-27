@@ -39,6 +39,11 @@ public class WebPushSender implements PushSender {
     }
 
     @Override
+    public boolean enabled() {
+        return config.publicKey().isPresent() && config.privateKey().isPresent() && config.subject().isPresent();
+    }
+
+    @Override
     public int send(PushTarget target, String payload) throws Exception {
         Notification notification = new Notification(target.endpoint(), target.p256dh(), target.auth(), payload);
         // The library defaults to the legacy "aesgcm" draft; RFC 8291 aes128gcm is the one every browser accepts.

@@ -17,7 +17,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-import com.redsocial.shared.error.ApiException;
 import com.redsocial.shared.error.ErrorResponse;
 
 import io.quarkus.security.Authenticated;
@@ -31,13 +30,11 @@ import io.quarkus.security.Authenticated;
 @Produces(MediaType.APPLICATION_JSON)
 public class PushResource {
 
-    private final PushRepository repository;
-    private final VapidConfig vapid;
+    private final PushSubscriptionService service;
     private final JsonWebToken jwt;
 
-    public PushResource(PushRepository repository, VapidConfig vapid, JsonWebToken jwt) {
-        this.repository = repository;
-        this.vapid = vapid;
+    public PushResource(PushSubscriptionService service, JsonWebToken jwt) {
+        this.service = service;
         this.jwt = jwt;
     }
 
@@ -49,10 +46,7 @@ public class PushResource {
     @APIResponse(responseCode = "503", description = "El servidor no tiene claves VAPID (PUSH_NO_CONFIGURADO)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ClavePublica publicKey() {
-        return vapid.publicKey()
-                .map(ClavePublica::new)
-                .orElseThrow(() -> new ApiException(503, "PUSH_NO_CONFIGURADO",
-                        "Las notificaciones push no están configuradas en el servidor"));
+        return service.publicKey();
     }
 
     @POST
@@ -70,9 +64,7 @@ public class PushResource {
     @APIResponse(responseCode = "404", description = "El usuario del token no existe (USUARIO_NO_ENCONTRADO)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public void subscribe(@Valid @NotNull(message = "el cuerpo es obligatorio") SuscripcionRequest request) {
-        if (!repository.subscribe(jwt.getSubject(), request.endpoint(), request.p256dh(), request.auth())) {
-            throw ApiException.notFound("USUARIO_NO_ENCONTRADO", "El usuario no existe");
-        }
+        service.subscribe(jwt.getSubject(), request);
     }
 
     @DELETE
@@ -88,6 +80,6 @@ public class PushResource {
     @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public void unsubscribe(@Valid @NotNull(message = "el cuerpo es obligatorio") EndpointRequest request) {
-        repository.unsubscribe(jwt.getSubject(), request.endpoint());
+        service.unsubscribe(jwt.getSubject(), request.endpoint());
     }
 }

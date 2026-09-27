@@ -1,5 +1,6 @@
 package com.redsocial.notificaciones;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,6 +46,7 @@ class WebPushSenderTest {
             }
         };
         WebPushSender sender = new WebPushSender(config, Duration.ofMillis(300));
+        assertTrue(sender.enabled());
 
         try (ServerSocket hung = new ServerSocket(0)) {
             acceptWithoutAnswering(hung);
@@ -55,6 +57,25 @@ class WebPushSenderTest {
             assertThrows(TimeoutException.class, () -> sender.send(target, "{}"));
             assertTrue(Duration.ofNanos(System.nanoTime() - start).toMillis() < 5000);
         }
+    }
+
+    @Test
+    void isDisabledUntilTheThreeVapidValuesAreSet() {
+        VapidConfig onlyPublicKey = new VapidConfig() {
+            public Optional<String> publicKey() {
+                return Optional.of("public");
+            }
+
+            public Optional<String> privateKey() {
+                return Optional.empty();
+            }
+
+            public Optional<String> subject() {
+                return Optional.empty();
+            }
+        };
+
+        assertFalse(new WebPushSender(onlyPublicKey).enabled());
     }
 
     // Keeps the accepted connection open without ever writing a response.

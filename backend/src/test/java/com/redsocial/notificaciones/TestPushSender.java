@@ -22,6 +22,17 @@ public class TestPushSender implements PushSender {
     private final Map<String, BlockingQueue<Sent>> sent = new ConcurrentHashMap<>();
     private final Map<String, Integer> statuses = new ConcurrentHashMap<>();
     private final Map<String, CountDownLatch> gates = new ConcurrentHashMap<>();
+    private volatile boolean enabled = true;
+
+    @Override
+    public boolean enabled() {
+        return enabled;
+    }
+
+    /** Simulates a server started without VAPID keys. */
+    public void enabled(boolean value) {
+        enabled = value;
+    }
 
     @Override
     public int send(PushTarget target, String payload) throws InterruptedException {

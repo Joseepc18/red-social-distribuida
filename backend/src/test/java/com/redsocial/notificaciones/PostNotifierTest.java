@@ -120,6 +120,23 @@ class PostNotifierTest {
     }
 
     @Test
+    void nothingIsSentWithoutVapidKeys() throws Exception {
+        String author = createUser("autor");
+        String follower = createUser("seguidor");
+        follow(follower, author);
+        String endpoint = subscribe(follower);
+        sender.enabled(false);
+        try {
+            post(author, "Sin claves").then().statusCode(201);
+
+            assertNull(sender.await(endpoint, 500));
+            assertEquals(1, subscriptionCount(endpoint));
+        } finally {
+            sender.enabled(true);
+        }
+    }
+
+    @Test
     void longTextsAreTruncatedInTheNotificationBody() throws Exception {
         String author = createUser("autor");
         String follower = createUser("seguidor");

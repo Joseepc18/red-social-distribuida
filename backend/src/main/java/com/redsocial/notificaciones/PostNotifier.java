@@ -34,6 +34,10 @@ public class PostNotifier {
     }
 
     void onPost(@ObservesAsync PostCreated event) throws JsonProcessingException {
+        if (!sender.enabled()) {
+            // Without VAPID keys every delivery would fail; GET /api/push/clave-publica already reports it.
+            return;
+        }
         List<PushTarget> targets = repository.followersToNotify(event.authorId());
         if (targets.isEmpty()) {
             return;

@@ -408,7 +408,7 @@ Los tres endpoints requieren JWT: `POST /api/posts`, `GET /api/posts/{id}` y `GE
 - Respuesta: `{ id, texto, fecha, autor: { id, username, nombre }, mediaKey, mediaTipo, mediaUrl }`. Los tres campos media son `null` sin imagen. `mediaUrl` se construye con `MEDIA_PUBLIC_URL` (por defecto `/media/`) y la clave; la URL no se guarda en el grafo.
 - El listado devuelve un array de hasta 20 elementos por página, desde 0, ordenado por fecha e id descendentes. Menos de 20 elementos indica el final; un usuario sin publicaciones devuelve `[]`. Un usuario o post inexistente devuelve `404`.
 
-Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/media/` se resuelve mediante su proxy; para acceder directamente a MinIO se puede configurar `MEDIA_PUBLIC_URL=http://localhost:9000/media/` en el backend. El proxy Nginx del PR #22 deberá admitir peticiones de al menos 6 MiB al integrar la subida (5 MiB de archivo más el formulario).
+Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/media/` se resuelve mediante su proxy; para acceder directamente a MinIO se puede configurar `MEDIA_PUBLIC_URL=http://localhost:9000/media/` en el backend. Para el despliegue completo, el PR #22 incluye el límite de 6 MiB en Nginx (5 MiB de archivo más el formulario) y pasa `MEDIA_PUBLIC_URL` al backend. Este módulo puede desarrollarse y probarse sin ese proxy.
 
 ## Infraestructura base (issue #4)
 

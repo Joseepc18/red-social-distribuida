@@ -6,7 +6,8 @@ export function usePeopleSearch() {
   const [params, setParams] = useSearchParams();
   const query = params.get("q") ?? "";
   const load = useCallback(
-    (signal: AbortSignal) => users.search(query, signal),
+    (signal: AbortSignal) =>
+      query ? users.search(query, signal) : Promise.resolve([]),
     [query],
   );
   const remote = useRemote(query, load);

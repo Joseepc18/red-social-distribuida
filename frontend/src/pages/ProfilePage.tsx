@@ -7,6 +7,7 @@ import { Button } from "../components/Button";
 import { ProfileEditor } from "../components/ProfileEditor";
 import { StatusMessage } from "../components/StatusMessage";
 import { UserCard } from "../components/UserCard";
+import { ProfileGraph } from "../components/ProfileGraph";
 import { copy, profileCopy } from "../content/copy";
 interface ProfilePageProps {
   readonly userId?: string;
@@ -90,6 +91,9 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
           )}
         </div>
       </Card>
+      {!state.own && (
+        <ProfileGraph key={userId + ":" + state.following} userId={userId} />
+      )}
       <Card>
         <div
           className="mb-6 flex flex-wrap gap-3"

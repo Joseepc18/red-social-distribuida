@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import type { UserSummary } from "../types/api";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
-import { profileCopy } from "../data/mockData";
+import { profileCopy } from "../content/copy";
 interface UserCardProps {
   readonly user: UserSummary;
   readonly compact?: boolean;

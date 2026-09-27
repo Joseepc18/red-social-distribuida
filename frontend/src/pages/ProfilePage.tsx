@@ -7,7 +7,7 @@ import { Button } from "../components/Button";
 import { ProfileEditor } from "../components/ProfileEditor";
 import { StatusMessage } from "../components/StatusMessage";
 import { UserCard } from "../components/UserCard";
-import { copy, profileCopy } from "../data/mockData";
+import { copy, profileCopy } from "../content/copy";
 interface ProfilePageProps {
   readonly userId?: string;
 }

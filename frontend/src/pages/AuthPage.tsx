@@ -7,7 +7,7 @@ import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Icon } from "../components/Icon";
 import { StatusMessage } from "../components/StatusMessage";
-import { authCopy, copy } from "../data/mockData";
+import { authCopy, copy } from "../content/copy";
 interface AuthPageProps {
   readonly mode: "login" | "register";
 }

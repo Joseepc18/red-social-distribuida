@@ -1,4 +1,4 @@
-import { copy } from "../data/mockData";
+import { copy } from "../content/copy";
 import { getSession, setSession } from "./session";
 import type { ApiErrorBody } from "../types/api";
 

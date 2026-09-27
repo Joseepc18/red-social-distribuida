@@ -3,24 +3,26 @@ import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { useRemote } from "../hooks/useRemote";
 import { users } from "../services/users";
+import { getSession } from "../lib/session";
 import { StatusMessage } from "./StatusMessage";
 import { Button } from "./Button";
-import { copy } from "../data/mockData";
+import { copy } from "../content/copy";
 interface ProtectedRouteProps {
   readonly children?: never;
 }
 export function ProtectedRoute(_props: ProtectedRouteProps) {
-  const { session, updateUser, logout } = useAuth();
+  const { session, validatedToken, updateUser, logout } = useAuth();
   const location = useLocation();
   const token = session?.token;
   const load = useCallback(
     async (signal: AbortSignal) => {
       if (!token) return null;
+      if (validatedToken === token) return getSession()?.user ?? null;
       const profile = await users.me(signal, token);
       if (!signal.aborted) updateUser(profile);
       return profile;
     },
-    [token, updateUser],
+    [token, validatedToken, updateUser],
   );
   const remote = useRemote(token ?? "signed-out", load);
   if (!session)

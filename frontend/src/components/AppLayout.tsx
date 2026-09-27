@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from "react-router";
-import { copy, navigation } from "../data/mockData";
+import { copy, navigation } from "../content/copy";
 import { useAuth } from "../hooks/useAuth";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";

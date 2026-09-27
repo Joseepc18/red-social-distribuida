@@ -1,0 +1,179 @@
+{
+  "colors": {
+    "surface": "#faf8ff",
+    "background": "#faf8ff",
+    "on-primary-fixed-variant": "#0039b5",
+    "on-surface": "#131b2e",
+    "on-primary": "#ffffff",
+    "tertiary-fixed-dim": "#ffb95f",
+    "surface-container-high": "#e2e7ff",
+    "surface-tint": "#2151da",
+    "secondary-fixed": "#ffdbce",
+    "outline-variant": "#c4c5d7",
+    "primary": "#0037b0",
+    "tertiary": "#623c00",
+    "on-tertiary-container": "#ffcb8f",
+    "on-tertiary-fixed": "#2a1700",
+    "primary-fixed-dim": "#b7c4ff",
+    "tertiary-container": "#825100",
+    "secondary-container": "#fd651e",
+    "surface-container": "#eaedff",
+    "surface-container-lowest": "#ffffff",
+    "on-secondary-container": "#571a00",
+    "surface-dim": "#d2d9f4",
+    "on-surface-variant": "#434655",
+    "outline": "#747686",
+    "tertiary-fixed": "#ffddb8",
+    "on-secondary": "#ffffff",
+    "on-primary-fixed": "#001551",
+    "surface-container-low": "#f2f3ff",
+    "on-error-container": "#93000a",
+    "on-tertiary": "#ffffff",
+    "on-tertiary-fixed-variant": "#653e00",
+    "secondary-fixed-dim": "#ffb599",
+    "error": "#ba1a1a",
+    "primary-fixed": "#dce1ff",
+    "inverse-on-surface": "#eef0ff",
+    "surface-bright": "#faf8ff",
+    "on-primary-container": "#cad3ff",
+    "on-secondary-fixed": "#370e00",
+    "primary-container": "#1d4ed8",
+    "surface-container-highest": "#dae2fd",
+    "inverse-primary": "#b7c4ff",
+    "inverse-surface": "#283044",
+    "on-background": "#131b2e",
+    "on-error": "#ffffff",
+    "on-secondary-fixed-variant": "#7f2b00",
+    "error-container": "#ffdad6",
+    "secondary": "#a73a00",
+    "surface-variant": "#dae2fd"
+  },
+  "borderRadius": {
+    "DEFAULT": "0.25rem",
+    "lg": "0.5rem",
+    "xl": "0.75rem",
+    "full": "9999px"
+  },
+  "spacing": {
+    "gutter-mobile": "1rem",
+    "space-xl": "2rem",
+    "space-md": "1rem",
+    "space-lg": "1.5rem",
+    "margin-mobile": "1rem",
+    "space-xs": "0.25rem",
+    "space-sm": "0.5rem",
+    "margin": "2rem",
+    "gutter": "1.5rem"
+  },
+  "fontFamily": {
+    "headline-lg": [
+      "Plus Jakarta Sans"
+    ],
+    "headline-lg-mobile": [
+      "Plus Jakarta Sans"
+    ],
+    "label-sm": [
+      "Plus Jakarta Sans"
+    ],
+    "body-md": [
+      "Plus Jakarta Sans"
+    ],
+    "body-sm": [
+      "Plus Jakarta Sans"
+    ],
+    "headline-md": [
+      "Plus Jakarta Sans"
+    ],
+    "body-lg": [
+      "Plus Jakarta Sans"
+    ],
+    "display-lg": [
+      "Plus Jakarta Sans"
+    ],
+    "label-md": [
+      "Plus Jakarta Sans"
+    ],
+    "display-lg-mobile": [
+      "Plus Jakarta Sans"
+    ]
+  },
+  "fontSize": {
+    "headline-lg": [
+      "2rem",
+      {
+        "lineHeight": "2.5rem",
+        "letterSpacing": "-0.02em",
+        "fontWeight": "700"
+      }
+    ],
+    "headline-lg-mobile": [
+      "1.5rem",
+      {
+        "lineHeight": "2rem",
+        "letterSpacing": "-0.015em",
+        "fontWeight": "700"
+      }
+    ],
+    "label-sm": [
+      "0.75rem",
+      {
+        "lineHeight": "1rem",
+        "letterSpacing": "0.02em",
+        "fontWeight": "600"
+      }
+    ],
+    "body-md": [
+      "1rem",
+      {
+        "lineHeight": "1.5rem",
+        "fontWeight": "400"
+      }
+    ],
+    "body-sm": [
+      "0.875rem",
+      {
+        "lineHeight": "1.25rem",
+        "fontWeight": "400"
+      }
+    ],
+    "headline-md": [
+      "1.25rem",
+      {
+        "lineHeight": "1.75rem",
+        "letterSpacing": "-0.01em",
+        "fontWeight": "600"
+      }
+    ],
+    "body-lg": [
+      "1.125rem",
+      {
+        "lineHeight": "1.75rem",
+        "fontWeight": "400"
+      }
+    ],
+    "display-lg": [
+      "3rem",
+      {
+        "lineHeight": "3.5rem",
+        "letterSpacing": "-0.025em",
+        "fontWeight": "800"
+      }
+    ],
+    "label-md": [
+      "0.875rem",
+      {
+        "lineHeight": "1.25rem",
+        "letterSpacing": "0.01em",
+        "fontWeight": "600"
+      }
+    ],
+    "display-lg-mobile": [
+      "2.25rem",
+      {
+        "lineHeight": "2.75rem",
+        "letterSpacing": "-0.02em",
+        "fontWeight": "800"
+      }
+    ]
+  }
+}

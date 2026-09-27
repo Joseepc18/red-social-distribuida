@@ -1,0 +1,7 @@
+node_modules
+dist
+.stitch
+coverage
+.env*
+test-results
+playwright-report

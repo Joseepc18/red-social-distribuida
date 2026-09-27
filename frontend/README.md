@@ -74,6 +74,8 @@ docker compose up -d --build
 
 La aplicación se abre en `http://localhost:8080`. La imagen compila con Node y sirve la SPA con Nginx, incluido el fallback a `index.html` para las rutas de React.
 
+El proxy admite peticiones de hasta 6 MiB para las publicaciones con imágenes de hasta 5 MiB (el backend valida el archivo). Compose permite configurar `MEDIA_PUBLIC_URL`; su valor predeterminado `/media/` conserva el mismo origen del navegador.
+
 `nginx.conf` reenvía `/api` y `/ws` a `backend-1:8080`, y `/media` a `minio:9000` conservando el nombre del bucket. Requiere la red y los servicios de Compose. WebSocket usa HTTP/1.1, cabeceras de upgrade y un timeout de una hora; los logs de acceso omiten la query y el Referer, y se descartan los errores de `/ws` porque pueden incluir el token. El chat se implementa en una tarea posterior.
 
 ### Dependencias para #14

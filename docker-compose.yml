@@ -94,6 +94,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?Completa MINIO_ROOT_USER en .env}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?Completa MINIO_ROOT_PASSWORD en .env}
       MINIO_BUCKET: media
+      MEDIA_PUBLIC_URL: ${MEDIA_PUBLIC_URL:-/media/}
       JWT_PUBLIC_KEY_LOCATION: file:/keys/publicKey.pem
       JWT_PRIVATE_KEY_LOCATION: file:/keys/privateKey.pem
     volumes:

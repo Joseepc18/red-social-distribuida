@@ -14,7 +14,7 @@ Preparar el `.env` de la raíz según el [README principal](../README.md#puesta-
 Desde la raíz, iniciar la infraestructura con los puertos locales necesarios para Quarkus:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build neo4j redis minio minio-init
 docker compose -f docker-compose.yml -f docker-compose.dev.yml ps -a
 ```
 
@@ -68,17 +68,29 @@ El build es multi-stage (Maven con JDK 21 → JRE 21) y genera el layout *fast-j
 
 ### Claves JWT para Docker
 
-En producción el backend lee el par de claves desde archivos montados en el contenedor. Se generan una sola vez
+En producción el backend lee el par de claves desde archivos montados en el contenedor. Desde `backend/`, se generan una sola vez
 y **nunca se versionan** (`*.pem` y `keys/` están en `.gitignore`):
 
 ```bash
 mkdir -p keys
+[ ! -e keys/privateKey.pem ] && [ ! -e keys/publicKey.pem ] || { echo 'Ya existen claves; conservarlas.'; exit 1; }
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/privateKey.pem
 openssl pkey -in keys/privateKey.pem -pubout -out keys/publicKey.pem
 ```
 
-Montar la carpeta en `/keys` (por ejemplo `./backend/keys:/keys:ro`). Todas las instancias del backend deben usar
-el mismo par de claves para aceptar los tokens emitidos por cualquiera de ellas.
+Alternativa en PowerShell 7, también desde `backend/` (sin instalar OpenSSL):
+
+```powershell
+New-Item -ItemType Directory -Force keys | Out-Null
+if ((Test-Path keys/privateKey.pem) -or (Test-Path keys/publicKey.pem)) { throw 'Ya existen claves; conservarlas.' }
+$rsa = [System.Security.Cryptography.RSA]::Create(2048)
+try {
+    [IO.File]::WriteAllText((Join-Path $PWD 'keys/privateKey.pem'), $rsa.ExportPkcs8PrivateKeyPem())
+    [IO.File]::WriteAllText((Join-Path $PWD 'keys/publicKey.pem'), $rsa.ExportSubjectPublicKeyInfoPem())
+} finally { $rsa.Dispose() }
+```
+
+Compose monta `./backend/keys:/keys:ro`; el usuario del backend (UID 185) necesita permiso de lectura. No regenerar las claves en cada arranque: invalidaría los tokens existentes. Cuando se agregue otra instancia, ambas deberán usar el mismo par.
 
 ### Sin Java instalado
 
@@ -106,12 +118,25 @@ Se usa `mvn` de la imagen y no `./mvnw`: la imagen no incluye `unzip` y el wrapp
 | `MINIO_ACCESS_KEY` | `minioadmin` | Credencial de acceso a MinIO |
 | `MINIO_SECRET_KEY` | `minioadmin` | Credencial secreta de MinIO |
 | `MINIO_BUCKET` | `media` | Bucket de archivos |
+| `MEDIA_PUBLIC_URL` | `/media/` | Prefijo público de las imágenes; se concatena con la clave del objeto |
 | `JWT_ISSUER` | `red-social` | Emisor (`iss`) de los tokens, validado al recibirlos |
 | `JWT_LIFESPAN_SECONDS` | `86400` | Vigencia de los tokens emitidos (24 h) |
 | `JWT_PUBLIC_KEY_LOCATION` | `file:/keys/publicKey.pem` | Clave pública para verificar tokens (solo producción) |
 | `JWT_PRIVATE_KEY_LOCATION` | `file:/keys/privateKey.pem` | Clave privada para firmar tokens (solo producción) |
 
 En las pruebas, Neo4j y Redis no usan estas variables: Dev Services levanta contenedores temporales.
+
+## Publicaciones (#9 y #10)
+
+El [contrato de publicaciones y del evento](../README.md#contrato-interno-postcreated-issues-9-y-10) está en el README principal. Ejemplo con un JWT de login, desde Bash:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" -F 'texto=Mi primera publicación' -F 'archivo=@foto.png;type=image/png' http://localhost:8080/api/posts
+```
+
+Omitir `archivo` para publicar solo texto. Quarkus acepta hasta 6 MiB por petición (incluido el formulario), mientras el servicio limita cada imagen a 5 MiB. El archivo temporal se elimina al terminar la petición. Para probar mediante un proxy, configurar también allí el límite de 6 MiB.
+
+`./mvnw verify` comprueba creación/consulta, paginación, permisos, validación de archivos, fallos de almacenamiento y emisión asíncrona después del commit. Estas pruebas usan Neo4j y Redis temporales y una implementación de `MediaStorage` en memoria; la integración S3 se verifica aparte con MinIO real.
 
 ## Convenciones
 

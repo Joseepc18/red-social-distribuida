@@ -77,22 +77,21 @@ npm run test:integration
 
 El comando inicia Vite automáticamente. Para un backend en otro puerto, configurar `BACKEND_PROXY_TARGET` antes de ejecutarlo. Para comprobar una aplicación ya servida por Nginx, configurar `INTEGRATION_BASE_URL` con su URL; en ese caso no se inicia Vite.
 
-Se comprobaron los flujos reales de registro, inicio y cierre de sesión, edición de perfil, búsqueda, seguir/dejar de seguir, listas, rechazo de peticiones sin JWT y publicación del contrato OpenAPI. La misma prueba pasó mediante Vite y mediante la imagen de producción con un proxy Nginx temporal de validación.
-
-También pasaron las 52 pruebas del backend (`mvnw verify`) con Neo4j y Redis temporales. Esta validación cubre #6 y #13; no sustituye la implementación del despliegue definitivo de #12.
+Para probar la aplicación completa con los servicios reales, levantarla con Compose como se indica a continuación y ejecutar las pruebas con `INTEGRATION_BASE_URL=http://localhost:8080`.
 
 ## Docker y coordinación
 
-Desde la raíz del repositorio:
+Preparar `.env` y las claves JWT según el [README principal](../README.md#aplicación-completa-con-nginx-issue-12). Desde la raíz del repositorio:
 
 ```bash
-docker build -t red-social-frontend ./frontend
-docker run --rm -p 8081:80 red-social-frontend
+docker compose up -d --build
 ```
 
-La imagen compila con Node y sirve los archivos con Nginx. Incluye fallback a index.html para rutas de la SPA; devuelve 503 en las rutas de servicios hasta que la infraestructura configure los upstreams.
+La aplicación se abre en `http://localhost:8080`. La imagen compila con Node y sirve la SPA con Nginx, incluido el fallback a `index.html` para las rutas de React.
 
-La configuración de proxy, el servicio Compose y el punto de entrada final en el puerto 8080 corresponden a #12. El responsable de infraestructura debe ampliar o sustituir `frontend/nginx-spa.conf`.
+El proxy admite peticiones de hasta 6 MiB para las publicaciones con imágenes de hasta 5 MiB (el backend valida el archivo). Compose permite configurar `MEDIA_PUBLIC_URL`; su valor predeterminado `/media/` conserva el mismo origen del navegador.
+
+`nginx.conf` reenvía `/api` y `/ws` a `backend-1:8080`, y `/media` a `minio:9000` conservando el nombre del bucket. Requiere la red y los servicios de Compose. WebSocket usa HTTP/1.1, cabeceras de upgrade y un timeout de una hora; los logs de acceso omiten la query y el Referer, y se descartan los errores de `/ws` porque pueden incluir el token. El chat se implementa en una tarea posterior.
 
 ### Dependencias para #14
 

@@ -1,0 +1,19 @@
+# Store and check out text files with LF on every platform,
+# so Windows checkouts match the formatter and the Linux containers.
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF to run in cmd/PowerShell.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files: never normalize or diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.jar binary
+*.woff binary
+*.woff2 binary

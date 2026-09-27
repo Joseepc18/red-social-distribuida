@@ -393,6 +393,23 @@ sequenceDiagram
 - **Envío:** el payload `{ titulo, cuerpo, url }` se cifra con las claves de la suscripción y se firma con VAPID; el servicio push lo transporta sin poder leerlo. Si responde `404` o `410`, la suscripción expiró y se elimina del grafo.
 - **Apertura del recurso:** al hacer clic, el Service Worker abre `/posts/{id}` o enfoca la pestaña si ya está abierta.
 
+### Contrato interno `PostCreated` (issues #9 y #10)
+
+`com.redsocial.shared.PostCreated` es un record con `String postId`, `String authorId` y `String text` (texto validado sin espacios extremos). Publicaciones lo emite mediante CDI `Event<PostCreated>.fireAsync(...)` **después de confirmar la escritura en Neo4j**, fuera de la transacción que el driver puede reintentar. Si falla la validación, la subida o la persistencia, no se emite.
+
+Notificaciones podrá recibirlo con `void onPost(@ObservesAsync PostCreated event)`. El consumidor debe usar `authorId`, sin depender del JWT ni del contexto HTTP. La respuesta `201` no espera al consumidor; sus errores se registran y no deshacen la publicación. Es un evento local en memoria, sin entrega durable ni reintento automático ante caída del proceso; no usa Redis ni envía todavía Web Push.
+
+### Publicaciones e imágenes (issue #10)
+
+Los tres endpoints requieren JWT: `POST /api/posts`, `GET /api/posts/{id}` y `GET /api/usuarios/{id}/posts?page=0`.
+
+- El POST recibe `multipart/form-data`: `texto` obligatorio (1–5000 caracteres, sin espacios extremos) y `archivo` opcional. Admite PNG, JPEG y GIF, hasta **5 MiB**; verifica contenido y MIME, y limita el primer fotograma a 20 megapíxeles. No admite SVG. Estos límites acotan el almacenamiento y la memoria de validación.
+- La imagen se guarda mediante `MediaStorage` en el bucket `media`, con clave `posts/<postId>/<uuid>.<ext>`. Neo4j conserva la relación `PUBLICA`, el texto, la fecha y las referencias `mediaKey`/`mediaTipo`. Si falla la escritura del grafo, se intenta eliminar el objeto subido; un fallo de limpieza queda en logs para revisión.
+- Respuesta: `{ id, texto, fecha, autor: { id, username, nombre }, mediaKey, mediaTipo, mediaUrl }`. Los tres campos media son `null` sin imagen. `mediaUrl` se construye con `MEDIA_PUBLIC_URL` (por defecto `/media/`) y la clave; la URL no se guarda en el grafo.
+- El listado devuelve un array de hasta 20 elementos por página, desde 0, ordenado por fecha e id descendentes. Menos de 20 elementos indica el final; un usuario sin publicaciones devuelve `[]`. Un usuario o post inexistente devuelve `404`.
+
+Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/media/` se resuelve mediante su proxy; para acceder directamente a MinIO se puede configurar `MEDIA_PUBLIC_URL=http://localhost:9000/media/` en el backend. Para el despliegue completo, el PR #22 incluye el límite de 6 MiB en Nginx (5 MiB de archivo más el formulario) y pasa `MEDIA_PUBLIC_URL` al backend. Este módulo puede desarrollarse y probarse sin ese proxy.
+
 ## Infraestructura base (issue #4)
 
 Se configuró Docker Compose con Neo4j, MinIO y Redis, una red compartida, comprobaciones de salud y creación automática del bucket `media`.
@@ -412,7 +429,7 @@ La plantilla incluye valores predeterminados de desarrollo, compartidos con el e
 Con la configuración completa, ejecutar:
 
 ```sh
-docker compose up -d --build
+docker compose up -d --build neo4j redis minio minio-init
 docker compose ps -a
 ```
 
@@ -439,10 +456,34 @@ Para revisar un fallo de arranque: `docker compose logs --tail=50`. Para detener
 - El bucket `media` permite lectura pública y requiere autenticación para escribir.
 - MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Así todos usan las mismas fuentes.
 
-### Integración posterior del backend
+### Aplicación completa con Nginx (issue #12)
 
-Al incorporar el backend al Compose en la issue #12, se configurarán sus credenciales y el montaje de claves JWT en `/keys` como solo lectura. Cuando se añada la segunda instancia, ambas deberán usar el mismo par de claves para aceptar los tokens emitidos por cualquiera de ellas. Las instrucciones de generación están en el [README del backend](backend/README.md#claves-jwt-para-docker); las claves privadas no se versionan.
+Con `.env` preparado, generar una sola vez el par RSA en `backend/keys/` siguiendo el [README del backend](backend/README.md#claves-jwt-para-docker). Conservar las claves entre arranques; Compose las monta en `/keys` como solo lectura y no se suben a Git.
+
+Desde la raíz:
+
+```sh
+docker compose up -d --build
+docker compose ps -a
+curl http://localhost:8080/api/info
+```
+
+Abrir `http://localhost:8080`; `/api/info` debe devolver `{"instancia":"backend-1"}`. Nginx sirve la SPA y dirige `/api` y `/ws` al backend, y `/media/<clave>` al bucket `media` de MinIO. La API recibe automáticamente las credenciales de `.env` y se conecta por los nombres internos de Docker. No necesita `backend/.env` en este modo.
+
+El backend espera a Neo4j, Redis y MinIO saludables y a que `minio-init` finalice correctamente. Nginx espera al backend saludable en `/q/health`. Solo Nginx publica el puerto de aplicación `8080`; los puertos locales de administración de Neo4j y MinIO se conservan para la demo. La segunda instancia, el balanceo y el chat corresponden a tareas posteriores.
+
+Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo (`docker compose down`, conserva datos) y seguir el modo desarrollo del backend, que inicia únicamente la infraestructura y evita ocupar el puerto `8080` con Nginx.
 
 ## Flujo de trabajo
 
 Las ramas de trabajo parten de `develop` y los PR se dirigen a `develop`. La rama `main` se reserva para las versiones listas para la entrega.
+
+Cada PR y cada push a `develop` o `main` ejecutan la integración continua (`.github/workflows/ci.yml`) en GitHub Actions:
+
+| Job | Validación |
+|---|---|
+| Backend (Quarkus) | `./mvnw -B -ntp verify` con Java 21; las pruebas levantan Neo4j y Redis con Dev Services |
+| Frontend (React) | `npm run check` (lint, validación de componentes, pruebas y build) y `npm run format:check` |
+| Docker Compose config | `docker compose config` del archivo base y del modo desarrollo con los valores de `.env.example` |
+
+Un PR se integra cuando los tres jobs pasan. El archivo `.gitattributes` fija finales de línea LF para que las copias en Windows coincidan con el formateador y con los contenedores Linux.

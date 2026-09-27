@@ -27,7 +27,7 @@ import io.quarkus.security.Authenticated;
  * Every method requires a valid JWT.
  */
 @Path("/usuarios")
-@Tag(name = "Social", description = "Seguir y dejar de seguir usuarios")
+@Tag(name = "Social", description = "Seguir usuarios y consultas del grafo social")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated
 public class FollowResource {
@@ -84,5 +84,17 @@ public class FollowResource {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public List<UsuarioResumen> followed(@PathParam("id") String id) {
         return service.followed(id);
+    }
+
+    @GET
+    @Path("me/sugerencias")
+    @Operation(summary = "Sugerencias de usuarios a seguir",
+            description = "Amigos de amigos que aún no sigues, ordenados por conexiones en común y luego por "
+                    + "seguidores (máximo 10). Si no sigues a nadie, devuelve los usuarios con más seguidores.")
+    @APIResponse(responseCode = "200", description = "Lista de sugerencias (puede estar vacía)")
+    @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public List<Sugerencia> suggestions() {
+        return service.suggestions(jwt.getSubject());
     }
 }

@@ -217,7 +217,8 @@ WHERE sug <> yo AND NOT (yo)-[:SIGUE]->(sug)
 WITH sug, COUNT { (sug)<-[:SIGUE]-() } AS seguidores
 ORDER BY seguidores DESC
 LIMIT 10
-RETURN sug.id AS id, sug.username AS username, sug.nombre AS nombre, seguidores
+RETURN sug.id AS id, sug.username AS username, sug.nombre AS nombre,
+       0 AS enComun, [] AS conexiones, seguidores
 ```
 
 #### C3. Seguidos en común entre dos usuarios

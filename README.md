@@ -446,3 +446,13 @@ Al incorporar el backend al Compose en la issue #12, se configurarán sus creden
 ## Flujo de trabajo
 
 Las ramas de trabajo parten de `develop` y los PR se dirigen a `develop`. La rama `main` se reserva para las versiones listas para la entrega.
+
+Cada PR y cada push a `develop` o `main` ejecutan la integración continua (`.github/workflows/ci.yml`) en GitHub Actions:
+
+| Job | Validación |
+|---|---|
+| Backend (Quarkus) | `./mvnw -B -ntp verify` con Java 21; las pruebas levantan Neo4j y Redis con Dev Services |
+| Frontend (React) | `npm run check` (lint, validación de componentes, pruebas y build) y `npm run format:check` |
+| Docker Compose config | `docker compose config` del archivo base y del modo desarrollo con los valores de `.env.example` |
+
+Un PR se integra cuando los tres jobs pasan. El archivo `.gitattributes` fija finales de línea LF para que las copias en Windows coincidan con el formateador y con los contenedores Linux.

@@ -15,6 +15,10 @@ RUN --mount=type=cache,target=/root/.m2 mvn -B package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /deployments
 
+# The Compose healthcheck probes Quarkus over HTTP.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy the fast-jar in layers, from least to most frequently changed.
 COPY --from=build /build/target/quarkus-app/lib/ ./lib/
 COPY --from=build /build/target/quarkus-app/*.jar ./

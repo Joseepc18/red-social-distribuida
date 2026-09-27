@@ -16,6 +16,8 @@ import java.util.UUID;
 import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 
@@ -92,6 +94,18 @@ class PushResourceTest {
                 .then()
                 .statusCode(400)
                 .body("error", is("VALIDACION"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http://neo4j:7474/db/neo4j/tx", "http://127.0.0.1:9000/media", "ftp://push.test/x",
+            "https://"})
+    void subscribeRejectsEndpointsThatAreNotHttps(String endpoint) {
+        String user = createUser();
+
+        subscribe(user, endpoint, "key", "auth").then()
+                .statusCode(400)
+                .body("error", is("VALIDACION"));
+        assertEquals(0, subscriptions(endpoint).size());
     }
 
     @Test

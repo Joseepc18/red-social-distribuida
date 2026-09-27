@@ -417,10 +417,10 @@ VAPID_SUBJECT=mailto:<correo de contacto>
 La clave privada no se versiona. Todas las instancias del backend deben usar el mismo par: las suscripciones existentes quedan ligadas a la clave pública con la que se crearon. Sin claves, la aplicación arranca igual, `GET /api/push/clave-publica` responde `503` (`PUSH_NO_CONFIGURADO`) y no se envían notificaciones. En modo desarrollo del backend, las mismas variables van en `backend/.env`.
 
 - `GET /api/push/clave-publica` (público) devuelve `{ "clavePublica": "..." }`, que el navegador usa como `applicationServerKey`.
-- `POST /api/push/suscripciones` recibe `{ endpoint, p256dh, auth }` y responde `204`. Es idempotente por `endpoint`; si ese endpoint ya estaba registrado por otro usuario, pasa al usuario autenticado.
+- `POST /api/push/suscripciones` recibe `{ endpoint, p256dh, auth }` y responde `204`. El `endpoint` debe ser `https://`, como el de todo servicio push; así el servidor no puede usarse para enviar peticiones a los servicios internos de Docker, que son HTTP. Es idempotente por `endpoint`; si ese endpoint ya estaba registrado por otro usuario, pasa al usuario autenticado.
 - `DELETE /api/push/suscripciones` recibe `{ endpoint }` y responde `204`; solo elimina suscripciones del usuario autenticado.
 - El payload es `{ titulo, cuerpo, url }`: `titulo` es "Nueva publicación de <username>", `cuerpo` es el texto recortado a 120 caracteres (el servicio push limita el payload a unos 4 KB) y `url` es `/posts/{id}`.
-- El envío pasa por la interfaz `PushSender`, implementada con `nl.martijndwars:web-push`. Un `404` o `410` elimina la suscripción; otros errores se registran y la conservan, porque pueden ser transitorios.
+- El envío pasa por la interfaz `PushSender`, implementada con `nl.martijndwars:web-push`. Cada envío espera como máximo 10 segundos, para que un servicio push que no responde no bloquee al resto de seguidores. Un `404` o `410` elimina la suscripción; otros errores y los tiempos agotados se registran y la conservan, porque pueden ser transitorios.
 
 ### Publicaciones e imágenes (issue #10)
 

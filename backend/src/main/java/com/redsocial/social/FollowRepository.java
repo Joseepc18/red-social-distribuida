@@ -7,9 +7,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
 
 /**
- * Cypher access to the {@code (:Usuario)-[:SIGUE {desde}]->(:Usuario)} relationship.
+ * Cypher access to the {@code (:Usuario)-[:SIGUE {desde}]->(:Usuario)} relationship
+ * and the social-graph queries built on it.
  * Every query uses parameters and projects only public user fields.
  */
 @ApplicationScoped
@@ -42,6 +44,35 @@ public class FollowRepository {
             ORDER BY username
             """;
 
+    static final String FOLLOWS_ANYONE = """
+            RETURN EXISTS { (:Usuario {id: $userId})-[:SIGUE]->(:Usuario) } AS sigue
+            """;
+
+    // C2: friends of friends, ranked by how many of my followed users follow them.
+    static final String SUGGESTIONS = """
+            MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(intermedio:Usuario)-[:SIGUE]->(sug:Usuario)
+            WHERE sug <> yo AND NOT (yo)-[:SIGUE]->(sug)
+            WITH sug,
+                 count(DISTINCT intermedio) AS enComun,
+                 collect(DISTINCT intermedio.username)[..3] AS conexiones
+            WITH sug, enComun, conexiones, COUNT { (sug)<-[:SIGUE]-() } AS seguidores
+            ORDER BY enComun DESC, seguidores DESC
+            LIMIT 10
+            RETURN sug.id AS id, sug.username AS username, sug.nombre AS nombre,
+                   enComun, conexiones, seguidores
+            """;
+
+    // C2 cold start: the user follows nobody, so there are no friends of friends yet.
+    static final String MOST_FOLLOWED = """
+            MATCH (yo:Usuario {id: $userId}), (sug:Usuario)
+            WHERE sug <> yo AND NOT (yo)-[:SIGUE]->(sug)
+            WITH sug, COUNT { (sug)<-[:SIGUE]-() } AS seguidores
+            ORDER BY seguidores DESC
+            LIMIT 10
+            RETURN sug.id AS id, sug.username AS username, sug.nombre AS nombre,
+                   0 AS enComun, [] AS conexiones, seguidores
+            """;
+
     private final Driver driver;
 
     public FollowRepository(Driver driver) {
@@ -65,6 +96,24 @@ public class FollowRepository {
         return users(FOLLOWED, userId);
     }
 
+    public boolean followsAnyone(String userId) {
+        return run(FOLLOWS_ANYONE, Map.of("userId", userId)).get(0).get("sigue").asBoolean();
+    }
+
+    public List<Sugerencia> suggestions(String userId) {
+        return suggestions(SUGGESTIONS, userId);
+    }
+
+    public List<Sugerencia> mostFollowed(String userId) {
+        return suggestions(MOST_FOLLOWED, userId);
+    }
+
+    private List<Sugerencia> suggestions(String query, String userId) {
+        return run(query, Map.of("userId", userId)).stream()
+                .map(FollowRepository::toSugerencia)
+                .toList();
+    }
+
     private List<UsuarioResumen> users(String query, String userId) {
         return run(query, Map.of("userId", userId)).stream()
                 .map(FollowRepository::toResumen)
@@ -83,5 +132,15 @@ public class FollowRepository {
                 r.get("id").asString(),
                 r.get("username").asString(),
                 r.get("nombre").asString(null));
+    }
+
+    private static Sugerencia toSugerencia(Record r) {
+        return new Sugerencia(
+                r.get("id").asString(),
+                r.get("username").asString(),
+                r.get("nombre").asString(null),
+                r.get("enComun").asLong(),
+                r.get("conexiones").asList(Value::asString),
+                r.get("seguidores").asLong());
     }
 }

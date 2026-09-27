@@ -39,4 +39,11 @@ public class FollowService {
     public List<UsuarioResumen> followed(String userId) {
         return repository.followed(userId);
     }
+
+    /** C2 when the caller follows someone; otherwise the most followed users (cold start). */
+    public List<Sugerencia> suggestions(String callerId) {
+        return repository.followsAnyone(callerId)
+                ? repository.suggestions(callerId)
+                : repository.mostFollowed(callerId);
+    }
 }

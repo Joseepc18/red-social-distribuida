@@ -73,6 +73,34 @@ public class FollowRepository {
                    0 AS enComun, [] AS conexiones, seguidores
             """;
 
+    static final String USER_EXISTS = """
+            RETURN EXISTS { (:Usuario {id: $userId}) } AS existe
+            """;
+
+    // C3: users followed by both A and B.
+    static final String MUTUALS = """
+            MATCH (a:Usuario {id: $userA})-[:SIGUE]->(comun:Usuario)<-[:SIGUE]-(b:Usuario {id: $userB})
+            RETURN comun.id AS id, comun.username AS username, comun.nombre AS nombre
+            ORDER BY username
+            """;
+
+    // C4: users reachable through up to 3 SIGUE hops, with the shortest distance to each.
+    // The upper bound is fixed because Cypher cannot parameterize it.
+    static final String REACH = """
+            MATCH camino = (yo:Usuario {id: $userId})-[:SIGUE*1..3]->(u:Usuario)
+            WHERE u <> yo
+            WITH u, min(length(camino)) AS distancia
+            RETURN u.id AS id, u.username AS username, u.nombre AS nombre, distancia
+            ORDER BY distancia, username
+            """;
+
+    // C5: undirected shortest path (max 6 hops). No row when there is no path.
+    static final String SEPARATION = """
+            MATCH (a:Usuario {id: $userA}), (b:Usuario {id: $userB})
+            MATCH camino = shortestPath((a)-[:SIGUE*..6]-(b))
+            RETURN [n IN nodes(camino) | n.username] AS cadena, length(camino) AS grados
+            """;
+
     private final Driver driver;
 
     public FollowRepository(Driver driver) {
@@ -106,6 +134,33 @@ public class FollowRepository {
 
     public List<Sugerencia> mostFollowed(String userId) {
         return suggestions(MOST_FOLLOWED, userId);
+    }
+
+    public boolean exists(String userId) {
+        return run(USER_EXISTS, Map.of("userId", userId)).get(0).get("existe").asBoolean();
+    }
+
+    public List<UsuarioResumen> mutuals(String userA, String userB) {
+        return run(MUTUALS, Map.of("userA", userA, "userB", userB)).stream()
+                .map(FollowRepository::toResumen)
+                .toList();
+    }
+
+    public List<Alcanzable> reach(String userId) {
+        return run(REACH, Map.of("userId", userId)).stream()
+                .map(r -> new Alcanzable(
+                        r.get("id").asString(),
+                        r.get("username").asString(),
+                        r.get("nombre").asString(null),
+                        r.get("distancia").asLong()))
+                .toList();
+    }
+
+    public Separacion separation(String userA, String userB) {
+        return run(SEPARATION, Map.of("userA", userA, "userB", userB)).stream()
+                .findFirst()
+                .map(r -> new Separacion(r.get("cadena").asList(Value::asString), r.get("grados").asInt()))
+                .orElseGet(Separacion::sinCamino);
     }
 
     private List<Sugerencia> suggestions(String query, String userId) {

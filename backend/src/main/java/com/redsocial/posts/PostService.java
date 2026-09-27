@@ -18,6 +18,7 @@ import com.redsocial.shared.error.ApiException;
 @ApplicationScoped
 public class PostService {
     public static final int PAGE_SIZE = 20;
+    static final String LIKE = "LIKE";
     private static final Logger LOG = Logger.getLogger(PostService.class);
     private final PostRepository repository;
     private final MediaStorage storage;
@@ -82,8 +83,19 @@ public class PostService {
     }
 
     public PostResponse find(String id) {
-        return response(repository.find(id)
-                .orElseThrow(() -> ApiException.notFound("POST_NO_ENCONTRADO", "La publicación no existe")));
+        return response(repository.find(id).orElseThrow(PostService::postNotFound));
+    }
+
+    public void react(String userId, String postId) {
+        requirePost(postId);
+        if (!repository.react(userId, postId, LIKE)) {
+            throw missingUser();
+        }
+    }
+
+    public void unreact(String userId, String postId) {
+        requirePost(postId);
+        repository.unreact(userId, postId);
     }
 
     public List<PostResponse> byAuthor(String authorId, int page) {
@@ -107,6 +119,16 @@ public class PostService {
         } catch (RuntimeException failure) {
             LOG.errorf(failure, "Could not remove orphan object %s; manual cleanup may be needed", key);
         }
+    }
+
+    private void requirePost(String id) {
+        if (!repository.exists(id)) {
+            throw postNotFound();
+        }
+    }
+
+    private static ApiException postNotFound() {
+        return ApiException.notFound("POST_NO_ENCONTRADO", "La publicación no existe");
     }
 
     private static ApiException missingUser() {

@@ -53,6 +53,36 @@ public class PostRepository {
                 .withParameters(Map.of("id", id)).execute().records().stream().findFirst().map(PostRepository::map);
     }
 
+    public boolean exists(String id) {
+        return driver.executableQuery("RETURN EXISTS { (:Post {id: $id}) } AS exists")
+                .withParameters(Map.of("id", id)).execute().records().getFirst().get("exists").asBoolean();
+    }
+
+    /**
+     * One reaction per user and post: MERGE never duplicates it and ON CREATE keeps the original date.
+     *
+     * @return {@code false} when the user or the post does not exist
+     */
+    public boolean react(String userId, String postId, String type) {
+        return !driver.executableQuery("""
+                        MATCH (u:Usuario {id: $userId}), (p:Post {id: $postId})
+                        MERGE (u)-[r:REACCIONA]->(p)
+                          ON CREATE SET r.tipo = $type, r.fecha = datetime()
+                        RETURN r.fecha AS fecha
+                        """)
+                .withParameters(Map.of("userId", userId, "postId", postId, "type", type))
+                .execute().records().isEmpty();
+    }
+
+    /** Matches nothing when there is no reaction, so it never fails. */
+    public void unreact(String userId, String postId) {
+        driver.executableQuery("""
+                        MATCH (:Usuario {id: $userId})-[r:REACCIONA]->(:Post {id: $postId})
+                        DELETE r
+                        """)
+                .withParameters(Map.of("userId", userId, "postId", postId)).execute();
+    }
+
     public boolean authorExists(String id) {
         return driver.executableQuery("RETURN EXISTS { (:Usuario {id: $id}) } AS exists")
                 .withParameters(Map.of("id", id)).execute().records().getFirst().get("exists").asBoolean();

@@ -106,12 +106,25 @@ Se usa `mvn` de la imagen y no `./mvnw`: la imagen no incluye `unzip` y el wrapp
 | `MINIO_ACCESS_KEY` | `minioadmin` | Credencial de acceso a MinIO |
 | `MINIO_SECRET_KEY` | `minioadmin` | Credencial secreta de MinIO |
 | `MINIO_BUCKET` | `media` | Bucket de archivos |
+| `MEDIA_PUBLIC_URL` | `/media/` | Prefijo público de las imágenes; se concatena con la clave del objeto |
 | `JWT_ISSUER` | `red-social` | Emisor (`iss`) de los tokens, validado al recibirlos |
 | `JWT_LIFESPAN_SECONDS` | `86400` | Vigencia de los tokens emitidos (24 h) |
 | `JWT_PUBLIC_KEY_LOCATION` | `file:/keys/publicKey.pem` | Clave pública para verificar tokens (solo producción) |
 | `JWT_PRIVATE_KEY_LOCATION` | `file:/keys/privateKey.pem` | Clave privada para firmar tokens (solo producción) |
 
 En las pruebas, Neo4j y Redis no usan estas variables: Dev Services levanta contenedores temporales.
+
+## Publicaciones (#9 y #10)
+
+El [contrato de publicaciones y del evento](../README.md#contrato-interno-postcreated-issues-9-y-10) está en el README principal. Ejemplo con un JWT de login, desde Bash:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" -F 'texto=Mi primera publicación' -F 'archivo=@foto.png;type=image/png' http://localhost:8080/api/posts
+```
+
+Omitir `archivo` para publicar solo texto. Quarkus acepta hasta 6 MiB por petición (incluido el formulario), mientras el servicio limita cada imagen a 5 MiB. El archivo temporal se elimina al terminar la petición. Para probar mediante un proxy, configurar también allí el límite de 6 MiB.
+
+`./mvnw verify` comprueba creación/consulta, paginación, permisos, validación de archivos, fallos de almacenamiento y emisión asíncrona después del commit. Estas pruebas usan Neo4j y Redis temporales y una implementación de `MediaStorage` en memoria; la integración S3 se verifica aparte con MinIO real.
 
 ## Convenciones
 

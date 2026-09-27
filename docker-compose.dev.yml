@@ -1,0 +1,10 @@
+# Optional host access for a backend started from an IDE or terminal.
+# Use together with docker-compose.yml; bind only to the local machine.
+services:
+  minio:
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+
+  redis:
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"

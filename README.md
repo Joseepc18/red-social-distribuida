@@ -418,7 +418,7 @@ docker compose ps -a
 
 Si Neo4j ya tiene datos, editar `.env` no cambia su contraseña: primero debe actualizarse dentro de la base existente.
 
-El valor de ejemplo `NEO4J_PASSWORD=devpassword` coincide con el predeterminado del backend. Si se usa una contraseña propia, el backend debe recibir el mismo `NEO4J_PASSWORD` que Neo4j. Al ejecutar Quarkus desde `backend/`, la configuración `.env` de la raíz utilizada por Compose no se carga automáticamente: hay que proporcionar esa variable también al proceso del backend.
+Para ejecutar el backend desde la terminal o el IDE, seguir el [modo desarrollo del backend](backend/README.md#modo-desarrollo): usar `docker-compose.dev.yml` junto al Compose base y configurar `backend/.env` con las credenciales de tu `.env` raíz. Ese modo habilita Redis y la API de MinIO solo en la propia computadora (`127.0.0.1`). Cada integrante utiliza sus propios contenedores y datos.
 
 El primer arranque requiere internet y tarda más porque descarga dependencias y compila MinIO automáticamente. No hace falta instalar Go ni MinIO en la laptop. Las siguientes ejecuciones reutilizan las imágenes construidas.
 

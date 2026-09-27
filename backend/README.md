@@ -9,12 +9,39 @@ API REST, WebSocket y Web Push de la red social. Quarkus 3.33 (LTS), Java 21 y M
 
 ## Modo desarrollo
 
-Levantar la infraestructura desde la raíz del repositorio y luego Quarkus con recarga automática:
+Preparar el `.env` de la raíz según el [README principal](../README.md#puesta-en-marcha-para-el-equipo). Cada integrante levanta sus propios servicios en su computadora.
+
+Desde la raíz, iniciar la infraestructura con los puertos locales necesarios para Quarkus:
 
 ```bash
-docker compose up neo4j redis minio minio-init
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml ps -a
+```
+
+Esperar a que Neo4j, Redis y MinIO estén `healthy` y `minio-init` termine con código `0`. El archivo adicional publica Redis y la API de MinIO solo en `127.0.0.1`; no permite conexiones desde otras computadoras.
+
+Crear `backend/.env` (ignorado por Git) con estos campos, reemplazando los tres valores entre `<...>` por los de tu `.env` de la raíz:
+
+```dotenv
+NEO4J_PASSWORD=<valor de NEO4J_PASSWORD>
+MINIO_ACCESS_KEY=<valor de MINIO_ROOT_USER>
+MINIO_SECRET_KEY=<valor de MINIO_ROOT_PASSWORD>
+NEO4J_URI=bolt://localhost:7687
+REDIS_HOST=localhost
+REDIS_PORT=6379
+MINIO_ENDPOINT=http://localhost:9000
+```
+
+Si cambiaste `NEO4J_BOLT_PORT`, `REDIS_PORT` o `MINIO_API_PORT` en la raíz, usar esos mismos puertos en las direcciones anteriores. Mantener las credenciales sincronizadas si las cambias. Quarkus [lee el `.env` del directorio actual](https://quarkus.io/guides/config-reference/#env-file-in-the-current-working-directory); las variables ya definidas en la terminal o el IDE tienen prioridad.
+
+Después, ejecutar desde `backend/` con Java 21:
+
+```bash
+cd backend
 ./mvnw quarkus:dev
 ```
+
+En PowerShell, usar `.\mvnw.cmd quarkus:dev` en lugar de `./mvnw`.
 
 - API: `http://localhost:8080/api`
 - Swagger UI: `http://localhost:8080/api/docs`
@@ -22,6 +49,8 @@ docker compose up neo4j redis minio minio-init
 
 En modo desarrollo y en las pruebas no hace falta configurar claves JWT: Quarkus genera un par de claves RSA al iniciar.
 Los tokens emitidos dejan de ser válidos cada vez que la aplicación se reinicia.
+
+Para detener la infraestructura conservando los datos, ejecutar desde la raíz: `docker compose -f docker-compose.yml -f docker-compose.dev.yml down`.
 
 ## Pruebas
 

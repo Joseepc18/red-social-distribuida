@@ -97,6 +97,10 @@ services:
       MEDIA_PUBLIC_URL: ${MEDIA_PUBLIC_URL:-/media/}
       JWT_PUBLIC_KEY_LOCATION: file:/keys/publicKey.pem
       JWT_PRIVATE_KEY_LOCATION: file:/keys/privateKey.pem
+      # Optional: without VAPID keys the stack starts, but no Web Push is sent.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
     volumes:
       - type: bind
         source: ./backend/keys

@@ -2,8 +2,11 @@ package com.redsocial.chat;
 
 import java.time.Instant;
 import java.util.Set;
+
 import jakarta.enterprise.context.ApplicationScoped;
+
 import org.eclipse.microprofile.jwt.JsonWebToken;
+
 import io.quarkus.security.AuthenticationFailedException;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -21,7 +24,9 @@ import io.vertx.ext.web.RoutingContext;
 public class ChatTokenAuthentication implements HttpAuthenticationMechanism {
     @Override
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identities) {
-        if (!context.normalizedPath().equals("/ws/chat")) return Uni.createFrom().nullItem();
+        if (!context.normalizedPath().equals("/ws/chat")) {
+            return Uni.createFrom().nullItem();
+        }
         var tokens = context.queryParam("token");
         if (tokens.size() != 1 || tokens.getFirst().isBlank() || tokens.getFirst().length() > 16384) {
             return Uni.createFrom().failure(new AuthenticationFailedException());
@@ -37,13 +42,18 @@ public class ChatTokenAuthentication implements HttpAuthenticationMechanism {
         });
     }
 
-    @Override public Uni<ChallengeData> getChallenge(RoutingContext context) {
+    @Override
+    public Uni<ChallengeData> getChallenge(RoutingContext context) {
         return Uni.createFrom().item(new ChallengeData(401, "WWW-Authenticate", "Bearer"));
     }
 
-    @Override public Set<Class<? extends AuthenticationRequest>> getCredentialTypes() {
+    @Override
+    public Set<Class<? extends AuthenticationRequest>> getCredentialTypes() {
         return Set.of(TokenAuthenticationRequest.class);
     }
 
-    @Override public int getPriority() { return 2000; }
+    @Override
+    public int getPriority() {
+        return 2000;
+    }
 }

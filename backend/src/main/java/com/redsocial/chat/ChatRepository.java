@@ -4,16 +4,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import jakarta.enterprise.context.ApplicationScoped;
+
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+
 import com.redsocial.usuarios.UserSummary;
 
 @ApplicationScoped
 public class ChatRepository {
     private final Driver driver;
 
-    public ChatRepository(Driver driver) { this.driver = driver; }
+    public ChatRepository(Driver driver) {
+        this.driver = driver;
+    }
 
     public boolean userExists(String id) {
         return driver.executableQuery("RETURN EXISTS { (:Usuario {id:$id}) } AS found")
@@ -76,22 +81,23 @@ public class ChatRepository {
         return driver.executableQuery("""
                 MATCH (autor:Usuario {id:$actor})-[:PARTICIPA]->(c:Conversacion {id:$conversation})
                 MATCH (participante:Usuario)-[:PARTICIPA]->(c)
-                WITH autor,c,collect(DISTINCT participante.id) AS participantes
+                WITH autor, c, collect(DISTINCT participante.id) AS participantes
                 CREATE (autor)-[:ENVIA]->(m:Mensaje {id:$id, texto:$text, fecha:datetime()})-[:PERTENECE_A]->(c)
-                RETURN m.id AS id,c.id AS conversacionId,autor.id AS autorId,m.texto AS texto,
-                       toString(m.fecha) AS fecha,participantes
+                RETURN m.id AS id, c.id AS conversacionId, autor.id AS autorId, m.texto AS texto,
+                       toString(m.fecha) AS fecha, participantes
                 """).withParameters(Map.of("actor", actor, "conversation", conversation, "id", id, "text", text))
                 .execute().records().stream().findFirst().map(row ->
                         new ChatEnvelope(message(row), row.get("participantes").asList(value -> value.asString())));
     }
 
     private static ConversationResponse conversation(Record row) {
-        return new ConversationResponse(row.get("id").asString(),row.get("creadaEn").asString(),
-                new UserSummary(row.get("usuarioId").asString(),row.get("username").asString(),row.get("nombre").asString()));
+        return new ConversationResponse(row.get("id").asString(), row.get("creadaEn").asString(),
+                new UserSummary(row.get("usuarioId").asString(), row.get("username").asString(),
+                        row.get("nombre").asString()));
     }
 
     private static ChatMessage message(Record row) {
-        return new ChatMessage(row.get("id").asString(),row.get("conversacionId").asString(),
-                row.get("autorId").asString(),row.get("texto").asString(),row.get("fecha").asString());
+        return new ChatMessage(row.get("id").asString(), row.get("conversacionId").asString(),
+                row.get("autorId").asString(), row.get("texto").asString(), row.get("fecha").asString());
     }
 }

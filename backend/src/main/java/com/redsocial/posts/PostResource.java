@@ -21,12 +21,10 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import io.quarkus.security.Authenticated;
-import io.smallrye.common.annotation.Blocking;
 
 @Path("/posts")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated
-@Blocking
 @Tag(name = "Publicaciones")
 public class PostResource {
     private final PostService service;

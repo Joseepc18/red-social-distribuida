@@ -4,7 +4,7 @@
 # Full commit hashes keep the source versions fixed across team members.
 FROM golang:1.24-alpine@sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191 AS minio-build
 WORKDIR /src
-ADD https://github.com/minio/minio/archive/7aac2a2c5b7c882e68c1ce017d8256be2feea27f.tar.gz /tmp/source.tar.gz
+ADD --checksum=sha256:71794c2df26aad0cc99e8421c58b7aa2dd55969f979b0e7d1e931042e9fabcd6 https://github.com/minio/minio/archive/7aac2a2c5b7c882e68c1ce017d8256be2feea27f.tar.gz /tmp/source.tar.gz
 RUN tar -xzf /tmp/source.tar.gz --strip-components=1
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM golang:1.24-alpine@sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191 AS mc-build
 WORKDIR /src
-ADD https://github.com/minio/mc/archive/77f82e18b5401a65958f1619df6ebb994634bd88.tar.gz /tmp/source.tar.gz
+ADD --checksum=sha256:167415edd21bc29f5360943dac64272aa5cda0a39f3070b15cfeca671c43d975 https://github.com/minio/mc/archive/77f82e18b5401a65958f1619df6ebb994634bd88.tar.gz /tmp/source.tar.gz
 RUN tar -xzf /tmp/source.tar.gz --strip-components=1
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
@@ -37,6 +37,7 @@ EXPOSE 9000 9001
 ENTRYPOINT ["minio"]
 
 FROM runtime AS mc
+COPY media-readonly.json /etc/minio/media-readonly.json
 LABEL org.opencontainers.image.source="https://github.com/minio/mc" \
       org.opencontainers.image.revision="77f82e18b5401a65958f1619df6ebb994634bd88" \
       org.opencontainers.image.licenses="AGPL-3.0-only"

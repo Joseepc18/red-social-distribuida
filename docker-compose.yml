@@ -58,7 +58,7 @@ services:
       - |
         mc alias set storage http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
         mc mb --ignore-existing storage/media
-        mc anonymous set download storage/media
+        mc anonymous set-json /etc/minio/media-readonly.json storage/media
         mc anonymous get storage/media
     networks:
       - social

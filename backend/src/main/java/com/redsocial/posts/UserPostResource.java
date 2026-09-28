@@ -16,13 +16,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import io.quarkus.security.Authenticated;
-import io.smallrye.common.annotation.Blocking;
 
 /** Shares the /usuarios root with profiles and follow resources. */
 @Path("/usuarios")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated
-@Blocking
 @Tag(name = "Publicaciones")
 public class UserPostResource {
     private final PostService service;

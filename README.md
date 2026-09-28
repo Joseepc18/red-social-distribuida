@@ -431,9 +431,18 @@ Los tres endpoints requieren JWT: `POST /api/posts`, `GET /api/posts/{id}` y `GE
 - Respuesta: `{ id, texto, fecha, autor: { id, username, nombre }, mediaKey, mediaTipo, mediaUrl }`. Los tres campos media son `null` sin imagen. `mediaUrl` se construye con `MEDIA_PUBLIC_URL` (por defecto `/media/`) y la clave; la URL no se guarda en el grafo.
 - El listado devuelve un array de hasta 20 elementos por página, desde 0, ordenado por fecha e id descendentes. Menos de 20 elementos indica el final; un usuario sin publicaciones devuelve `[]`. Un usuario o post inexistente devuelve `404`.
 
-Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/media/` se resuelve mediante su proxy; para acceder directamente a MinIO se puede configurar `MEDIA_PUBLIC_URL=http://localhost:9000/media/` en el backend. Para el despliegue completo, el PR #22 incluye el límite de 6 MiB en Nginx (5 MiB de archivo más el formulario) y pasa `MEDIA_PUBLIC_URL` al backend. Este módulo puede desarrollarse y probarse sin ese proxy.
+Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/media/` se resuelve mediante su proxy; para acceder directamente a MinIO se puede configurar `MEDIA_PUBLIC_URL=http://localhost:9000/media/` en el backend. En el despliegue completo, Nginx admite peticiones de hasta 6 MiB (5 MiB de archivo más el formulario) y Compose pasa `MEDIA_PUBLIC_URL` al backend.
 
-## Infraestructura base (issue #4)
+### Feed personalizado
+
+`GET /api/feed?page=0` requiere JWT y consulta las publicaciones de los usuarios seguidos mediante `Usuario → SIGUE → Usuario → PUBLICA → Post` (consulta 4.1). La identidad sale del token. Devuelve un array con los mismos campos que las publicaciones, más `reacciones` (total) y `reaccionado` (booleano del usuario autenticado).
+
+- Páginas de 20 elementos desde 0, por fecha descendente y luego id descendente para desempatar. Menos de 20 elementos indica el final; sin seguidos, sin publicaciones o fuera del rango devuelve `[]`.
+- `mediaUrl` conserva el prefijo `/media/` configurable y es `null` sin imagen. El autor incluye únicamente `id`, `username` y `nombre`.
+- Página negativa: `400`; JWT ausente o inválido: `401`; usuario eliminado: `404`. Un `page` no convertible a entero devuelve `404`, siguiendo la conversión de parámetros de los listados existentes.
+- Swagger publica el contrato en `/api/docs`. La paginación usa `SKIP/LIMIT`; publicaciones nuevas entre peticiones pueden desplazar elementos entre páginas.
+
+## Instrucciones de ejecución
 
 Se configuró Docker Compose con Neo4j, MinIO y Redis, una red compartida, comprobaciones de salud y creación automática del bucket `media`.
 
@@ -447,7 +456,7 @@ Copy-Item .env.example .env
 
 La copia de `.env` se hace solo la primera vez; si ya existe, conservar sus valores. En Linux o macOS se puede usar `cp .env.example .env`. El archivo `.env` contiene la configuración local y no se sube a Git.
 
-La plantilla incluye valores predeterminados de desarrollo, compartidos con el equipo. Antes del primer arranque, sustituir las contraseñas de `NEO4J_PASSWORD` y `MINIO_ROOT_PASSWORD` en `.env` por contraseñas propias de al menos 8 caracteres. El usuario de MinIO (`MINIO_ROOT_USER`) debe tener al menos 3 caracteres. Compose exige credenciales no vacías. Las variables VAPID son opcionales para arrancar, pero necesarias para Web Push: ver [Notificaciones Web Push](#notificaciones-web-push-issue-30).
+La plantilla incluye valores predeterminados que funcionan para el desarrollo local. Cambiarlos en `.env` es opcional; si se personalizan, usar contraseñas de al menos 8 caracteres y un usuario de MinIO de al menos 3 caracteres. Compose exige credenciales no vacías. Las variables VAPID son opcionales para arrancar, pero necesarias para Web Push: ver [Notificaciones Web Push](#notificaciones-web-push-issue-30).
 
 Con la configuración completa, ejecutar:
 
@@ -476,8 +485,8 @@ Para revisar un fallo de arranque: `docker compose logs --tail=50`. Para detener
 ### Decisiones técnicas
 
 - Neo4j y MinIO conservan datos en volúmenes; Redis funciona solo en memoria para Pub/Sub.
-- El bucket `media` permite lectura pública y requiere autenticación para escribir.
-- MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Así todos usan las mismas fuentes.
+- El bucket `media` permite descargar objetos por su clave (`s3:GetObject`); listar el bucket o escribir requiere autenticación. `minio-init` aplica la política también sobre un bucket existente, sin borrar imágenes.
+- MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Las descargas se verifican mediante SHA-256.
 
 ### Aplicación completa con Nginx (issue #12)
 
@@ -497,9 +506,23 @@ El backend espera a Neo4j, Redis y MinIO saludables y a que `minio-init` finalic
 
 Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo (`docker compose down`, conserva datos) y seguir el modo desarrollo del backend, que inicia únicamente la infraestructura y evita ocupar el puerto `8080` con Nginx.
 
+Los logs de acceso omiten query strings y Referer en todas las rutas para no registrar JWT. Los fallos de `/ws` añaden un diagnóstico en stderr con estado HTTP, estado/dirección del upstream y tiempos, sin URL ni cabeceras. Se mantiene desactivado el error log crudo de esa ruta porque puede incluir el token del handshake.
+
+## Variables de entorno
+
+La plantilla `.env.example` contiene los valores de desarrollo; los cambios personales se guardan en `.env` (ignorado por Git).
+
+| Variables | Uso |
+|---|---|
+| `NEO4J_PASSWORD`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | Credenciales locales; Compose las pasa a los servicios y al backend |
+| `NEO4J_HTTP_PORT`, `NEO4J_BOLT_PORT`, `MINIO_CONSOLE_PORT` | Puertos locales de administración: 7474, 7687 y 9001 |
+| `MINIO_API_PORT`, `REDIS_PORT` | Puertos 9000 y 6379, solo con `docker-compose.dev.yml` |
+| `MEDIA_PUBLIC_URL` | Prefijo público de imágenes, `/media/` por defecto |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Vacíos por defecto; configurar para activar Web Push |
+
 ## Flujo de trabajo
 
-Las ramas de trabajo parten de `develop` y los PR se dirigen a `develop`. La rama `main` se reserva para las versiones listas para la entrega.
+Las ramas de trabajo parten de `develop`, usan `feat/<issue>-<descripcion>` y los PR se dirigen a `develop`. La rama `main` se reserva para las versiones listas para la entrega.
 
 Cada PR y cada push a `develop` o `main` ejecutan la integración continua (`.github/workflows/ci.yml`) en GitHub Actions:
 

@@ -9,7 +9,7 @@ API REST, WebSocket y Web Push de la red social. Quarkus 3.33 (LTS), Java 21 y M
 
 ## Modo desarrollo
 
-Preparar el `.env` de la raíz según el [README principal](../README.md#puesta-en-marcha-para-el-equipo). Cada integrante levanta sus propios servicios en su computadora.
+Preparar el `.env` de la raíz según el [README principal](../README.md#configuración-inicial). Cada integrante levanta sus propios servicios en su computadora.
 
 Desde la raíz, iniciar la infraestructura con los puertos locales necesarios para Quarkus:
 
@@ -129,9 +129,9 @@ Se usa `mvn` de la imagen y no `./mvnw`: la imagen no incluye `unzip` y el wrapp
 
 En las pruebas, Neo4j y Redis no usan estas variables: Dev Services levanta contenedores temporales.
 
-## Publicaciones (#9 y #10)
+## Publicaciones
 
-El [contrato de publicaciones y del evento](../README.md#contrato-interno-postcreated-issues-9-y-10) está en el README principal. Ejemplo con un JWT de login, desde Bash:
+El [contrato de publicaciones](../README.md#publicaciones-e-imágenes) y el del [evento `PostCreated`](../README.md#evento-interno-postcreated) están en el README principal. Ejemplo con un JWT de login, desde Bash:
 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" -F 'texto=Mi primera publicación' -F 'archivo=@foto.png;type=image/png' http://localhost:8080/api/posts

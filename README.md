@@ -260,10 +260,13 @@ RETURN seg.id AS usuarioId, s.endpoint AS endpoint, s.p256dh AS p256dh, s.auth A
 MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(amigo:Usuario)-[:REACCIONA]->(p:Post)<-[:PUBLICA]-(autor:Usuario)
 WHERE autor <> yo AND NOT (yo)-[:SIGUE]->(autor)
 WITH p, autor, count(DISTINCT amigo) AS amigosQueReaccionaron
-ORDER BY amigosQueReaccionaron DESC, p.fecha DESC
+ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC
 LIMIT 10
-RETURN p.id AS id, p.texto AS texto, p.fecha AS fecha, p.mediaKey AS mediaKey,
-       autor.id AS autorId, autor.username AS autorUsername, amigosQueReaccionaron
+RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
+       p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
+       autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
+       amigosQueReaccionaron
+ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC
 ```
 
 ## API REST
@@ -333,6 +336,24 @@ Quarkus valida el JWT en el handshake y rechaza la conexión si es inválido.
 ```json
 { "tipo": "mensaje", "mensaje": { "id": "…", "conversacionId": "…", "autorId": "…", "texto": "Hola", "fecha": "…" } }
 ```
+
+El texto admite 1–2000 caracteres y se recortan espacios extremos; el JSON entrante admite hasta 16 KiB. `autorId` sale del JWT. Los errores de aplicación vuelven solo al remitente como `{ "tipo":"error", "error":"NO_PARTICIPA", "mensaje":"…" }` (también `VALIDACION`, `SOLICITUD_INVALIDA` o `ERROR_INTERNO`); un mensaje rechazado no se guarda ni publica. El handshake responde `401` sin token válido; un usuario eliminado o una sesión vencida se cierra. En HTTPS se usa `wss://`. El servidor envía ping de protocolo cada 30 segundos; el navegador responde pong automáticamente.
+
+### Conversaciones e historial: contrato para el cliente
+
+Los tres endpoints REST requieren `Authorization: Bearer <JWT>` y están documentados en `/api/docs`.
+
+| Operación | Respuesta `200` |
+|---|---|
+| `POST /api/conversaciones` con `{ "usuarioId":"…" }` | `{ id, creadaEn, participante:{id, username, nombre} }`, tanto al crear como al recuperar la existente |
+| `GET /api/conversaciones` | Array del mismo formato, con el otro participante; por `creadaEn` e id descendentes, sin paginación; `[]` si no hay conversaciones |
+| `GET /api/conversaciones/{id}/mensajes?antes=` | `{ mensajes:[{id, conversacionId, autorId, texto, fecha}], siguienteAntes }` |
+
+- Historial: **30 mensajes por página**, por fecha e id descendentes (más recientes primero). Omitir `antes` para la primera página y enviar `siguienteAntes` sin modificar para cargar anteriores. Es `null` al terminar; vacío: `{ "mensajes":[], "siguienteAntes":null }`. Las fechas se entregan como texto ISO-8601 con zona horaria.
+- El cursor Base64url versionado contiene conversación, fecha e id. Se pagina por esas claves, sin offset, para conservar mensajes con fechas iguales aunque entren otros nuevos. Un cursor inválido o de otra conversación responde `400 CURSOR_INVALIDO`; no participar (incluido id inexistente), `403 NO_PARTICIPA`.
+- Crear conversación con uno mismo responde `400 CHAT_CON_UNO_MISMO`; usuario inexistente, `404 USUARIO_NO_ENCONTRADO`. Un UUID derivado del par ordenado de usuarios, `MERGE` y el constraint único existente evitan conversaciones duplicadas, incluso entre instancias concurrentes.
+- Cada mensaje se confirma en Neo4j antes de publicarse mediante `ChatBroker` en Redis (`chat`), siempre, también con una instancia. Todas las pestañas de los participantes reciben el evento; un caché acotado de ids evita el eco duplicado de Redis. Si Redis falla o no responde en 2 segundos, se entrega localmente. La suscripción se intenta recuperar automáticamente.
+- Redis Pub/Sub no conserva eventos perdidos durante una desconexión. Al abrir o reconectar, cargar el historial REST y combinar los eventos por `id`; invertir cada página para presentarla cronológicamente. No reenviar automáticamente un mensaje cuya confirmación se perdió: puede estar guardado en el historial.
 
 ### Reparto entre REST y WebSocket
 

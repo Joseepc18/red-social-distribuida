@@ -65,6 +65,14 @@ async function mockApi(page: Page) {
       return route.fulfill({ json: { token: token() } });
     }
     expect(request.headers().authorization).toMatch(/^Bearer /);
+    if (
+      path.endsWith("/sugerencias") ||
+      path.endsWith("/alcance") ||
+      path.endsWith("/en-comun")
+    )
+      return route.fulfill({ json: [] });
+    if (path.endsWith("/separacion"))
+      return route.fulfill({ json: { grados: null, cadena: [] } });
     if (path === "/api/usuarios/me") {
       if (request.method() === "PUT")
         profile = { ...profile, ...request.postDataJSON() };

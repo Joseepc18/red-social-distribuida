@@ -25,8 +25,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const sync = (event: StorageEvent) => {
       if (event.key === SESSION_KEY || event.key === null) {
-        setValidatedToken(null);
+        const previousToken = getSession()?.token;
         syncSession();
+        if (getSession()?.token !== previousToken) setValidatedToken(null);
       }
     };
     window.addEventListener("storage", sync);

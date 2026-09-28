@@ -532,7 +532,7 @@ curl http://localhost:8080/api/info
 
 Abrir `http://localhost:8080`; `/api/info` debe devolver `{"instancia":"backend-1"}`. Nginx sirve la SPA y dirige `/api` y `/ws` al backend, y `/media/<clave>` al bucket `media` de MinIO. La API recibe automáticamente las credenciales de `.env` y se conecta por los nombres internos de Docker. No necesita `backend/.env` en este modo.
 
-El backend espera a Neo4j, Redis y MinIO saludables y a que `minio-init` finalice correctamente. Nginx espera al backend saludable en `/q/health`. Solo Nginx publica el puerto de aplicación `8080`; los puertos locales de administración de Neo4j y MinIO se conservan para la demo. La segunda instancia, el balanceo y el chat corresponden a tareas posteriores.
+El backend espera a Neo4j, Redis y MinIO saludables y a que `minio-init` finalice correctamente. Nginx espera al backend saludable en `/q/health`. Solo Nginx publica el puerto de aplicación `8080`; los puertos locales de administración de Neo4j y MinIO se conservan para la demo. La segunda instancia y el balanceo corresponden a tareas posteriores.
 
 Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo (`docker compose down`, conserva datos) y seguir el modo desarrollo del backend, que inicia únicamente la infraestructura y evita ocupar el puerto `8080` con Nginx.
 

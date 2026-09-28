@@ -1,4 +1,5 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
+import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useProfile } from "../hooks/useProfile";
 import { Card } from "../components/Card";
@@ -11,6 +12,9 @@ import { ProfileGraph } from "../components/ProfileGraph";
 import { copy, profileCopy } from "../content/copy";
 import { PostList } from "../components/PostList";
 import { postsCopy } from "../content/posts-copy";
+import { chatCopy } from "../content/chat-copy";
+import { chat } from "../services/chat";
+import { errorMessage } from "../lib/api";
 interface ProfilePageProps {
   readonly userId?: string;
 }
@@ -26,6 +30,9 @@ export function ProfilePage(_props: ProfilePageProps) {
 }
 function ProfileContent({ userId = "" }: ProfilePageProps) {
   const state = useProfile(userId);
+  const navigate = useNavigate();
+  const [startingChat, setStartingChat] = useState(false);
+  const [chatError, setChatError] = useState("");
   if (state.loading) return <StatusMessage message={copy.loading} />;
   if (state.error || !state.data)
     return (
@@ -59,17 +66,40 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
                 {profileCopy.edit}
               </Button>
             ) : (
-              <Button
-                variant={state.following ? "secondary" : "primary"}
-                onClick={state.toggleFollow}
-                disabled={state.busy}
-              >
-                {state.busy
-                  ? copy.loading
-                  : state.following
-                    ? profileCopy.unfollow
-                    : profileCopy.follow}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={state.following ? "secondary" : "primary"}
+                  onClick={state.toggleFollow}
+                  disabled={state.busy}
+                >
+                  {state.busy
+                    ? copy.loading
+                    : state.following
+                      ? profileCopy.unfollow
+                      : profileCopy.follow}
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={startingChat}
+                  onClick={async () => {
+                    setStartingChat(true);
+                    setChatError("");
+                    try {
+                      const conversation = await chat.create(profile.id);
+                      navigate(
+                        "/chat?conversacion=" +
+                          encodeURIComponent(conversation.id),
+                      );
+                    } catch (error: unknown) {
+                      setChatError(errorMessage(error) || chatCopy.startError);
+                    } finally {
+                      setStartingChat(false);
+                    }
+                  }}
+                >
+                  {startingChat ? copy.loading : chatCopy.start}
+                </Button>
+              </div>
             )}
           </div>
           <div>
@@ -82,6 +112,7 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
           {state.mutationError && (
             <StatusMessage message={state.mutationError} error />
           )}
+          {chatError && <StatusMessage message={chatError} error />}
           {state.notice && <StatusMessage message={state.notice} />}
           {state.editing && (
             <ProfileEditor

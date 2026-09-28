@@ -4,11 +4,10 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthPage } from "./pages/AuthPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { PeoplePage } from "./pages/PeoplePage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { pages } from "./content/copy";
 import { FeedPage } from "./pages/FeedPage";
 import { PostPage } from "./pages/PostPage";
+import { ChatPage } from "./pages/ChatPage";
 interface AppProps {
   readonly children?: never;
 }
@@ -28,7 +27,7 @@ export function App(_props: AppProps) {
           <Route path="perfil" element={<ProfilePage />} />
           <Route path="usuarios/:id" element={<ProfilePage />} />
           <Route path="posts/:id" element={<PostPage />} />
-          <Route path="chat" element={<PlaceholderPage {...pages.chat} />} />
+          <Route path="chat" element={<ChatPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>

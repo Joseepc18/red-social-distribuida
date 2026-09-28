@@ -16,7 +16,7 @@ Abrir http://localhost:5173. El backend se ejecuta aparte en http://localhost:80
 
 Vite reenvía `/api` y `/ws` a Quarkus y `/media` a MinIO en http://localhost:9000. El path `/media/<clave>` incluye el bucket `media`; no se elimina al reenviar. Se pueden cambiar los destinos mediante las variables locales `BACKEND_PROXY_TARGET` y `MEDIA_PROXY_TARGET`. Estas variables configuran el servidor de desarrollo y no se incluyen en el navegador.
 
-El navegador usa rutas del mismo origen. Así el cliente REST y el futuro cliente WebSocket trabajan con Vite en desarrollo y con Nginx en producción sin direcciones de infraestructura incrustadas ni configuración CORS adicional.
+El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSocket trabajan con Vite en desarrollo y con Nginx en producción sin direcciones de infraestructura incrustadas ni configuración CORS adicional.
 
 ## Pantallas y rutas
 
@@ -29,7 +29,7 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el futuro client
 | `/explorar?q=` | Búsqueda de usuarios por nombre o username |
 | `/feed` | Composición de publicaciones y feed paginado de las personas seguidas |
 | `/posts/:id` | Detalle de publicación, también accesible desde Web Push |
-| `/chat` | Ruta reservada para la futura integración WebSocket |
+| `/chat` | Lista de conversaciones e historial de mensajes en tiempo real |
 
 ## Autenticación y datos (#13)
 
@@ -42,6 +42,12 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el futuro client
 Se usa REST para operaciones puntuales con respuesta, y Context para la sesión compartida sin otra biblioteca de estado. El estado de seguimiento se obtiene de la lista real de seguidores porque el perfil actual no contiene un campo `siguiendo`. No se inventan campos, contadores ni recomendaciones.
 
 La persistencia en localStorage sigue el contrato del proyecto. La autorización definitiva siempre la valida Quarkus. No existe un endpoint de renovación de sesión; al expirar el token se requiere un nuevo login. Las contraseñas no se persisten.
+
+## Chat en tiempo real (#37)
+
+El perfil de otra persona permite iniciar o recuperar una conversación con `POST /api/conversaciones`. La ruta privada `/chat` lista las conversaciones con `GET /api/conversaciones` y carga el historial con `GET /api/conversaciones/{id}/mensajes`. El cursor `siguienteAntes` se reenvía sin cambios como `?antes=` para cargar mensajes anteriores.
+
+Los mensajes nuevos se envían y reciben por WebSocket en `/ws/chat?token=<JWT>`. El cliente elige `ws` o `wss` según el origen, reconecta con espera exponencial hasta 30 segundos y vuelve a consultar el historial tras reconectar. Combina eventos y respuestas REST por id, así recupera mensajes persistidos mientras la conexión estuvo cerrada y evita duplicados. No consulta el servidor mediante polling.
 
 El código de la aplicación consume la API real. Las respuestas simuladas existen solamente en las pruebas, sin modo de demostración ni sustitución automática cuando falla el backend.
 

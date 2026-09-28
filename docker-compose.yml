@@ -162,7 +162,7 @@ services:
       start_period: 10s
 
   tunnel:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.9.3
     profiles:
       - demo
     restart: unless-stopped

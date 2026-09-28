@@ -27,7 +27,8 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el futuro client
 | `/perfil` | Perfil propio, edición de nombre y bio, seguidores y seguidos |
 | `/usuarios/:id` | Perfil ajeno, seguir/dejar de seguir y listas de conexiones |
 | `/explorar?q=` | Búsqueda de usuarios por nombre o username |
-| `/feed`, `/posts/:id` | Rutas reservadas para #14; muestran un estado de próxima disponibilidad |
+| `/feed` | Composición de publicaciones y feed paginado de las personas seguidas |
+| `/posts/:id` | Detalle de publicación, también accesible desde Web Push |
 | `/chat` | Ruta reservada para la futura integración WebSocket |
 
 ## Autenticación y datos (#13)
@@ -115,13 +116,14 @@ El proxy admite peticiones de hasta 6 MiB para las publicaciones con imágenes d
 
 `nginx.conf` reenvía `/api` y `/ws` a `backend-1:8080`, y `/media` a `minio:9000` conservando el nombre del bucket. Requiere la red y los servicios de Compose. WebSocket usa HTTP/1.1, cabeceras de upgrade y un timeout de una hora; los logs de acceso omiten la query y el Referer, y se descartan los errores de `/ws` porque pueden incluir el token. El chat se implementa en una tarea posterior.
 
-### Dependencias para #14
+### Publicaciones y feed (#14)
 
-Se requieren los contratos implementados y publicados de #10 y #11:
+El formulario de `/feed` envía `texto` y el `archivo` opcional mediante `multipart/form-data` a `POST /api/posts`. El navegador genera el boundary; el cliente compartido adjunta el JWT. Se admiten entre 1 y 5000 caracteres y PNG, JPEG o GIF de hasta 5 MiB. El servidor verifica el contenido y el límite de 20 megapíxeles. La vista previa se libera al quitar o reemplazar la imagen. Si falla la solicitud se conserva el borrador; una creación confirmada ofrece un enlace al detalle.
 
-- `POST /api/posts` con `texto` y `archivo` opcional; límites y tipos de imagen.
-- `GET /api/posts/{id}` y `GET /api/usuarios/{id}/posts`.
-- `GET /api/feed?page=`: estructura de página, tamaño y señal de fin.
-- Campos de autor, reacciones, imagen y regla de URL pública mediante `/media`.
+Quarkus guarda el texto y la clave del objeto en Neo4j y el archivo en MinIO. Las tarjetas cargan las imágenes mediante `/media/<clave>` del mismo origen, a través de Vite o Nginx. No se almacenan binarios en el grafo ni se envían credenciales de MinIO al navegador.
 
-Los módulos backend de publicaciones y feed todavía son paquetes vacíos en la base usada. #14 queda pendiente; tampoco se incluyen el protocolo ActivityPub, cifrado de extremo a extremo ni otras funciones decorativas del prototipo que no existen en el alcance acordado.
+`GET /api/feed?page=0` y `GET /api/usuarios/{id}/posts?page=0` devuelven arrays de hasta 20 elementos; menos de 20 indica el final. **Cargar más publicaciones** agrega páginas y elimina duplicados por id. Un fallo mantiene las tarjetas existentes y permite repetir la página pendiente. **Actualizar feed** reinicia desde la primera página. El feed solo contiene publicaciones de personas seguidas: las publicaciones propias se consultan en el perfil o desde el enlace de confirmación.
+
+`GET /api/posts/{id}` alimenta el detalle, incluido el destino de Web Push. El contador se muestra cuando la respuesta contiene `reacciones`; el contrato actual del detalle y de los perfiles no incluye ese campo, por lo que no se inventa un cero. El botón para reaccionar corresponde a la siguiente tarea.
+
+El feed necesita el endpoint del backend de #11. Hasta que esté integrado, la aplicación muestra el error de la API con reintento. Las pruebas de navegador usan respuestas controladas del contrato (array, campos y paginación); no existe un feed ficticio en la aplicación. Las pruebas de publicaciones comprueban creación con imagen, reintentos, límites, paginación, detalle, perfiles y vista móvil.

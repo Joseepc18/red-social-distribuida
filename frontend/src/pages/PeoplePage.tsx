@@ -45,7 +45,7 @@ export function PeoplePage(_props: PeoplePageProps) {
       {search.query && (
         <section aria-live="polite" aria-busy={search.loading}>
           <div className="mb-5 flex items-center justify-between gap-3">
-            <h2>{search.query ? peopleCopy.results : peopleCopy.community}</h2>
+            <h2>{peopleCopy.results}</h2>
             {search.data && (
               <span className="muted text-sm">
                 {search.data.length}{" "}

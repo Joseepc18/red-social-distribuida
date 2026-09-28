@@ -18,6 +18,10 @@ export function AppLayout(_props: AppLayoutProps) {
       </a>
       <aside className="sidebar">
         <Brand />
+        <Link to="/feed#nueva-publicacion" className="button button-primary">
+          <Icon name="plus" />
+          {copy.newPost}
+        </Link>
         <nav aria-label={copy.navigation} className="flex flex-col gap-2">
           {navigation.map((item) => (
             <NavLink

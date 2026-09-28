@@ -118,7 +118,6 @@ export const peopleCopy = {
   placeholder: "Nombre o usuario…",
   search: "Buscar",
   results: "Resultados de búsqueda",
-  community: "Personas de la comunidad",
   people: "personas",
   person: "persona",
   emptyTitle: "No encontramos coincidencias",

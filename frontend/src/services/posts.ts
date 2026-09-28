@@ -7,6 +7,8 @@ export const posts = {
     api<readonly Post[]>(path + "?page=" + page, { signal }),
   find: (id: string, signal: AbortSignal) =>
     api<Post>("/posts/" + encodeURIComponent(id), { signal }),
+  discover: (signal: AbortSignal) =>
+    api<readonly DiscoveredPost[]>("/descubrir", { signal }),
   create: (text: string, file: File | undefined, signal: AbortSignal) => {
     const body = new FormData();
     body.set("texto", text.trim());
@@ -18,6 +20,10 @@ export const posts = {
       method: reacted ? "DELETE" : "POST",
     }),
 };
+
+export interface DiscoveredPost extends Post {
+  readonly amigosQueReaccionaron: number;
+}
 
 export function postImagePath(post: Post): string | undefined {
   if (!post.mediaKey) return undefined;

@@ -30,7 +30,7 @@ export const socialCopy = {
       return "Seguido por " + user.enComun + " personas que sigues";
     return (
       "Seguido por " +
-      names.join(", ") +
+      names.join(remaining ? ", " : " y ") +
       (remaining ? " y " + remaining + " más" : "")
     );
   },

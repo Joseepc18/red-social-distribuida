@@ -65,6 +65,8 @@ async function mockApi(page: Page) {
       return route.fulfill({ json: { token: token() } });
     }
     expect(request.headers().authorization).toMatch(/^Bearer /);
+    if (path === "/api/feed" || path.endsWith("/posts"))
+      return route.fulfill({ json: [] });
     if (
       path.endsWith("/sugerencias") ||
       path.endsWith("/alcance") ||
@@ -280,6 +282,7 @@ test("un 401 privado cierra la sesión; una búsqueda vacía es recuperable", as
 test("fallo de red muestra error y permite reintentar", async ({ page }) => {
   await login(page, "/explorar");
   await page.route("**/api/usuarios?q=*", (route) => route.abort("failed"));
+  await page.getByRole("searchbox").fill("José");
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("No pudimos conectar");
   await page.unroute("**/api/usuarios?q=*");

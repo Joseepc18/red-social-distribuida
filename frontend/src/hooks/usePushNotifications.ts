@@ -20,10 +20,10 @@ export function usePushNotifications(userId: string, token: string) {
   useEffect(() => {
     if (!supported) return;
     let active = true;
-    async function refresh() {
+    async function refresh(registerOnServer = false) {
       if (pending.current) return;
       try {
-        const result = await inspectPush(userId, token);
+        const result = await inspectPush(userId, token, registerOnServer);
         if (active && !pending.current) {
           setEnabled(result);
           setError("");
@@ -37,11 +37,14 @@ export function usePushNotifications(userId: string, token: string) {
         }
       }
     }
-    void refresh();
-    window.addEventListener("focus", refresh);
+    void refresh(true);
+    const onFocus = () => {
+      void refresh();
+    };
+    window.addEventListener("focus", onFocus);
     return () => {
       active = false;
-      window.removeEventListener("focus", refresh);
+      window.removeEventListener("focus", onFocus);
     };
   }, [supported, userId, token]);
   async function toggle() {

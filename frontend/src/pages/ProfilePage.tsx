@@ -9,6 +9,8 @@ import { StatusMessage } from "../components/StatusMessage";
 import { UserCard } from "../components/UserCard";
 import { ProfileGraph } from "../components/ProfileGraph";
 import { copy, profileCopy } from "../content/copy";
+import { PostList } from "../components/PostList";
+import { postsCopy } from "../content/posts-copy";
 interface ProfilePageProps {
   readonly userId?: string;
 }
@@ -91,6 +93,13 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
           )}
         </div>
       </Card>
+      <section className="space-y-5" aria-label={postsCopy.userPosts}>
+        <h2>{postsCopy.userPosts}</h2>
+        <PostList
+          key={userId}
+          path={"/usuarios/" + encodeURIComponent(userId) + "/posts"}
+        />
+      </section>
       {!state.own && (
         <ProfileGraph key={userId + ":" + state.following} userId={userId} />
       )}

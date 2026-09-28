@@ -7,6 +7,8 @@ import { PeoplePage } from "./pages/PeoplePage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { pages } from "./content/copy";
+import { FeedPage } from "./pages/FeedPage";
+import { PostPage } from "./pages/PostPage";
 interface AppProps {
   readonly children?: never;
 }
@@ -21,14 +23,11 @@ export function App(_props: AppProps) {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<PlaceholderPage {...pages.feed} />} />
+          <Route path="feed" element={<FeedPage />} />
           <Route path="explorar" element={<PeoplePage />} />
           <Route path="perfil" element={<ProfilePage />} />
           <Route path="usuarios/:id" element={<ProfilePage />} />
-          <Route
-            path="posts/:id"
-            element={<PlaceholderPage {...pages.post} />}
-          />
+          <Route path="posts/:id" element={<PostPage />} />
           <Route path="chat" element={<PlaceholderPage {...pages.chat} />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

@@ -63,6 +63,7 @@ function subscriptionBody(subscription: PushSubscription) {
 export async function inspectPush(
   userId: string,
   token: string,
+  registerOnServer = false,
 ): Promise<boolean> {
   if (!pushSupported()) return false;
   return locked(async () => {
@@ -80,11 +81,12 @@ export async function inspectPush(
       return false;
     }
     assertSession(userId, token);
-    await api<void>("/push/suscripciones", {
-      method: "POST",
-      token,
-      body: JSON.stringify(subscriptionBody(subscription)),
-    });
+    if (registerOnServer)
+      await api<void>("/push/suscripciones", {
+        method: "POST",
+        token,
+        body: JSON.stringify(subscriptionBody(subscription)),
+      });
     return true;
   });
 }

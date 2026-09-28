@@ -56,7 +56,19 @@ Las consultas se realizan mediante el cliente REST compartido: React pide las pr
 
 Las sesiones restauradas se validan una vez contra el servidor. Sincronizar cambios del perfil entre pestañas conserva esa validación si el token sigue siendo el mismo; un token distinto requiere validarse otra vez.
 
-## Comprobaciones
+## Notificaciones Web Push (#38)
+
+Las páginas privadas ofrecen **Activar notificaciones**. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.
+
+El backend consulta los seguidores en Neo4j y envía el aviso cifrado al servicio push del navegador. Ese servicio despierta al Service Worker, que muestra `titulo` y `cuerpo` aunque la aplicación esté cerrada. Al pulsar el aviso se enfoca una pestaña existente o se abre la publicación indicada por `url`. Solo se aceptan destinos `/posts/{id}` del mismo origen; el contenido de esa pantalla corresponde a #14.
+
+**Desactivar notificaciones** elimina la suscripción mediante `DELETE /api/push/suscripciones` y ejecuta `unsubscribe()`. Se intenta la limpieza local incluso si el servidor no responde. Al cerrar sesión o cambiar de cuenta también se desactiva la suscripción anterior para evitar avisos de otra cuenta en un equipo compartido.
+
+El Service Worker conserva únicamente el propietario y endpoint de la suscripción en Cache Storage; no almacena JWT ni respuestas privadas, y no intercepta peticiones. Las operaciones se serializan entre pestañas mediante Web Locks donde esté disponible. Si el permiso está bloqueado, la interfaz indica cómo cambiarlo; si faltan las claves VAPID del servidor, muestra su error sin fingir una activación.
+
+Se requiere HTTPS o localhost, permiso de notificaciones y las variables VAPID descritas en el README del backend. En Brave puede ser necesario habilitar **Usar los servicios de Google para la mensajería push** en los ajustes de privacidad. El permiso del sitio por sí solo no activa ese servicio. El navegador debe poder ejecutarse en segundo plano para recibir avisos con todas las pestañas de la aplicación cerradas.
+
+## Comprobaciones del frontend
 
 ```bash
 npm run check

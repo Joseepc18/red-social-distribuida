@@ -5,6 +5,7 @@ import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 import { Avatar } from "./Avatar";
 import { Button } from "./Button";
+import { PushNotifications } from "./PushNotifications";
 interface AppLayoutProps {
   readonly children?: never;
 }
@@ -80,6 +81,13 @@ export function AppLayout(_props: AppLayoutProps) {
           )}
         </header>
         <main id="main-content" className="page-container" tabIndex={-1}>
+          {session && (
+            <PushNotifications
+              key={session.user.id}
+              userId={session.user.id}
+              token={session.token}
+            />
+          )}
           <Outlet />
         </main>
       </div>

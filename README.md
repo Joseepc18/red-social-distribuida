@@ -160,7 +160,7 @@ CREATE CONSTRAINT suscripcion_endpoint IF NOT EXISTS FOR (s:SuscripcionPush) REQ
 
 ### Consultas Cypher
 
-Reglas que cumplen todas las consultas:
+Reglas que cumplen las consultas C1–C7:
 
 | Regla | Motivo |
 |---|---|
@@ -608,6 +608,16 @@ Todos los usuarios usan la contraseña `Demo2026!`:
 | `gabriela`, `hector` | Alcanzables a 3 niveles (C4) |
 | `irene` | A 4 grados de `ana` (C5), fuera del alcance de 3 niveles |
 | `julian` | Sin conexiones: separación sin camino |
+
+### Consultas para la demostración (issue #60)
+
+Con los [datos de demostración](#datos-de-demostración-issue-52) cargados, abrir [Neo4j Browser](http://localhost:7474/browser/), conectarse a `bolt://localhost:7687` con el usuario `neo4j` y la contraseña `NEO4J_PASSWORD` del `.env` local; seleccionar la base `neo4j`. Si se personalizaron los puertos, usar los configurados en `.env`.
+
+Abrir [`consultas-demo.cypher`](consultas-demo.cypher), copiar cada instrucción `:param` al editor y ejecutarla por separado con **Ctrl+Enter**; después ejecutar la consulta que la sigue, hasta su `;`. Los parámetros buscan los UUID por los nombres del seed, así que no hay que copiarlos a mano. Si se recrea la base o se abre otra sesión de Browser, volver a ejecutar los parámetros. La [documentación de Neo4j Browser](https://neo4j.com/docs/browser/operations/query-parameters/) explica `:param`.
+
+El archivo incluye C1–C7 iguales a las del README, el arranque en frío de C2 con `julian` y una consulta final para visualizar los 10 usuarios, 12 publicaciones y relaciones `SIGUE`, `PUBLICA` y `REACCIONA`. Usar **Table** para C1–C7 y **Graph** para la consulta final (evidencias 4 y 11). La vista Graph devuelve nodos completos para dibujarlos y permite inspeccionar `passwordHash` de las cuentas demo; las consultas C1–C7 conservan sus campos proyectados.
+
+C6 puede devolver cero filas: el seed no crea suscripciones push. Para demostrarla con una suscripción real, iniciar sesión como `ana` y activar notificaciones desde `localhost` o el túnel HTTPS; luego ejecutar C6 para `bruno`. Esa consulta devuelve datos de la suscripción: no incluir `endpoint`, `p256dh` ni `auth` en las evidencias compartidas.
 
 ## Variables de entorno
 

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
@@ -276,8 +277,10 @@ for (const origin of origins) {
             query,
           );
         }
+        const evidencePath = testInfo.outputPath("evidencia-sin-tokens.txt");
+        await writeFile(evidencePath, evidence.join("\n"), "utf8");
         await testInfo.attach("evidencia-sin-tokens", {
-          body: evidence.join("\n"),
+          path: evidencePath,
           contentType: "text/plain",
         });
         console.log(evidence.join("\n"));

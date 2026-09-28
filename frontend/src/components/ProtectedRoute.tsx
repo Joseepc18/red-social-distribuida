@@ -1,30 +1,12 @@
-import { useCallback } from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
-import { useRemote } from "../hooks/useRemote";
-import { users } from "../services/users";
-import { getSession } from "../lib/session";
-import { StatusMessage } from "./StatusMessage";
-import { Button } from "./Button";
-import { copy } from "../content/copy";
+import { SessionValidation } from "./SessionValidation";
 interface ProtectedRouteProps {
   readonly children?: never;
 }
 export function ProtectedRoute(_props: ProtectedRouteProps) {
-  const { session, validatedToken, updateUser, logout } = useAuth();
+  const { session, validatedToken } = useAuth();
   const location = useLocation();
-  const token = session?.token;
-  const load = useCallback(
-    async (signal: AbortSignal) => {
-      if (!token) return null;
-      if (validatedToken === token) return getSession()?.user ?? null;
-      const profile = await users.me(signal, token);
-      if (!signal.aborted) updateUser(profile);
-      return profile;
-    },
-    [token, validatedToken, updateUser],
-  );
-  const remote = useRemote(token ?? "signed-out", load);
   if (!session)
     return (
       <Navigate
@@ -33,20 +15,7 @@ export function ProtectedRoute(_props: ProtectedRouteProps) {
         state={{ from: location.pathname + location.search }}
       />
     );
-  if (remote.loading)
-    return (
-      <div className="page-container">
-        <StatusMessage message={copy.loading} />
-      </div>
-    );
-  if (remote.error)
-    return (
-      <div className="page-container space-y-4">
-        <StatusMessage message={remote.error} error onRetry={remote.reload} />
-        <Button variant="secondary" onClick={logout}>
-          {copy.logout}
-        </Button>
-      </div>
-    );
+  if (validatedToken !== session.token)
+    return <SessionValidation key={session.token} token={session.token} />;
   return <Outlet />;
 }

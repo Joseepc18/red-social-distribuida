@@ -46,6 +46,16 @@ El código de la aplicación consume la API real. Las respuestas simuladas exist
 
 Los textos estáticos de la interfaz se centralizan en `src/content/copy.ts`; ese archivo no contiene usuarios ni publicaciones simuladas.
 
+## Grafo social (#34)
+
+En `/explorar`, sin una búsqueda activa, aparecen sugerencias con las conexiones que las explican y un botón para seguir. Cuando no sigues a nadie, se muestra la cantidad de seguidores que devuelve el servidor. Debajo se presenta el alcance de tu red con la distancia mínima, hasta tres pasos. Al seguir una sugerencia se actualizan ambas secciones.
+
+El perfil de otra persona muestra los seguidos en común y los grados de separación, con la cadena de nombres de usuario o un mensaje cuando no existe un camino dentro de seis pasos. El alcance respeta la dirección de las relaciones; la separación admite ambos sentidos, según el contrato del backend.
+
+Las consultas se realizan mediante el cliente REST compartido: React pide las proyecciones a Quarkus, Quarkus consulta Neo4j y la interfaz muestra el resultado. No se calcula un grafo alternativo en el navegador ni se inventan recomendaciones. Cada sección tiene carga, estado vacío y reintento independientes.
+
+Las sesiones restauradas se validan una vez contra el servidor. Sincronizar cambios del perfil entre pestañas conserva esa validación si el token sigue siendo el mismo; un token distinto requiere validarse otra vez.
+
 ## Notificaciones Web Push (#38)
 
 Las páginas privadas ofrecen **Activar notificaciones**. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.

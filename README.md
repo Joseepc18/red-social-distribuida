@@ -540,6 +540,21 @@ Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo
 
 Los logs de acceso omiten query strings y Referer en todas las rutas para no registrar JWT. Los fallos de `/ws` añaden un diagnóstico en stderr con estado HTTP, estado/dirección del upstream y tiempos, sin URL ni cabeceras. Se mantiene desactivado el error log crudo de esa ruta porque puede incluir el token del handshake.
 
+### Acceso remoto HTTPS para la demo (issue #50)
+
+Configurar una vez las [claves VAPID](#notificaciones-web-push-issue-30) en el `.env` privado. Para abrir el túnel rápido junto con la aplicación, desde la raíz ejecutar:
+
+```sh
+docker compose --profile demo up -d --build
+docker compose logs tunnel
+```
+
+Copiar la URL `https://<aleatorio>.trycloudflare.com` que aparece en los logs y abrirla desde el otro equipo o teléfono. `cloudflared` accede a `frontend:80` **dentro** de Docker; `localhost:8080` es el puerto publicado en la computadora. El túnel solo se inicia con el perfil `demo`; para cerrarlo, `docker compose stop tunnel`. [Cloudflare documenta este tipo de túnel para pruebas](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/).
+
+En el equipo remoto: iniciar sesión con una cuenta que siga a otro usuario, pulsar **Activar notificaciones** y permitirlas en el navegador. Publicar desde la cuenta seguida (en otra sesión) y comprobar que llega el aviso Web Push. Cada URL nueva es un origen diferente: hay que iniciar sesión y activar las notificaciones otra vez; la suscripción del dominio anterior no se traslada.
+
+Como respaldo en Chrome, si ambos equipos comparten red local y el puerto 8080 es accesible, abrir `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, agregar `http://<IP-del-servidor>:8080` y reiniciar Chrome. Es una opción de prueba para permitir Service Worker y notificaciones en ese origen HTTP; [Chromium la documenta para desarrollo](https://www.chromium.org/Home/chromium-security/deprecating-powerful-features-on-insecure-origins/).
+
 ### Datos de demostración (issue #52)
 
 `scripts/seed-demo.mjs` crea una red de 10 usuarios recorriendo la API REST igual que un usuario real: registro, login, seguimientos, publicaciones (4 con imagen, que se suben a MinIO por `POST /api/posts`) y reacciones. Nunca escribe directamente en Neo4j ni en MinIO. Requiere Node.js 18 o superior y ninguna dependencia.

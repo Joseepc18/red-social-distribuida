@@ -4,8 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+
 import jakarta.enterprise.context.ApplicationScoped;
+
 import org.jboss.logging.Logger;
+
 import com.redsocial.shared.error.ApiException;
 
 @ApplicationScoped
@@ -17,14 +20,18 @@ public class ChatService {
     private final ChatSessions sessions;
 
     public ChatService(ChatRepository repository, ChatBroker broker, ChatSessions sessions) {
-        this.repository=repository;
-        this.broker=broker;
-        this.sessions=sessions;
+        this.repository = repository;
+        this.broker = broker;
+        this.sessions = sessions;
     }
 
     public ConversationResponse create(String actor, String other) {
-        if (other == null || other.isBlank()) throw ApiException.badRequest("VALIDACION", "usuarioId es obligatorio");
-        if (actor.equals(other)) throw ApiException.badRequest("CHAT_CON_UNO_MISMO", "Elige otro usuario");
+        if (other == null || other.isBlank()) {
+            throw ApiException.badRequest("VALIDACION", "usuarioId es obligatorio");
+        }
+        if (actor.equals(other)) {
+            throw ApiException.badRequest("CHAT_CON_UNO_MISMO", "Elige otro usuario");
+        }
         requireUser(actor);
         String pair = actor.compareTo(other) < 0 ? actor + ":" + other : other + ":" + actor;
         String id = UUID.nameUUIDFromBytes(pair.getBytes(StandardCharsets.UTF_8)).toString();
@@ -37,7 +44,9 @@ public class ChatService {
     }
 
     public MessagePage history(String actor, String conversation, String before) {
-        if (!repository.participates(actor, conversation)) throw forbidden();
+        if (!repository.participates(actor, conversation)) {
+            throw forbidden();
+        }
         var cursor = MessageCursor.decode(before, conversation);
         var results = repository.history(actor, conversation, cursor, PAGE_SIZE + 1);
         boolean more = results.size() > PAGE_SIZE;
@@ -66,7 +75,9 @@ public class ChatService {
     }
 
     public void requireUser(String actor) {
-        if (!repository.userExists(actor)) throw missingUser();
+        if (!repository.userExists(actor)) {
+            throw missingUser();
+        }
     }
 
     private static ApiException missingUser() {

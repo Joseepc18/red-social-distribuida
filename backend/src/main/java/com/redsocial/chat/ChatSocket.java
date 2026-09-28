@@ -1,9 +1,12 @@
 package com.redsocial.chat;
 
 import java.time.Instant;
+
 import jakarta.inject.Inject;
+
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,12 +23,19 @@ import io.quarkus.websockets.next.WebSocketConnection;
 @WebSocket(path = "/ws/chat", endpointId = "chat")
 @Authenticated
 public class ChatSocket {
-    public record ChatError(String tipo, String error, String mensaje) { }
+    public record ChatError(String tipo, String error, String mensaje) {
+    }
+
     private static final Logger LOG = Logger.getLogger(ChatSocket.class);
-    @Inject ChatService service;
-    @Inject ChatSessions sessions;
-    @Inject JsonWebToken jwt;
-    @Inject ObjectMapper json;
+
+    @Inject
+    ChatService service;
+    @Inject
+    ChatSessions sessions;
+    @Inject
+    JsonWebToken jwt;
+    @Inject
+    ObjectMapper json;
 
     @OnOpen
     public void open(WebSocketConnection connection) {
@@ -38,7 +48,9 @@ public class ChatSocket {
     }
 
     @OnClose
-    public void close(WebSocketConnection connection) { sessions.remove(connection); }
+    public void close(WebSocketConnection connection) {
+        sessions.remove(connection);
+    }
 
     @OnTextMessage
     public void message(String raw, WebSocketConnection connection) {
@@ -47,22 +59,35 @@ public class ChatSocket {
             return;
         }
         JsonNode input;
-        try { input=json.readTree(raw); }
-        catch (JsonProcessingException failure) { throw invalid(); }
+        try {
+            input = json.readTree(raw);
+        } catch (JsonProcessingException failure) {
+            throw invalid();
+        }
         if (input == null || !input.isObject() || !input.path("tipo").isTextual()
                 || !input.path("tipo").asText().equals("mensaje")
-                || !input.path("conversacionId").isTextual() || !input.path("texto").isTextual()) throw invalid();
+                || !input.path("conversacionId").isTextual() || !input.path("texto").isTextual()) {
+            throw invalid();
+        }
         service.send(jwt.getSubject(), input.get("conversacionId").asText(), input.get("texto").asText());
     }
 
     @OnError
     public void error(Throwable failure, WebSocketConnection connection) {
-        if (!connection.isOpen()) return;
-        String code="ERROR_INTERNO";
-        String message="No se pudo procesar el mensaje";
-        if (failure instanceof ApiException api) { code=api.error(); message=api.mensaje(); }
-        else LOG.errorf("Chat processing failed on connection %s (%s)", connection.id(), failure.getClass().getSimpleName());
-        if (connection.isOpen()) connection.sendTextAndAwait(new ChatError("error", code, message));
+        if (!connection.isOpen()) {
+            return;
+        }
+        String code = "ERROR_INTERNO";
+        String message = "No se pudo procesar el mensaje";
+        if (failure instanceof ApiException api) {
+            code = api.error();
+            message = api.mensaje();
+        } else {
+            LOG.errorf("Chat processing failed on connection %s (%s)", connection.id(), failure.getClass().getSimpleName());
+        }
+        if (connection.isOpen()) {
+            connection.sendTextAndAwait(new ChatError("error", code, message));
+        }
     }
 
     private static ApiException invalid() {

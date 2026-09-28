@@ -4,15 +4,19 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import jakarta.enterprise.context.ApplicationScoped;
+
 import org.jboss.logging.Logger;
+
 import io.quarkus.websockets.next.CloseReason;
 import io.quarkus.websockets.next.WebSocketConnection;
 
 @ApplicationScoped
 public class ChatSessions {
     private static final Logger LOG = Logger.getLogger(ChatSessions.class);
-    private record Session(WebSocketConnection connection, String user, long expires) { }
+    private record Session(WebSocketConnection connection, String user, long expires) {
+    }
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
     private final Map<String, Boolean> delivered = new LinkedHashMap<>();
 
@@ -20,16 +24,24 @@ public class ChatSessions {
         sessions.put(connection.id(), new Session(connection, user, expires));
     }
 
-    public void remove(WebSocketConnection connection) { sessions.remove(connection.id()); }
+    public void remove(WebSocketConnection connection) {
+        sessions.remove(connection.id());
+    }
 
     public void deliver(ChatEnvelope envelope) {
         synchronized (delivered) {
-            if (delivered.putIfAbsent(envelope.mensaje().id(), true) != null) return;
-            if (delivered.size() > 4096) delivered.remove(delivered.keySet().iterator().next());
+            if (delivered.putIfAbsent(envelope.mensaje().id(), true) != null) {
+                return;
+            }
+            if (delivered.size() > 4096) {
+                delivered.remove(delivered.keySet().iterator().next());
+            }
         }
         var event = new ChatEvent(envelope.mensaje());
         for (var session : sessions.values()) {
-            if (!session.connection().isOpen() || !envelope.participantes().contains(session.user())) continue;
+            if (!session.connection().isOpen() || !envelope.participantes().contains(session.user())) {
+                continue;
+            }
             if (session.expires() <= Instant.now().getEpochSecond()) {
                 session.connection().close(new CloseReason(1008, "JWT vencido")).subscribe().with(v -> {}, e -> {});
                 continue;

@@ -30,8 +30,8 @@ public class ConversationResource {
     private final JsonWebToken jwt;
 
     public ConversationResource(ChatService service, JsonWebToken jwt) {
-        this.service=service;
-        this.jwt=jwt;
+        this.service = service;
+        this.jwt = jwt;
     }
 
     @POST
@@ -56,7 +56,9 @@ public class ConversationResource {
     @APIResponse(responseCode = "200", description = "Conversaciones del usuario autenticado")
     @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
     @APIResponse(responseCode = "404", description = "USUARIO_NO_ENCONTRADO")
-    public List<ConversationResponse> list() { return service.conversations(jwt.getSubject()); }
+    public List<ConversationResponse> list() {
+        return service.conversations(jwt.getSubject());
+    }
 
     @GET
     @Path("/{id}/mensajes")

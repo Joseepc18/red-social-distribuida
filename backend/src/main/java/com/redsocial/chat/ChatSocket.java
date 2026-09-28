@@ -42,6 +42,7 @@ public class ChatSocket {
         try {
             service.requireUser(jwt.getSubject());
             sessions.add(connection, jwt.getSubject(), jwt.getExpirationTime());
+            LOG.infof("Chat connected user=%s connection=%s", jwt.getSubject(), connection.id());
         } catch (ApiException failure) {
             connection.closeAndAwait(new CloseReason(1008, "Usuario no disponible"));
         }
@@ -50,6 +51,7 @@ public class ChatSocket {
     @OnClose
     public void close(WebSocketConnection connection) {
         sessions.remove(connection);
+        LOG.infof("Chat disconnected connection=%s", connection.id());
     }
 
     @OnTextMessage

@@ -555,6 +555,34 @@ En el equipo remoto: iniciar sesión con una cuenta que siga a otro usuario, pul
 
 Como respaldo en Chrome, si ambos equipos comparten red local y el puerto 8080 es accesible, abrir `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, agregar `http://<IP-del-servidor>:8080` y reiniciar Chrome. Es una opción de prueba para permitir Service Worker y notificaciones en ese origen HTTP; [Chromium la documenta para desarrollo](https://www.chromium.org/Home/chromium-security/deprecating-powerful-features-on-insecure-origins/).
 
+### Demostración de tolerancia a fallos del chat (issue #51)
+
+Requiere el entorno completo con las dos instancias saludables y el túnel activo (`docker compose --profile demo up -d --build`). Usar dos cuentas en navegadores o sesiones independientes; repetir el recorrido con una sesión abierta por la URL HTTPS del túnel. El frontend elige `ws://` en HTTP y `wss://` en HTTPS.
+
+Nginx limita a 2 segundos la conexión a cada backend y a 5 segundos los reintentos entre upstreams para REST y el handshake WebSocket: un contenedor detenido puede dejar la conexión esperando hasta el timeout predeterminado. El timeout de lectura del socket sigue siendo de una hora y el backend mantiene el heartbeat de 30 segundos.
+
+La lectura del historial admite hasta tres intentos ante errores de conexión o HTTP 502/503/504, con esperas de 1 y 2 segundos. Así también se recupera ante un error temporal del proxy durante el cambio de instancia. Al agotarlos se muestra el error y se permite reintentar manualmente; no hay polling ni reenvío automático de mensajes.
+
+1. Abrir la misma conversación en ambos clientes. Comprobar en `docker compose logs -f backend-1 backend-2` las líneas `Chat connected user=<id> connection=<id>`: el prefijo `[backend-1]` o `[backend-2]` es `INSTANCE_ID`. El id del usuario coincide con el de su enlace de perfil. Si ambos sockets están en la misma instancia, volver a abrir el chat de uno y verificar los logs. `/api/info` muestra el balanceo de REST, pero no identifica la instancia de un socket ya abierto.
+2. Enviar un mensaje en cada sentido: ambos deben aparecer una sola vez en ambos clientes. Así se comprueba también la comunicación entre instancias por Redis.
+3. Con el chat abierto, ejecutar `docker compose stop backend-1`. El cliente de esa instancia pasa a **Reconectando…** y vuelve a **Conectado** en `backend-2`; el cliente que ya estaba en `backend-2` continúa conectado. Enviar y responder otra vez.
+4. Para observar un mensaje durante la desconexión, retrasar brevemente la conexión del cliente receptor (por ejemplo, poner su navegador en modo Offline desde las herramientas de desarrollo). Desde el cliente que sigue conectado, enviar un texto identificable. Al restaurar la conexión, se recarga el historial por REST y aparece ese mensaje; recargar también la página para comprobar su persistencia, sin duplicados. No se promete enviar mensajes desde un cliente desconectado: el botón de envío queda deshabilitado hasta reconectar.
+5. Ejecutar `docker compose start backend-1`, esperar a que esté saludable (`docker compose ps`) y repetir peticiones a `/api/info`: vuelven a responder las dos instancias. Reabrir el chat de un cliente y comprobar un nuevo `Chat connected` en `backend-1` y que puede enviar y recibir. Los sockets activos no migran por reiniciar la instancia: se balancean las conexiones nuevas.
+6. Repetir los pasos anteriores desde la URL HTTPS actual. En la pestaña Network/WS del navegador verificar el protocolo **wss**; no compartir la URL completa del socket porque contiene el JWT.
+
+**Prueba reproducible:** desde `frontend`, instalar dependencias con `npm ci` y Chromium con `npx playwright install chromium` (o indicar un navegador instalado mediante `BROWSER_EXECUTABLE`). Con el stack ya levantado, en PowerShell:
+
+```powershell
+$env:CHAT_FAILOVER="1"
+$env:CHAT_TUNNEL_URL="https://<URL-actual>.trycloudflare.com"
+npm run test:failover
+Remove-Item Env:CHAT_FAILOVER, Env:CHAT_TUNNEL_URL
+```
+
+En Bash: `CHAT_FAILOVER=1 CHAT_TUNNEL_URL="https://<URL-actual>.trycloudflare.com" npm run test:failover`. Esta prueba se ejecuta aparte del CI: **detiene y reinicia `backend-1` de la copia local**, por lo que debe usarse cuando nadie más dependa de ese stack. Ejecuta ambos recorridos (local y túnel), usa dos contextos de navegador reales, comprueba las instancias en logs y pausa solo el temporizador de reconexión del receptor para asegurar el mensaje durante la desconexión. Verifica la recarga REST automática, la persistencia y el regreso al balanceo REST/WebSocket. Finalmente restaura `backend-1` y borra sus cuentas, conversación y mensajes temporales, incluso si falla una comprobación. La evidencia queda en la consola y en `frontend/test-results`, sin tokens ni grabaciones de red.
+
+Resultado verificado el 28/09/2026: ambos recorridos completos aprobaron contra Docker Compose real (HTTP/WS local y HTTPS/WSS mediante el túnel), con entrega bidireccional, recuperación del historial sin duplicados y reincorporación de `backend-1`.
+
 ### Datos de demostración (issue #52)
 
 `scripts/seed-demo.mjs` crea una red de 10 usuarios recorriendo la API REST igual que un usuario real: registro, login, seguimientos, publicaciones (4 con imagen, que se suben a MinIO por `POST /api/posts`) y reacciones. Nunca escribe directamente en Neo4j ni en MinIO. Requiere Node.js 18 o superior y ninguna dependencia.

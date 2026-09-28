@@ -518,7 +518,7 @@ Para revisar un fallo de arranque: `docker compose logs --tail=50`. Para detener
 - El bucket `media` permite descargar objetos por su clave (`s3:GetObject`); listar el bucket o escribir requiere autenticación. `minio-init` aplica la política también sobre un bucket existente, sin borrar imágenes.
 - MinIO y `mc` se construyen desde revisiones fijas del código oficial, debido a la indisponibilidad de las imágenes previstas. Las descargas se verifican mediante SHA-256.
 
-### Aplicación completa con Nginx (issue #12)
+### Aplicación completa con dos instancias y Nginx (issues #12 y #49)
 
 Con `.env` preparado, generar una sola vez el par RSA en `backend/keys/` siguiendo el [README del backend](backend/README.md#claves-jwt-para-docker). Conservar las claves entre arranques; Compose las monta en `/keys` como solo lectura y no se suben a Git.
 
@@ -530,9 +530,11 @@ docker compose ps -a
 curl http://localhost:8080/api/info
 ```
 
-Abrir `http://localhost:8080`; `/api/info` debe devolver `{"instancia":"backend-1"}`. Nginx sirve la SPA y dirige `/api` y `/ws` al backend, y `/media/<clave>` al bucket `media` de MinIO. La API recibe automáticamente las credenciales de `.env` y se conecta por los nombres internos de Docker. No necesita `backend/.env` en este modo.
+Abrir `http://localhost:8080`. `backend-1` y `backend-2` usan la misma imagen, las mismas claves JWT y los mismos servicios Neo4j, Redis y MinIO; solo cambia `INSTANCE_ID`. Nginx sirve la SPA, reparte `/api` y `/ws` entre ambos backends y envía `/media/<clave>` al bucket `media` de MinIO. Cada backend recibe las credenciales de `.env`; no necesita `backend/.env` en este modo.
 
-El backend espera a Neo4j, Redis y MinIO saludables y a que `minio-init` finalice correctamente. Nginx espera al backend saludable en `/q/health`. Solo Nginx publica el puerto de aplicación `8080`; los puertos locales de administración de Neo4j y MinIO se conservan para la demo. La segunda instancia, el balanceo y el chat corresponden a tareas posteriores.
+Ambos backends esperan a Neo4j, Redis y MinIO saludables y a que `minio-init` termine. Nginx arranca cuando **ambos** backends están saludables en `/q/health`. Las siete restricciones de Neo4j usan `IF NOT EXISTS`, así que ambas instancias pueden inicializarse a la vez. Solo Nginx publica el puerto de aplicación `8080`; los puertos locales de administración de Neo4j y MinIO se conservan para la demo.
+
+Para ver el balanceo, repetir `curl http://localhost:8080/api/info`: aparecerán `backend-1` y `backend-2`. Si se detiene una instancia con `docker compose stop backend-1`, Nginx dirige las nuevas peticiones a la otra; `docker compose start backend-1` la reincorpora. Las conexiones WebSocket existentes en la instancia detenida se cierran y el cliente debe reconectarse. Los mensajes entre usuarios conectados a instancias distintas viajan por Redis Pub/Sub y quedan guardados en Neo4j antes de publicarse.
 
 Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo (`docker compose down`, conserva datos) y seguir el modo desarrollo del backend, que inicia únicamente la infraestructura y evita ocupar el puerto `8080` con Nginx.
 

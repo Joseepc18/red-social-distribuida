@@ -20,5 +20,6 @@ export const chatCopy = {
   startError: "No pudimos iniciar la conversación. Inténtalo de nuevo.",
   start: "Enviar mensaje",
   back: "Volver a conversaciones",
+  backShort: "Volver",
   messageFrom: (name: string) => "Mensaje de " + name,
 } as const;

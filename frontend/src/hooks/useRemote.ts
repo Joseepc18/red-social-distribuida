@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../lib/api";
 interface RemoteState<T> {
   readonly key: string;
@@ -25,10 +25,11 @@ export function useRemote<T>(
     );
     return () => controller.abort();
   }, [requestKey, load]);
+  const reload = useCallback(() => setVersion((value) => value + 1), []);
   return {
     data: state.key === requestKey ? state.data : undefined,
     error: state.key === requestKey ? state.error : undefined,
     loading: state.key !== requestKey,
-    reload: () => setVersion((value) => value + 1),
+    reload,
   };
 }

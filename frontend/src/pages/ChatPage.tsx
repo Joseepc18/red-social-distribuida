@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Avatar } from "../components/Avatar";
@@ -62,13 +62,16 @@ export function ChatPage(_props: ChatPageProps) {
     "conversations:" + (session?.token ?? ""),
     loadConversations,
   );
-  const conversations = conversationsState.data ?? [];
+  const conversationData = conversationsState.data;
+  const reloadConversations = conversationsState.reload;
+  const conversations = conversationData ?? [];
   const activeConversation = conversations.find(
     (conversation) => conversation.id === requestedId,
   );
   const [histories, setHistories] = useState<
     Readonly<Record<string, ConversationHistory>>
   >({});
+  const pendingConversationIds = useRef(new Set<string>());
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState("");
   const activeHistory = requestedId ? histories[requestedId] : undefined;
@@ -142,6 +145,7 @@ export function ChatPage(_props: ChatPageProps) {
   }, [activeId, loadHistory]);
 
   const receiveMessage = useCallback((message: ChatMessage) => {
+    pendingConversationIds.current.add(message.conversacionId);
     setHistories((current) => {
       const previous = current[message.conversacionId];
       return {
@@ -158,6 +162,19 @@ export function ChatPage(_props: ChatPageProps) {
       };
     });
   }, []);
+
+  useEffect(() => {
+    const loadedConversations = conversationData;
+    if (!loadedConversations || pendingConversationIds.current.size === 0)
+      return;
+
+    const hasNewConversation = [...pendingConversationIds.current].some(
+      (id) =>
+        !loadedConversations.some((conversation) => conversation.id === id),
+    );
+    pendingConversationIds.current.clear();
+    if (hasNewConversation) reloadConversations();
+  }, [conversationData, histories, reloadConversations]);
 
   const reloadAfterReconnect = useCallback(() => {
     if (activeId) void loadHistory(activeId, null);
@@ -253,7 +270,12 @@ export function ChatPage(_props: ChatPageProps) {
                           <strong className="block truncate">
                             {conversation.participante.nombre}
                           </strong>
-                          <span className="muted block truncate text-xs">
+                          <span
+                            className={
+                              "block truncate text-xs " +
+                              (selected ? "opacity-80" : "muted")
+                            }
+                          >
                             @{conversation.participante.username}
                           </span>
                         </span>
@@ -280,26 +302,26 @@ export function ChatPage(_props: ChatPageProps) {
               </p>
             ) : (
               <>
-                <header className="mb-4 flex items-center gap-3 border-b border-outline-variant/30 pb-4">
+                <header className="mb-4 flex flex-wrap items-center gap-3 border-b border-outline-variant/30 pb-4">
                   <Button
                     variant="ghost"
-                    className="md:hidden"
+                    className="px-2 md:hidden"
                     onClick={() => setSearchParams({})}
                     aria-label={chatCopy.back}
                   >
-                    {chatCopy.back}
+                    {chatCopy.backShort}
                   </Button>
                   <Avatar name={activeConversation.participante.nombre} />
-                  <div className="min-w-0">
-                    <h2 className="truncate">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="break-words text-base sm:text-xl">
                       {activeConversation.participante.nombre}
                     </h2>
-                    <p className="muted truncate text-xs">
+                    <p className="muted break-all text-xs">
                       @{activeConversation.participante.username}
                     </p>
                   </div>
                   <span
-                    className="muted ml-auto text-xs"
+                    className="muted basis-full text-right text-xs lg:ml-auto lg:basis-auto"
                     role="status"
                     aria-live="polite"
                   >

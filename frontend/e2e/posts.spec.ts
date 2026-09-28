@@ -228,3 +228,42 @@ test("detalle desde enlace directo carga media y muestra un 404 recuperable", as
   );
   await expect(page.getByRole("article")).toHaveCount(0);
 });
+
+test("reaccionar actualiza estado y contador solo tras confirmar el servidor", async ({
+  page,
+}) => {
+  await setup(page);
+  const methods: string[] = [];
+  let fail = false;
+  await page.route("**/api/posts/p1/reacciones", async (route) => {
+    methods.push(route.request().method());
+    if (fail)
+      return route.fulfill({
+        status: 503,
+        json: { error: "TEMPORAL", mensaje: "Servicio no disponible" },
+      });
+    return route.fulfill({ status: 204 });
+  });
+  await page.goto("/feed");
+  const like = page.getByRole("button", { name: "Me gusta", exact: true });
+  await expect(like).toHaveAttribute("aria-pressed", "false");
+  await expect(like).toContainText("1 reacción");
+  await like.click();
+  const unlike = page.getByRole("button", {
+    name: "Quitar Me gusta",
+    exact: true,
+  });
+  await expect(unlike).toHaveAttribute("aria-pressed", "true");
+  await expect(unlike).toContainText("2 reacciones");
+  await unlike.click();
+  await expect(like).toHaveAttribute("aria-pressed", "false");
+  await expect(like).toContainText("1 reacción");
+  fail = true;
+  await like.click();
+  await expect(page.getByRole("alert")).toContainText(
+    "No pudimos actualizar tu reacción",
+  );
+  await expect(like).toHaveAttribute("aria-pressed", "false");
+  await expect(like).toContainText("1 reacción");
+  expect(methods).toEqual(["POST", "DELETE", "POST"]);
+});

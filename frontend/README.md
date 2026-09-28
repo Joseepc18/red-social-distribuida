@@ -124,6 +124,10 @@ Quarkus guarda el texto y la clave del objeto en Neo4j y el archivo en MinIO. La
 
 `GET /api/feed?page=0` y `GET /api/usuarios/{id}/posts?page=0` devuelven arrays de hasta 20 elementos; menos de 20 indica el final. **Cargar más publicaciones** agrega páginas y elimina duplicados por id. Un fallo mantiene las tarjetas existentes y permite repetir la página pendiente. **Actualizar feed** reinicia desde la primera página. El feed solo contiene publicaciones de personas seguidas: las publicaciones propias se consultan en el perfil o desde el enlace de confirmación.
 
-`GET /api/posts/{id}` alimenta el detalle, incluido el destino de Web Push. El contador se muestra cuando la respuesta contiene `reacciones`; el contrato actual del detalle y de los perfiles no incluye ese campo, por lo que no se inventa un cero. El botón para reaccionar corresponde a la siguiente tarea.
+`GET /api/posts/{id}` alimenta el detalle, incluido el destino de Web Push. El contador se muestra cuando la respuesta contiene `reacciones`; el contrato actual del detalle y de los perfiles no incluye ese campo, por lo que no se inventa un cero.
 
-El feed necesita el endpoint del backend de #11. Hasta que esté integrado, la aplicación muestra el error de la API con reintento. Las pruebas de navegador usan respuestas controladas del contrato (array, campos y paginación); no existe un feed ficticio en la aplicación. Las pruebas de publicaciones comprueban creación con imagen, reintentos, límites, paginación, detalle, perfiles y vista móvil.
+Las pruebas de publicaciones comprueban creación con imagen, reintentos, límites, paginación, detalle, perfiles y vista móvil. La aplicación consume siempre el feed real; no existe un modo con publicaciones ficticias.
+
+## Reacciones (#35)
+
+Las tarjetas del feed usan `reaccionado` y `reacciones` como estado inicial. **Me gusta** llama a `POST /api/posts/{id}/reacciones`; quitarlo llama a `DELETE` en la misma ruta. El botón queda bloqueado durante la petición y actualiza estado y contador únicamente después de recibir `204`. Si falla, conserva el estado anterior y muestra un error recuperable.

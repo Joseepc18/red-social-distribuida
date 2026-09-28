@@ -7,7 +7,8 @@ interface IconProps {
     | "arrow"
     | "logout"
     | "search"
-    | "plus";
+    | "plus"
+    | "heart";
   readonly className?: string;
 }
 const paths = {
@@ -20,6 +21,8 @@ const paths = {
   logout: "M9 4H4v16h5 M10 12h10 M16 8l4 4-4 4",
   search: "M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14 M15 15l6 6",
   plus: "M12 5v14 M5 12h14",
+  heart:
+    "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6a5.5 5.5 0 0 0 1-8.8z",
 } as const;
 export function Icon({ name, className = "" }: IconProps) {
   return (

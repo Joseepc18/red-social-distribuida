@@ -13,6 +13,10 @@ export const posts = {
     if (file) body.set("archivo", file);
     return api<Post>("/posts", { method: "POST", body, signal });
   },
+  setReaction: (id: string, reacted: boolean) =>
+    api<void>("/posts/" + encodeURIComponent(id) + "/reacciones", {
+      method: reacted ? "DELETE" : "POST",
+    }),
 };
 
 export function postImagePath(post: Post): string | undefined {

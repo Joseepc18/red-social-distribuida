@@ -27,4 +27,7 @@ export const postsCopy = {
   imageError: "No pudimos cargar la imagen.",
   reactions: (count: number) =>
     count + (count === 1 ? " reacción" : " reacciones"),
+  react: "Me gusta",
+  unreact: "Quitar Me gusta",
+  reactionError: "No pudimos actualizar tu reacción. Inténtalo de nuevo.",
 } as const;

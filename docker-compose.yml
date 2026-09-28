@@ -80,10 +80,11 @@ services:
       start_period: 5s
 
   backend-1:
-    build:
+    image: &backend-image red-social-distribuida-backend:local
+    build: &backend-build
       context: ./backend
     restart: unless-stopped
-    environment:
+    environment: &backend-environment
       INSTANCE_ID: backend-1
       NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: neo4j
@@ -101,14 +102,14 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-}
-    volumes:
+    volumes: &backend-volumes
       - type: bind
         source: ./backend/keys
         target: /keys
         read_only: true
         bind:
           create_host_path: false
-    depends_on:
+    depends_on: &backend-dependencies
       neo4j:
         condition: service_healthy
       redis:
@@ -117,14 +118,26 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
-    networks:
+    networks: &backend-networks
       - social
-    healthcheck:
+    healthcheck: &backend-healthcheck
       test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:8080/q/health"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 30s
+
+  backend-2:
+    image: *backend-image
+    build: *backend-build
+    restart: unless-stopped
+    environment:
+      <<: *backend-environment
+      INSTANCE_ID: backend-2
+    volumes: *backend-volumes
+    depends_on: *backend-dependencies
+    networks: *backend-networks
+    healthcheck: *backend-healthcheck
 
   frontend:
     build:
@@ -134,6 +147,8 @@ services:
       - "8080:80"
     depends_on:
       backend-1:
+        condition: service_healthy
+      backend-2:
         condition: service_healthy
       minio:
         condition: service_healthy

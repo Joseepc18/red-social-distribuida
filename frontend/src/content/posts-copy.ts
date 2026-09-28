@@ -13,6 +13,14 @@ export const postsCopy = {
   created: "Tu publicación está lista.",
   view: "Ver publicación",
   detail: "Publicación",
+  discover: "Descubrir",
+  discoverIntro:
+    "Publicaciones que llamaron la atención de las personas que sigues.",
+  discoverEmpty: "Todavía no hay publicaciones para descubrir.",
+  reactedByFollowing: (count: number) =>
+    "Reaccionada por " +
+    count +
+    (count === 1 ? " persona que sigues" : " personas que sigues"),
   userPosts: "Publicaciones",
   refresh: "Actualizar feed",
   more: "Cargar más publicaciones",
@@ -29,5 +37,9 @@ export const postsCopy = {
     count + (count === 1 ? " reacción" : " reacciones"),
   react: "Me gusta",
   unreact: "Quitar Me gusta",
+  reactionLabel: (reacted: boolean, count: number) =>
+    (reacted ? "Quitar Me gusta" : "Me gusta") +
+    ", " +
+    postsCopy.reactions(count),
   reactionError: "No pudimos actualizar tu reacción. Inténtalo de nuevo.",
 } as const;

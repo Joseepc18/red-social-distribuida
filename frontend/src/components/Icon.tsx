@@ -10,6 +10,7 @@ interface IconProps {
     | "plus"
     | "heart";
   readonly className?: string;
+  readonly filled?: boolean;
 }
 const paths = {
   feed: "M8 4h12v12H8z M4 8v12h12 M11 8h6 M11 12h4",
@@ -24,7 +25,7 @@ const paths = {
   heart:
     "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6a5.5 5.5 0 0 0 1-8.8z",
 } as const;
-export function Icon({ name, className = "" }: IconProps) {
+export function Icon({ name, className = "", filled = false }: IconProps) {
   return (
     <svg
       aria-hidden="true"
@@ -36,7 +37,7 @@ export function Icon({ name, className = "" }: IconProps) {
       strokeLinejoin="round"
       className={"h-5 w-5 shrink-0 " + className}
     >
-      <path d={paths[name]} />
+      <path d={paths[name]} fill={filled ? "currentColor" : "none"} />
     </svg>
   );
 }

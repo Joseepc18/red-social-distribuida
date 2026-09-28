@@ -517,6 +517,32 @@ Para desarrollo con Quarkus fuera de Docker, detener primero el entorno completo
 
 Los logs de acceso omiten query strings y Referer en todas las rutas para no registrar JWT. Los fallos de `/ws` añaden un diagnóstico en stderr con estado HTTP, estado/dirección del upstream y tiempos, sin URL ni cabeceras. Se mantiene desactivado el error log crudo de esa ruta porque puede incluir el token del handshake.
 
+### Datos de demostración (issue #52)
+
+`scripts/seed-demo.mjs` crea una red de 10 usuarios recorriendo la API REST igual que un usuario real: registro, login, seguimientos, publicaciones (4 con imagen, que se suben a MinIO por `POST /api/posts`) y reacciones. Nunca escribe directamente en Neo4j ni en MinIO. Requiere Node.js 18 o superior y ninguna dependencia.
+
+El script parte de una base vacía. Desde la raíz, con el stack completo:
+
+```sh
+docker compose down -v
+docker compose up -d --build
+node scripts/seed-demo.mjs
+```
+
+`docker compose down -v` **borra los volúmenes de Neo4j y MinIO** (usuarios, publicaciones e imágenes). La URL base es `http://localhost:8080`; para otra, pasarla como argumento (`node scripts/seed-demo.mjs https://mi-tunel.example.com`) o en `SEED_BASE_URL`. Al terminar, el script consulta como `ana` las rutas del grafo y termina con error si alguna quedó vacía.
+
+Todos los usuarios usan la contraseña `Demo2026!`:
+
+| Usuario | Papel en la demo |
+|---|---|
+| `ana` | Usuario principal: sigue a `bruno` y `carla` |
+| `bruno`, `carla` | Seguidos de `ana`; sus reacciones alimentan Descubrir |
+| `diego` | Sugerencia con 2 conexiones en común (C2) |
+| `elena`, `fabian` | Sugerencias con 1 conexión; `fabian` comparte con `ana` los seguidos `bruno` y `carla` (C3) |
+| `gabriela`, `hector` | Alcanzables a 3 niveles (C4) |
+| `irene` | A 4 grados de `ana` (C5), fuera del alcance de 3 niveles |
+| `julian` | Sin conexiones: separación sin camino |
+
 ## Variables de entorno
 
 La plantilla `.env.example` contiene los valores de desarrollo; los cambios personales se guardan en `.env` (ignorado por Git).

@@ -6,6 +6,11 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     restoreMocks: true,
-    exclude: ["node_modules/**", "e2e/**", "e2e-integration/**"],
+    exclude: [
+      "node_modules/**",
+      "e2e/**",
+      "e2e-integration/**",
+      "e2e-failover/**",
+    ],
   },
 });

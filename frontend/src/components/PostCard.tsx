@@ -81,11 +81,11 @@ export function PostCard({ post, detail = false }: PostCardProps) {
                   : "")
               }
               aria-pressed={reacted}
-              aria-label={reacted ? postsCopy.unreact : postsCopy.react}
+              aria-label={postsCopy.reactionLabel(reacted, reactionCount)}
               disabled={reactionBusy}
               onClick={toggleReaction}
             >
-              <Icon name="heart" />
+              <Icon name="heart" filled={reacted} />
               {postsCopy.reactions(reactionCount)}
             </button>
           )}

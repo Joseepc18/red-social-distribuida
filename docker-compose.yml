@@ -161,6 +161,18 @@ services:
       retries: 5
       start_period: 10s
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles:
+      - demo
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "--url", "http://frontend:80"]
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks:
+      - social
+
 networks:
   social:
     driver: bridge

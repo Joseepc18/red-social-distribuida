@@ -24,7 +24,7 @@ export function DiscoverPage(_props: DiscoverPageProps) {
       </header>
       <div className="flex justify-end">
         <Button variant="secondary" onClick={reload}>
-          {postsCopy.refresh}
+          {postsCopy.discoverRefresh}
         </Button>
       </div>
       {loading && <StatusMessage message={copy.loading} />}

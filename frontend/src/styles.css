@@ -101,7 +101,7 @@
     @apply flex min-h-80 flex-col items-center justify-center gap-5 py-14 text-center;
   }
   .mobile-nav {
-    @apply fixed bottom-0 left-0 right-0 z-30 grid grid-cols-4 gap-1 border-t border-outline-variant/30 bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface px-2 pt-2 lg:hidden;
+    @apply fixed bottom-0 left-0 right-0 z-30 grid grid-cols-5 gap-1 border-t border-outline-variant/30 bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface px-2 pt-2 lg:hidden;
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
   .mobile-link {

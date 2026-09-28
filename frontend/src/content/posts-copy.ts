@@ -14,6 +14,7 @@ export const postsCopy = {
   view: "Ver publicación",
   detail: "Publicación",
   discover: "Descubrir",
+  discoverRefresh: "Actualizar",
   discoverIntro:
     "Publicaciones que llamaron la atención de las personas que sigues.",
   discoverEmpty: "Todavía no hay publicaciones para descubrir.",

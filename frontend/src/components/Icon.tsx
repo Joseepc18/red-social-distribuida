@@ -1,6 +1,7 @@
 interface IconProps {
   readonly name:
     | "feed"
+    | "compass"
     | "people"
     | "chat"
     | "profile"
@@ -14,6 +15,8 @@ interface IconProps {
 }
 const paths = {
   feed: "M8 4h12v12H8z M4 8v12h12 M11 8h6 M11 12h4",
+  compass:
+    "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20 M16.2 7.8l-2.8 6.4-5.6 2 2.8-6.4z",
   people:
     "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M3 20v-2a6 6 0 0 1 12 0v2 M16 5a3 3 0 0 1 0 6 M18 14a5 5 0 0 1 3 4v2",
   chat: "M4 4h16v12H9l-5 4z M8 8h8 M8 12h5",

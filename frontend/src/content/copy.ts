@@ -11,7 +11,7 @@ export const copy = {
   login: "Iniciar sesión",
   register: "Crear una cuenta",
   explore: "Explorar personas",
-  discover: "Descubrir publicaciones",
+  discover: "Descubrir",
   profile: "Mi perfil",
   back: "Volver al inicio",
   loading: "Cargando…",
@@ -37,7 +37,7 @@ export const copy = {
 export const navigation = [
   { to: "/feed", label: copy.feed, icon: "feed" },
   { to: "/explorar", label: copy.explore, icon: "people" },
-  { to: "/descubrir", label: copy.discover, icon: "feed" },
+  { to: "/descubrir", label: copy.discover, icon: "compass" },
   { to: "/chat", label: copy.chat, icon: "chat" },
   { to: "/perfil", label: copy.profile, icon: "profile" },
 ] as const;

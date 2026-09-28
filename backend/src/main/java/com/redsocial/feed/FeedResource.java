@@ -35,7 +35,7 @@ public class FeedResource {
 
     @GET
     @Operation(summary = "Feed personalizado de usuarios seguidos",
-            description = "Consulta 4.1: Usuario → SIGUE → Usuario → PUBLICA → Post. "
+            description = "Consulta C1: Usuario → SIGUE → Usuario → PUBLICA → Post. "
                     + "Identidad obtenida del JWT. Array de hasta 20 publicaciones por fecha e id descendentes, "
                     + "con autor, reacciones y reaccionado. page empieza en 0; menos de 20 elementos indica el final. "
                     + "Sin seguidos o publicaciones devuelve []. mediaUrl usa MEDIA_PUBLIC_URL (por defecto /media/).")

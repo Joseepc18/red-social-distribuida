@@ -435,12 +435,21 @@ Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/
 
 ### Feed personalizado
 
-`GET /api/feed?page=0` requiere JWT y consulta las publicaciones de los usuarios seguidos mediante `Usuario → SIGUE → Usuario → PUBLICA → Post` (consulta 4.1). La identidad sale del token. Devuelve un array con los mismos campos que las publicaciones, más `reacciones` (total) y `reaccionado` (booleano del usuario autenticado).
+`GET /api/feed?page=0` requiere JWT y consulta las publicaciones de los usuarios seguidos mediante `Usuario → SIGUE → Usuario → PUBLICA → Post` (consulta C1). La identidad sale del token. Devuelve un array con los mismos campos que las publicaciones, más `reacciones` (total) y `reaccionado` (booleano del usuario autenticado).
 
 - Páginas de 20 elementos desde 0, por fecha descendente y luego id descendente para desempatar. Menos de 20 elementos indica el final; sin seguidos, sin publicaciones o fuera del rango devuelve `[]`.
 - `mediaUrl` conserva el prefijo `/media/` configurable y es `null` sin imagen. El autor incluye únicamente `id`, `username` y `nombre`.
 - Página negativa: `400`; JWT ausente o inválido: `401`; usuario eliminado: `404`. Un `page` no convertible a entero devuelve `404`, siguiendo la conversión de parámetros de los listados existentes.
 - Swagger publica el contrato en `/api/docs`. La paginación usa `SKIP/LIMIT`; publicaciones nuevas entre peticiones pueden desplazar elementos entre páginas.
+
+### Descubrir publicaciones de la red
+
+`GET /api/descubrir` requiere JWT y aplica la consulta **C7**: obtiene publicaciones que reaccionaron los usuarios que sigo, excluyendo las de autores que ya sigo y las propias. La identidad sale del token.
+
+- Devuelve un array de hasta **10 publicaciones**, sin paginación. Prioriza `amigosQueReaccionaron` (cantidad de seguidos distintos que reaccionaron), luego fecha descendente e id descendente para desempatar. Cada publicación aparece una sola vez.
+- Cada elemento conserva los campos de publicaciones: `{ id, texto, fecha, autor: { id, username, nombre }, mediaKey, mediaTipo, mediaUrl }`, y añade `amigosQueReaccionaron`. Este contador considera únicamente mis seguidos, no todas las reacciones de la publicación.
+- `mediaUrl` usa `MEDIA_PUBLIC_URL + mediaKey` (prefijo `/media/` por defecto); los campos media son `null` sin imagen. Sin coincidencias devuelve `[]`, sin JWT válido `401` y para un usuario eliminado `404`.
+- El contrato está disponible en Swagger (`/api/docs`).
 
 ## Instrucciones de ejecución
 

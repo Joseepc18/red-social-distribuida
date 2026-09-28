@@ -22,7 +22,7 @@ public class FeedRepository {
     }
 
     public List<Entry> find(String userId, int page, int size) {
-        // Query 4.1: paginate before counting reactions, projecting only public fields.
+        // Query C1: paginate before counting reactions, projecting only public fields.
         return driver.executableQuery("""
                         MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
                         WITH yo, p, autor

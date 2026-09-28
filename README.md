@@ -435,7 +435,7 @@ Swagger describe los campos y errores en `/api/docs`. En desarrollo con Vite, `/
 
 ### Feed personalizado
 
-`GET /api/feed?page=0` requiere JWT y consulta las publicaciones de los usuarios seguidos mediante `Usuario → SIGUE → Usuario → PUBLICA → Post` (consulta 4.1). La identidad sale del token. Devuelve un array con los mismos campos que las publicaciones, más `reacciones` (total) y `reaccionado` (booleano del usuario autenticado).
+`GET /api/feed?page=0` requiere JWT y consulta las publicaciones de los usuarios seguidos mediante `Usuario → SIGUE → Usuario → PUBLICA → Post` (consulta C1). La identidad sale del token. Devuelve un array con los mismos campos que las publicaciones, más `reacciones` (total) y `reaccionado` (booleano del usuario autenticado).
 
 - Páginas de 20 elementos desde 0, por fecha descendente y luego id descendente para desempatar. Menos de 20 elementos indica el final; sin seguidos, sin publicaciones o fuera del rango devuelve `[]`.
 - `mediaUrl` conserva el prefijo `/media/` configurable y es `null` sin imagen. El autor incluye únicamente `id`, `username` y `nombre`.

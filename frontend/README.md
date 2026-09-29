@@ -31,7 +31,7 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 | `/posts/:id` | Detalle de publicación, también accesible desde Web Push |
 | `/chat` | Lista de conversaciones e historial de mensajes en tiempo real |
 
-## Autenticación y datos (#13)
+## Autenticación y datos
 
 1. `POST /api/auth/registro` crea la cuenta y devuelve el perfil (201). La pantalla confirma el registro y dirige al login; no repite el registro ni presupone que devuelva un token.
 2. `POST /api/auth/login` devuelve `{ token }`. El frontend consulta `GET /api/usuarios/me` con ese token antes de establecer la sesión. El guard de rutas reutiliza esa validación durante el acceso inicial, sin repetir la petición; al recargar o recibir cambios de sesión desde otra pestaña, vuelve a validar con el servidor.
@@ -43,7 +43,7 @@ Se usa REST para operaciones puntuales con respuesta, y Context para la sesión 
 
 La persistencia en localStorage sigue el contrato del proyecto. La autorización definitiva siempre la valida Quarkus. No existe un endpoint de renovación de sesión; al expirar el token se requiere un nuevo login. Las contraseñas no se persisten.
 
-## Chat en tiempo real (#37)
+## Chat en tiempo real
 
 El perfil de otra persona permite iniciar o recuperar una conversación con `POST /api/conversaciones`. La ruta privada `/chat` lista las conversaciones con `GET /api/conversaciones` y carga el historial con `GET /api/conversaciones/{id}/mensajes`. El cursor `siguienteAntes` se reenvía sin cambios como `?antes=` para cargar mensajes anteriores.
 
@@ -53,7 +53,7 @@ El código de la aplicación consume la API real. Las respuestas simuladas exist
 
 Los textos estáticos de la interfaz se centralizan en `src/content/copy.ts`; ese archivo no contiene usuarios ni publicaciones simuladas.
 
-## Grafo social (#34)
+## Grafo social
 
 En `/explorar`, sin una búsqueda activa, aparecen sugerencias con las conexiones que las explican y un botón para seguir. Cuando no sigues a nadie, se muestra la cantidad de seguidores que devuelve el servidor. Debajo se presenta el alcance de tu red con la distancia mínima, hasta tres pasos. Al seguir una sugerencia se actualizan ambas secciones.
 
@@ -63,11 +63,11 @@ Las consultas se realizan mediante el cliente REST compartido: React pide las pr
 
 Las sesiones restauradas se validan una vez contra el servidor. Sincronizar cambios del perfil entre pestañas conserva esa validación si el token sigue siendo el mismo; un token distinto requiere validarse otra vez.
 
-## Notificaciones Web Push (#38)
+## Notificaciones Web Push
 
 Las páginas privadas ofrecen **Activar notificaciones**. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.
 
-El backend consulta los seguidores en Neo4j y envía el aviso cifrado al servicio push del navegador. Ese servicio despierta al Service Worker, que muestra `titulo` y `cuerpo` aunque la aplicación esté cerrada. Al pulsar el aviso se enfoca una pestaña existente o se abre la publicación indicada por `url`. Solo se aceptan destinos `/posts/{id}` del mismo origen; el contenido de esa pantalla corresponde a #14.
+El backend consulta los seguidores en Neo4j y envía el aviso cifrado al servicio push del navegador. Ese servicio despierta al Service Worker, que muestra `titulo` y `cuerpo` aunque la aplicación esté cerrada. Al pulsar el aviso se enfoca una pestaña existente o se abre la publicación indicada por `url`. Solo se aceptan destinos `/posts/{id}` del mismo origen.
 
 **Desactivar notificaciones** elimina la suscripción mediante `DELETE /api/push/suscripciones` y ejecuta `unsubscribe()`. Se intenta la limpieza local incluso si el servidor no responde. Al cerrar sesión o cambiar de cuenta también se desactiva la suscripción anterior para evitar avisos de otra cuenta en un equipo compartido.
 
@@ -110,7 +110,7 @@ Para probar la aplicación completa con los servicios reales, levantarla con Com
 
 ## Docker y coordinación
 
-Preparar `.env` y las claves JWT según el [README principal](../README.md#aplicación-completa-con-nginx-issue-12). Desde la raíz del repositorio:
+Preparar `.env` y las claves JWT según el [README principal](../README.md#configuración-inicial). Desde la raíz del repositorio:
 
 ```bash
 docker compose up -d --build
@@ -120,9 +120,9 @@ La aplicación se abre en `http://localhost:8080`. La imagen compila con Node y 
 
 El proxy admite peticiones de hasta 6 MiB para las publicaciones con imágenes de hasta 5 MiB (el backend valida el archivo). Compose permite configurar `MEDIA_PUBLIC_URL`; su valor predeterminado `/media/` conserva el mismo origen del navegador.
 
-`nginx.conf` reenvía `/api` y `/ws` a `backend-1:8080`, y `/media` a `minio:9000` conservando el nombre del bucket. Requiere la red y los servicios de Compose. WebSocket usa HTTP/1.1, cabeceras de upgrade y un timeout de una hora; los logs de acceso omiten la query y el Referer, y se descartan los errores de `/ws` porque pueden incluir el token. El chat se implementa en una tarea posterior.
+`nginx.conf` reparte `/api` y `/ws` entre `backend-1:8080` y `backend-2:8080` (`upstream backend_pool`, round robin) y envía `/media` a `minio:9000` conservando el nombre del bucket. Requiere la red y los servicios de Compose. WebSocket usa HTTP/1.1, cabeceras de upgrade y un timeout de una hora; los logs de acceso omiten la query y el Referer, y se descartan los errores de `/ws` porque pueden incluir el token.
 
-### Publicaciones y feed (#14)
+### Publicaciones y feed
 
 El formulario de `/feed` envía `texto` y el `archivo` opcional mediante `multipart/form-data` a `POST /api/posts`. El navegador genera el boundary; el cliente compartido adjunta el JWT. Se admiten entre 1 y 5000 caracteres y PNG, JPEG o GIF de hasta 5 MiB. El servidor verifica el contenido y el límite de 20 megapíxeles. La vista previa se libera al quitar o reemplazar la imagen. Si falla la solicitud se conserva el borrador; una creación confirmada ofrece un enlace al detalle.
 
@@ -134,6 +134,6 @@ Quarkus guarda el texto y la clave del objeto en Neo4j y el archivo en MinIO. La
 
 Las pruebas de publicaciones comprueban creación con imagen, reintentos, límites, paginación, detalle, perfiles y vista móvil. La aplicación consume siempre el feed real; no existe un modo con publicaciones ficticias.
 
-## Reacciones (#35)
+## Reacciones
 
 Las tarjetas del feed usan `reaccionado` y `reacciones` como estado inicial. **Me gusta** llama a `POST /api/posts/{id}/reacciones`; quitarlo llama a `DELETE` en la misma ruta. El botón queda bloqueado durante la petición y actualiza estado y contador únicamente después de recibir `204`. Si falla, conserva el estado anterior y muestra un error recuperable.

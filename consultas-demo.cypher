@@ -1,4 +1,4 @@
-// Issue #60: consultas de solo lectura para Neo4j Browser (evidencias 4 y 11).
+// Consultas de solo lectura para Neo4j Browser (evidencias 4 y 11).
 // Preparación: ejecutar scripts/seed-demo.mjs; conectarse a la base neo4j.
 // Ejecutar cada :param por separado y luego la consulta que lo sigue.
 // Los UUID se buscan por username: cambian cada vez que se recrea la base.
@@ -10,12 +10,14 @@
 
 MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
 WITH yo, p, autor
-ORDER BY p.fecha DESC
+ORDER BY p.fecha DESC, p.id DESC
 SKIP $skip LIMIT $limit
-RETURN p.id AS id, p.texto AS texto, p.fecha AS fecha, p.mediaKey AS mediaKey,
-       autor.id AS autorId, autor.username AS autorUsername,
+RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
+       p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
+       autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
        COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
-       EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado;
+       EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado
+ORDER BY p.fecha DESC, p.id DESC;
 
 // C2. Recomendaciones: amigos de amigos que ana aún no sigue.
 // diego tiene dos conexiones en común; elena y fabian tienen una.
@@ -81,7 +83,8 @@ RETURN seg.id AS usuarioId, s.endpoint AS endpoint, s.p256dh AS p256dh, s.auth A
 // El post con imagen de diego aparece con dos amigosQueReaccionaron.
 :param userId => head(COLLECT { MATCH (u:Usuario {username: 'ana'}) RETURN u.id });
 
-MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(amigo:Usuario)-[:REACCIONA]->(p:Post)<-[:PUBLICA]-(autor:Usuario)
+MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(amigo:Usuario)
+      -[:REACCIONA]->(p:Post)<-[:PUBLICA]-(autor:Usuario)
 WHERE autor <> yo AND NOT (yo)-[:SIGUE]->(autor)
 WITH p, autor, count(DISTINCT amigo) AS amigosQueReaccionaron
 ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC

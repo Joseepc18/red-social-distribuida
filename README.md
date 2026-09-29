@@ -222,6 +222,25 @@ Todos los usuarios usan la contraseña `Demo2026!`:
 | `irene` | A 4 grados de `ana` (C5), fuera del alcance de 3 niveles |
 | `julian` | Sin conexiones: separación sin camino |
 
+### Recorrido de evidencias de integración
+
+Para una demostración completa, prepara primero una base vacía con `docker compose down -v`, levanta el stack con `docker compose --profile demo up -d --build` y carga los [datos de demostración](#datos-de-demostración). **`down -v` elimina los volúmenes de Neo4j y MinIO**; úsalo solo cuando esos datos se puedan descartar. Abre un cliente en `http://localhost:8080` y otro con la URL HTTPS actual de `cloudflared`.
+
+1. **Registro e inicio de sesión:** crea una cuenta desde la interfaz y entra con ella.
+2. **Usuarios interactuando:** usa la cuenta recién creada y al menos una cuenta del seed en clientes o perfiles independientes.
+3. **Seguimiento:** sigue a otra cuenta y confirma que la relación aparece en el perfil y modifica el feed.
+4. **Grafo:** en [Neo4j Browser](#consultas-en-neo4j-browser), ejecuta la consulta final de `consultas-demo.cypher` y selecciona **Graph**.
+5. **Publicaciones:** crea una publicación de texto y otra con una imagen PNG, JPEG o GIF.
+6. **Almacenamiento S3:** en [Consola MinIO](#aplicación-completa-dos-instancias-y-nginx), abre el bucket `media` y confirma el objeto de la publicación bajo `posts/<postId>/`.
+7. **Feed personalizado:** confirma que aparecen publicaciones de cuentas seguidas y no publicaciones de toda la red.
+8. **Recomendaciones:** revisa las sugerencias de la interfaz y sus conexiones mutuas con C2.
+9. **Chat en tiempo real:** desde los clientes local y HTTPS, envía mensajes en ambos sentidos con la conversación abierta; cada mensaje debe aparecer sin recargar.
+10. **Web Push con la aplicación cerrada:** con VAPID configurado, activa las notificaciones en el cliente HTTPS, cierra las pestañas de NodoUni, publica desde una cuenta seguida y abre el aviso. Debe llevar a `/posts/<postId>`.
+11. **Consultas Cypher:** ejecuta C1–C7 en **Table** desde `consultas-demo.cypher`; no compartas los campos de suscripción de C6.
+12. **Infraestructura:** confirma con `docker compose --profile demo ps` que Nginx, ambos backends, Neo4j, MinIO, Redis y el túnel estén activos y saludables.
+
+Si un punto falla, repórtalo en un issue asignado a la persona responsable del componente.
+
 ### Consultas en Neo4j Browser
 
 Con los [datos de demostración](#datos-de-demostración) cargados, abrir [Neo4j Browser](http://localhost:7474/browser/), conectarse a `bolt://localhost:7687` con el usuario `neo4j` y la contraseña `NEO4J_PASSWORD` del `.env` local; seleccionar la base `neo4j`. Si se personalizaron los puertos, usar los configurados en `.env`.

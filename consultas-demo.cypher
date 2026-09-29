@@ -1,4 +1,4 @@
-// Issue #60: consultas de solo lectura para Neo4j Browser (evidencias 4 y 11).
+// Consultas de solo lectura para Neo4j Browser (evidencias 4 y 11).
 // Preparación: ejecutar scripts/seed-demo.mjs; conectarse a la base neo4j.
 // Ejecutar cada :param por separado y luego la consulta que lo sigue.
 // Los UUID se buscan por username: cambian cada vez que se recrea la base.

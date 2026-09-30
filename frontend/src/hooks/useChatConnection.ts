@@ -80,7 +80,7 @@ export function useChatConnection(
         if (reconnected) callbacks.current.onReconnect();
       });
       socket.addEventListener("message", (event: MessageEvent<unknown>) => {
-        if (disposed || typeof event.data !== "string") return;
+        if (typeof event.data !== "string") return;
         try {
           const parsed = parseEvent(JSON.parse(event.data) as unknown);
           if (!parsed) return;
@@ -102,8 +102,7 @@ export function useChatConnection(
       socket.addEventListener("error", () => socket.close());
     }
 
-    // StrictMode can dispose the initial effect before its first connection.
-    queueMicrotask(connect);
+    connect();
     return () => {
       disposed = true;
       if (retryTimer !== undefined) window.clearTimeout(retryTimer);

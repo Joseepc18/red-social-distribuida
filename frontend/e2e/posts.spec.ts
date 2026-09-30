@@ -18,7 +18,6 @@ const png = Buffer.from(
   "base64",
 );
 async function setup(page: Page, feed = [makePost(1)]) {
-  await page.routeWebSocket(/\/ws\/chat/, () => {});
   const token =
     "header." +
     Buffer.from(JSON.stringify({ exp: Date.now() / 1000 + 3600 })).toString(

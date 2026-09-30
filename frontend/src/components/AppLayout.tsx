@@ -1,28 +1,15 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { copy, homeCopy, navigation } from "../content/copy";
 import { useAuth } from "../hooks/useAuth";
-import { ChatProvider } from "../context/ChatProvider";
-import { useChat } from "../context/chat-context";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 import { AccountMenu } from "./AccountMenu";
-import { ChatDock } from "./ChatDock";
 import { PushNotifications } from "./PushNotifications";
 interface AppLayoutProps {
   readonly children?: never;
 }
 export function AppLayout(_props: AppLayoutProps) {
   const { session } = useAuth();
-  return (
-    <ChatProvider key={session?.token}>
-      <LayoutContent />
-    </ChatProvider>
-  );
-}
-function LayoutContent() {
-  const { session } = useAuth();
-  const { unread } = useChat();
-  const total = Object.values(unread).reduce((sum, value) => sum + value, 0);
   const { pathname, search } = useLocation();
   const feed = pathname === "/feed";
   const forYou = new URLSearchParams(search).get("vista") === "para-ti";
@@ -44,9 +31,6 @@ function LayoutContent() {
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
-              {item.to === "/chat" && total > 0 && (
-                <span className="unread-badge">{total}</span>
-              )}
             </NavLink>
           ))}
           <Link
@@ -127,14 +111,10 @@ function LayoutContent() {
             }
           >
             <Icon name={item.icon} />
-            <span>
-              {item.label}
-              {item.to === "/chat" && total > 0 ? " (" + total + ")" : ""}
-            </span>
+            <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
-      <ChatDock />
     </div>
   );
 }

@@ -20,7 +20,6 @@ const token = () =>
   ".signature";
 
 async function mockApi(page: Page) {
-  await page.routeWebSocket(/\/ws\/chat/, () => {});
   let profile = { ...current };
   let follows = false;
   await page.route("**/api/**", async (route) => {

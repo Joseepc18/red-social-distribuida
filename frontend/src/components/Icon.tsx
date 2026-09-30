@@ -10,10 +10,6 @@ interface IconProps {
     | "search"
     | "plus"
     | "heart"
-    | "back"
-    | "send"
-    | "expand"
-    | "minus"
     | "chevron"
     | "settings"
     | "sun"
@@ -23,10 +19,6 @@ interface IconProps {
   readonly filled?: boolean;
 }
 const paths = {
-  back: "M19 12H5 M11 6l-6 6 6 6",
-  send: "M22 2 9 15 M22 2l-7 20-4-9-9-4z",
-  expand: "M14 3h7v7 M21 3l-9 9 M10 3H3v18h18v-7",
-  minus: "M5 12h14",
   chevron: "M6 9l6 6 6-6",
   settings:
     "M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8",

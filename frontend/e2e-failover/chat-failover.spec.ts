@@ -56,7 +56,9 @@ async function send(page: Page, text: string) {
   await page
     .getByRole("button", { name: "Enviar mensaje", exact: true })
     .click();
-  await expect(page.getByText(text, { exact: true })).toHaveCount(1);
+  await expect(
+    page.getByRole("log").getByText(text, { exact: true }),
+  ).toHaveCount(1);
 }
 
 for (const origin of origins) {
@@ -151,11 +153,13 @@ for (const origin of origins) {
 
       await send(pages[0], `Ida ${suffix}`);
       await expect(
-        pages[1].getByText(`Ida ${suffix}`, { exact: true }),
+        pages[1].getByRole("log").getByText(`Ida ${suffix}`, { exact: true }),
       ).toHaveCount(1);
       await send(pages[1], `Vuelta ${suffix}`);
       await expect(
-        pages[0].getByText(`Vuelta ${suffix}`, { exact: true }),
+        pages[0]
+          .getByRole("log")
+          .getByText(`Vuelta ${suffix}`, { exact: true }),
       ).toHaveCount(1);
       evidence.push("Entrega bidireccional entre instancias: OK");
       console.log(`${origin.name}: entrega bidireccional comprobada`);
@@ -175,7 +179,9 @@ for (const origin of origins) {
       await connected(sender);
       const missed = `Durante desconexión ${suffix}`;
       await send(sender, missed);
-      await expect(receiver.getByText(missed, { exact: true })).toHaveCount(0);
+      await expect(
+        receiver.getByRole("log").getByText(missed, { exact: true }),
+      ).toHaveCount(0);
       const historyLoaded = receiver.waitForResponse(
         (r) =>
           r.url().includes(`/api/conversaciones/${conversationId}/mensajes`) &&
@@ -192,7 +198,9 @@ for (const origin of origins) {
           (message: { texto: string }) => message.texto === missed,
         ),
       ).toBe(true);
-      await expect(receiver.getByText(missed, { exact: true })).toHaveCount(1);
+      await expect(
+        receiver.getByRole("log").getByText(missed, { exact: true }),
+      ).toHaveCount(1);
       expect(connections(since).get(users[receiverIndex].id)?.instance).toBe(
         "backend-2",
       );
@@ -201,11 +209,15 @@ for (const origin of origins) {
       );
       await send(receiver, `Tras reconectar ${suffix}`);
       await expect(
-        sender.getByText(`Tras reconectar ${suffix}`, { exact: true }),
+        sender
+          .getByRole("log")
+          .getByText(`Tras reconectar ${suffix}`, { exact: true }),
       ).toHaveCount(1);
       await receiver.reload();
       await connected(receiver);
-      await expect(receiver.getByText(missed, { exact: true })).toHaveCount(1);
+      await expect(
+        receiver.getByRole("log").getByText(missed, { exact: true }),
+      ).toHaveCount(1);
       evidence.push(
         "Mensaje durante desconexión persistido y visible tras recargar, sin duplicados: OK",
       );
@@ -243,7 +255,9 @@ for (const origin of origins) {
       evidence.push(connections(since).get(users[receiverIndex].id)!.line);
       await send(receiver, `Instancia reincorporada ${suffix}`);
       await expect(
-        sender.getByText(`Instancia reincorporada ${suffix}`, { exact: true }),
+        sender
+          .getByRole("log")
+          .getByText(`Instancia reincorporada ${suffix}`, { exact: true }),
       ).toHaveCount(1);
       evidence.push("backend-1 reincorporado al balanceo REST y WebSocket: OK");
     } finally {

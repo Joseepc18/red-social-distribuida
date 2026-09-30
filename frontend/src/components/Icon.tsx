@@ -14,7 +14,11 @@ interface IconProps {
     | "settings"
     | "sun"
     | "moon"
-    | "image";
+    | "image"
+    | "back"
+    | "send"
+    | "expand"
+    | "minus";
   readonly className?: string;
   readonly filled?: boolean;
 }
@@ -25,7 +29,10 @@ const paths = {
   sun: "M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10 M12 1v2 M12 21v2 M1 12h2 M21 12h2 M4 4l2 2 M18 18l2 2 M4 20l2-2 M18 6l2-2",
   moon: "M20.5 14.5A9 9 0 0 1 9.5 3.5a9 9 0 1 0 11 11z",
   image: "M3 3h18v18H3z M3 17l6-6 4 4 3-3 5 5 M15 7h.01",
-
+  back: "M19 12H5 M11 6l-6 6 6 6",
+  send: "M22 2 9 15 M22 2l-7 20-4-9-9-4z",
+  expand: "M14 3h7v7 M21 3l-9 9 M10 3H3v18h18v-7",
+  minus: "M5 12h14",
   feed: "M8 4h12v12H8z M4 8v12h12 M11 8h6 M11 12h4",
   compass:
     "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20 M16.2 7.8l-2.8 6.4-5.6 2 2.8-6.4z",

@@ -101,13 +101,41 @@
 }
 
 .chat-page {
-  @apply flex overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface;
+  @apply flex overflow-hidden bg-transparent;
   height: calc(100dvh - 132px);
   min-height: 400px;
 }
 
 .chat-page-list {
-  @apply w-[290px] flex-col overflow-y-auto border-r border-outline-variant/30;
+  @apply w-[360px] shrink-0 flex-col overflow-y-auto border-r border-outline-variant/30;
+}
+
+.chat-page-list > header {
+  @apply border-b border-outline-variant/30 px-6 pb-5 pt-7;
+}
+
+.chat-page-list > header h1 {
+  @apply text-2xl;
+}
+
+.chat-empty-state {
+  @apply m-auto flex max-w-md flex-col items-center gap-3 px-8 py-10 text-center;
+}
+
+.chat-empty-icon {
+  @apply mb-2 inline-flex h-[76px] w-[76px] items-center justify-center rounded-full border border-outline-variant text-primary-container dark:border-outline dark:text-inverse-primary;
+}
+
+.chat-empty-icon svg {
+  @apply h-9 w-9;
+}
+
+.chat-empty-state h2 {
+  @apply text-xl;
+}
+
+.chat-empty-state p {
+  @apply max-w-sm text-sm text-on-surface-variant dark:text-outline-variant;
 }
 
 @media (max-width: 1023px) {
@@ -121,6 +149,10 @@
 
   .chat-page {
     height: calc(100dvh - 195px);
+  }
+
+  .chat-page-list {
+    @apply w-[310px];
   }
 }
 
@@ -150,5 +182,9 @@
 
   .chat-page-list {
     @apply w-full border-0;
+  }
+
+  .chat-page-list > header {
+    @apply px-5 pb-4 pt-4;
   }
 }

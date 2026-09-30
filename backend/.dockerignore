@@ -1,0 +1,14 @@
+# Only pom.xml and src/ are needed by the multi-stage build.
+target/
+.mvn/
+mvnw
+mvnw.cmd
+.idea/
+.vscode/
+*.iml
+.env
+*.pem
+keys/
+README.md
+Dockerfile
+.dockerignore

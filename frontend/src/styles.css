@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply m-0 bg-surface text-on-surface dark:bg-on-surface dark:text-inverse-on-surface font-sans antialiased;
+  }
+  h1 {
+    @apply text-2xl sm:text-3xl font-bold tracking-tight leading-tight;
+  }
+  h2 {
+    @apply text-xl font-bold tracking-tight;
+  }
+  button,
+  a,
+  input,
+  textarea {
+    @apply outline-offset-4;
+  }
+  :focus-visible {
+    @apply outline outline-2 outline-primary-container dark:outline-inverse-primary;
+  }
+  button {
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+}
+@layer components {
+  .muted {
+    @apply text-on-surface-variant dark:text-outline-variant;
+  }
+  .eyebrow {
+    @apply mb-3 text-xs font-bold uppercase tracking-widest text-primary-container dark:text-inverse-primary;
+  }
+  .brand {
+    @apply inline-flex items-center gap-2 text-primary-container dark:text-inverse-primary;
+  }
+  .brand-node {
+    @apply fill-surface-container-lowest stroke-primary-container dark:fill-inverse-surface dark:stroke-inverse-primary;
+    stroke-width: 2.5;
+  }
+  .brand-accent {
+    @apply fill-surface-container-lowest stroke-tertiary-fixed-dim dark:fill-inverse-surface dark:stroke-tertiary-fixed-dim;
+    stroke-width: 3;
+  }
+  .card {
+    @apply rounded-xl border border-outline-variant/20 bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface p-6 shadow-sm;
+  }
+  .button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors;
+  }
+  .button-primary {
+    @apply bg-primary-container text-on-primary hover:bg-primary dark:bg-inverse-primary dark:text-on-primary-fixed dark:hover:bg-primary-fixed;
+  }
+  .button-secondary {
+    @apply bg-surface-container text-primary hover:bg-surface-container-high dark:bg-on-surface dark:text-inverse-primary dark:hover:bg-on-surface-variant;
+  }
+  .button-ghost {
+    @apply text-on-surface-variant hover:bg-surface-container-low dark:text-outline-variant dark:hover:bg-on-surface;
+  }
+  .field {
+    @apply flex flex-col gap-2 text-sm;
+  }
+  .field label {
+    @apply font-semibold;
+  }
+  .input {
+    @apply min-h-12 w-full rounded-lg border border-outline-variant bg-surface-container-lowest dark:bg-on-surface dark:border-outline px-3.5 py-3 text-sm text-on-surface dark:text-inverse-on-surface placeholder:text-outline dark:placeholder:text-outline-variant focus:border-primary-container dark:focus:border-inverse-primary;
+  }
+  .avatar {
+    @apply inline-flex shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary dark:bg-on-primary-fixed dark:text-inverse-primary font-bold;
+  }
+  .app-shell {
+    @apply min-h-screen;
+  }
+  .sidebar {
+    @apply fixed inset-y-0 left-0 z-30 hidden w-64 flex-col gap-12 border-r border-outline-variant/20 bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface p-5 lg:flex;
+  }
+  .sidebar-account {
+    @apply mt-auto flex items-center justify-between gap-2 rounded-xl bg-surface-container-low dark:bg-on-surface p-3;
+  }
+  .app-main {
+    @apply lg:pl-64;
+  }
+  .topbar {
+    @apply flex min-h-20 items-center justify-between gap-4 border-b border-outline-variant/20 bg-surface-container-lowest/80 dark:border-outline/30 dark:bg-inverse-surface/80 px-5 sm:px-8;
+  }
+  .search-shortcut {
+    @apply hidden w-full max-w-md items-center gap-3 rounded-lg bg-surface-container-low dark:bg-on-surface px-4 py-2.5 text-sm text-on-surface-variant dark:text-outline-variant sm:flex;
+  }
+  .nav-link {
+    @apply flex min-h-12 items-center gap-3 rounded-lg px-4 text-sm text-on-surface-variant hover:bg-surface-container-low dark:text-outline-variant dark:hover:bg-on-surface;
+  }
+  .nav-active {
+    @apply bg-primary-container text-on-primary hover:bg-primary dark:bg-inverse-primary dark:text-on-primary-fixed dark:hover:bg-primary-fixed font-semibold;
+  }
+  .page-container {
+    @apply mx-auto max-w-7xl p-5 pb-24 sm:p-8 sm:pb-24;
+  }
+  .empty-panel {
+    @apply flex min-h-80 flex-col items-center justify-center gap-5 py-14 text-center;
+  }
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 z-30 grid grid-cols-5 gap-1 border-t border-outline-variant/30 bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface px-2 pt-2 lg:hidden;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .mobile-link {
+    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 text-center text-[10px] text-on-surface-variant dark:text-outline-variant;
+  }
+  .mobile-active {
+    @apply bg-surface-container text-primary dark:bg-on-surface dark:text-inverse-primary font-bold;
+  }
+  .status,
+  .status-error {
+    @apply flex flex-wrap items-center gap-3 rounded-lg p-4 text-sm;
+  }
+  .status {
+    @apply bg-surface-container-low text-on-surface-variant dark:bg-on-surface dark:text-outline-variant;
+  }
+  .status-error {
+    @apply bg-error-container text-on-error-container dark:bg-on-error-container dark:text-error-container;
+  }
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary-container focus:p-3 focus:text-on-primary dark:focus:bg-inverse-primary dark:focus:text-on-primary-fixed;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@layer components {
+  .text-link {
+    @apply font-semibold text-primary-container hover:text-primary dark:text-inverse-primary dark:hover:text-primary-fixed;
+  }
+  .auth-layout {
+    @apply grid min-h-screen lg:grid-cols-2;
+  }
+  .auth-panel {
+    @apply hidden flex-col justify-between gap-10 bg-surface-container-low dark:bg-inverse-surface px-12 py-10 lg:flex xl:px-20;
+  }
+  .auth-form-panel {
+    @apply flex flex-col items-center justify-center px-6 py-12 sm:px-12;
+  }
+  .auth-photo {
+    @apply relative mt-8 h-64 max-w-md overflow-hidden rounded-2xl xl:h-72;
+  }
+  .auth-photo-caption {
+    @apply absolute inset-x-3 bottom-3 flex flex-col gap-1 rounded-xl bg-surface-container-lowest/95 text-on-surface dark:bg-on-surface/95 dark:text-inverse-on-surface p-4 text-sm font-semibold backdrop-blur;
+  }
+  .profile-cover {
+    @apply h-32 bg-gradient-to-r from-primary-fixed via-surface-container to-secondary-fixed dark:from-on-primary-fixed dark:via-on-surface dark:to-on-secondary-fixed;
+  }
+  .explore-header {
+    @apply bg-gradient-to-br from-surface-container-lowest to-surface-container-low dark:from-inverse-surface dark:to-on-surface;
+  }
+  .user-card {
+    @apply flex flex-col items-start gap-5 rounded-xl border border-outline-variant/20 bg-surface-container-lowest dark:border-outline/30 dark:bg-inverse-surface p-6 shadow-sm transition-shadow hover:shadow-md;
+  }
+  .user-row {
+    @apply flex flex-wrap items-center gap-4 rounded-xl bg-surface-container-low/60 dark:bg-on-surface/60 p-4;
+  }
+}

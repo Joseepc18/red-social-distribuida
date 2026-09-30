@@ -1,6 +1,6 @@
 # Frontend · NodoUni
 
-Aplicación React + TypeScript con Vite y React Router. La identidad visual usa la paleta Academic Nexus, Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
+Aplicación React + TypeScript con Vite y React Router. La identidad visual combina superficies claras con matices fríos, texto oscuro y un tema oscuro grafito azulado, con acentos propios de NodoUni. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
 
 ## Desarrollo
 
@@ -27,9 +27,11 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 | `/perfil` | Perfil propio, edición de nombre y bio, seguidores y seguidos |
 | `/usuarios/:id` | Perfil ajeno, seguir/dejar de seguir y listas de conexiones |
 | `/explorar?q=` | Búsqueda de usuarios por nombre o username |
-| `/feed` | Composición de publicaciones y feed paginado de las personas seguidas |
+| `/feed` | Inicio abre en Siguiendo con el feed paginado real; Para ti muestra publicaciones recomendadas en la segunda pestaña |
+| `/descubrir` | Redirige a Para ti en Inicio para evitar dos entradas a las mismas recomendaciones |
 | `/posts/:id` | Detalle de publicación, también accesible desde Web Push |
 | `/chat` | Lista de conversaciones e historial de mensajes en tiempo real |
+| `/configuracion` | Tema de este navegador y controles de notificaciones Web Push |
 
 ## Autenticación y datos
 
@@ -65,7 +67,7 @@ Las sesiones restauradas se validan una vez contra el servidor. Sincronizar camb
 
 ## Notificaciones Web Push
 
-Las páginas privadas ofrecen **Activar notificaciones**. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.
+La opción **Configuración** del menú de cuenta ofrece **Activar notificaciones**. La revisión de la suscripción sigue montada en el layout privado. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.
 
 El backend consulta los seguidores en Neo4j y envía el aviso cifrado al servicio push del navegador. Ese servicio despierta al Service Worker, que muestra `titulo` y `cuerpo` aunque la aplicación esté cerrada. Al pulsar el aviso se enfoca una pestaña existente o se abre la publicación indicada por `url`. Solo se aceptan destinos `/posts/{id}` del mismo origen.
 
@@ -137,3 +139,7 @@ Las pruebas de publicaciones comprueban creación con imagen, reintentos, límit
 ## Reacciones
 
 Las tarjetas del feed usan `reaccionado` y `reacciones` como estado inicial. **Me gusta** llama a `POST /api/posts/{id}/reacciones`; quitarlo llama a `DELETE` en la misma ruta. El botón queda bloqueado durante la petición y actualiza estado y contador únicamente después de recibir `204`. Si falla, conserva el estado anterior y muestra un error recuperable.
+
+## Propuesta de la pantalla principal
+
+La estructura de Inicio y el menú de cuenta están descritos en [la propuesta de diseño](proposals/pantalla-principal.md), con los contratos reutilizados y las decisiones pendientes de revisión. Siguiendo abre Inicio y conserva el feed real paginado; Para ti usa Descubrir desde una sola entrada visible. Amigos muestra seguimientos mutuos, búsqueda y sugerencias.

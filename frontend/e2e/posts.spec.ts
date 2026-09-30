@@ -52,6 +52,30 @@ async function setup(page: Page, feed = [makePost(1)]) {
   });
 }
 
+test("Inicio abre en Siguiendo y muestra Para ti en una sola pestaña", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/feed");
+  const tabs = page.getByRole("navigation", {
+    name: "Tipo de publicaciones",
+  });
+  await expect(tabs.getByRole("link", { name: "Siguiendo" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByRole("article")).toHaveCount(1);
+
+  await tabs.getByRole("link", { name: "Para ti" }).click();
+  await expect(page).toHaveURL(/\/feed\?vista=para-ti$/);
+  await expect(
+    page.getByRole("navigation", { name: "Navegación principal" }),
+  ).not.toContainText("Descubrir");
+
+  await page.goto("/descubrir");
+  await expect(page).toHaveURL(/\/feed\?vista=para-ti$/);
+});
+
 test("feed pagina sin duplicados y conserva tarjetas al reintentar una página", async ({
   page,
 }) => {
@@ -245,12 +269,15 @@ test("reaccionar actualiza estado y contador solo tras confirmar el servidor", a
     return route.fulfill({ status: 204 });
   });
   await page.goto("/feed");
-  const like = page.getByRole("button", { name: "Me gusta", exact: true });
+  const like = page.getByRole("button", {
+    name: "Me gusta, 1 reacción",
+    exact: true,
+  });
   await expect(like).toHaveAttribute("aria-pressed", "false");
   await expect(like).toContainText("1 reacción");
   await like.click();
   const unlike = page.getByRole("button", {
-    name: "Quitar Me gusta",
+    name: "Quitar Me gusta, 2 reacciones",
     exact: true,
   });
   await expect(unlike).toHaveAttribute("aria-pressed", "true");

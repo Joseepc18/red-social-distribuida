@@ -1,16 +1,18 @@
-import { Link, NavLink, Outlet } from "react-router";
-import { copy, navigation } from "../content/copy";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { copy, homeCopy, navigation } from "../content/copy";
 import { useAuth } from "../hooks/useAuth";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
-import { Avatar } from "./Avatar";
-import { Button } from "./Button";
+import { AccountMenu } from "./AccountMenu";
 import { PushNotifications } from "./PushNotifications";
 interface AppLayoutProps {
   readonly children?: never;
 }
 export function AppLayout(_props: AppLayoutProps) {
-  const { session, logout } = useAuth();
+  const { session } = useAuth();
+  const { pathname, search } = useLocation();
+  const feed = pathname === "/feed";
+  const forYou = new URLSearchParams(search).get("vista") === "para-ti";
   return (
     <div className="app-shell">
       <a href="#main-content" className="skip-link">
@@ -18,10 +20,6 @@ export function AppLayout(_props: AppLayoutProps) {
       </a>
       <aside className="sidebar">
         <Brand />
-        <Link to="/feed#nueva-publicacion" className="button button-primary">
-          <Icon name="plus" />
-          {copy.newPost}
-        </Link>
         <nav aria-label={copy.navigation} className="flex flex-col gap-2">
           {navigation.map((item) => (
             <NavLink
@@ -35,64 +33,72 @@ export function AppLayout(_props: AppLayoutProps) {
               <span>{item.label}</span>
             </NavLink>
           ))}
+          <Link
+            to="/feed#nueva-publicacion"
+            className="button button-primary sidebar-compose"
+          >
+            <Icon name="plus" />
+            {copy.newPost}
+          </Link>
         </nav>
-        <div className="sidebar-account">
-          {session ? (
-            <>
-              <Link className="flex min-w-0 items-center gap-3" to="/perfil">
-                <Avatar name={session.user.nombre} />
-                <span className="min-w-0">
-                  <strong className="block truncate text-sm">
-                    {session.user.nombre}
-                  </strong>
-                  <span className="muted text-xs">
-                    @{session.user.username}
-                  </span>
-                </span>
-              </Link>
-              <Button variant="ghost" onClick={logout} aria-label={copy.logout}>
-                <Icon name="logout" />
-              </Button>
-            </>
-          ) : (
-            <Link to="/login" className="button button-primary w-full">
-              {copy.login}
-            </Link>
-          )}
-        </div>
+        <p className="sidebar-caption">
+          {homeCopy.sidebarTagline}
+          <span className="block mt-3 text-xs">{homeCopy.communityLabel}</span>
+        </p>
       </aside>
       <div className="app-main">
-        <header className="topbar">
-          <Brand compact />
-          <Link to="/explorar" className="search-shortcut">
-            <Icon name="search" />
-            <span>{copy.search}</span>
-          </Link>
-          {session && (
-            <Link to="/perfil" aria-label={copy.profile}>
-              <Avatar name={session.user.nombre} />
-            </Link>
+        <header className={"topbar " + (feed ? "feed-topbar" : "")}>
+          <div className="mobile-brand">
+            <Brand compact />
+          </div>
+          {feed ? (
+            <nav aria-label={homeCopy.feedTabsLabel} className="feed-tabs">
+              <Link
+                to="/feed?vista=siguiendo"
+                className={!forYou ? "active" : ""}
+                aria-current={!forYou ? "page" : undefined}
+              >
+                {homeCopy.following}
+              </Link>
+              <Link
+                to="/feed?vista=para-ti"
+                className={forYou ? "active" : ""}
+                aria-current={forYou ? "page" : undefined}
+              >
+                {homeCopy.forYou}
+              </Link>
+            </nav>
+          ) : (
+            <span className="topbar-title">
+              {navigation.find((item) => item.to === pathname)?.label ??
+                (pathname === "/configuracion"
+                  ? "Configuración"
+                  : "Tu comunidad")}
+            </span>
           )}
-          {session && (
-            <Button
-              variant="ghost"
-              className="lg:hidden"
-              onClick={logout}
-              aria-label={copy.logout}
-            >
-              <Icon name="logout" />
-            </Button>
-          )}
+          <div className="topbar-account">
+            <AccountMenu key={pathname + search} />
+          </div>
         </header>
-        <main id="main-content" className="page-container" tabIndex={-1}>
-          {session && (
-            <PushNotifications
-              key={session.user.id}
-              userId={session.user.id}
-              token={session.token}
-            />
-          )}
+        <main
+          id="main-content"
+          className={
+            "page-container " +
+            (feed ? "feed-container" : "") +
+            (pathname === "/chat" ? " chat-container" : "")
+          }
+          tabIndex={-1}
+        >
           <Outlet />
+          {session && (
+            <div hidden={pathname !== "/configuracion"} className="mt-6">
+              <PushNotifications
+                key={session.user.id}
+                userId={session.user.id}
+                token={session.token}
+              />
+            </div>
+          )}
         </main>
       </div>
       <nav aria-label={copy.navigation} className="mobile-nav">

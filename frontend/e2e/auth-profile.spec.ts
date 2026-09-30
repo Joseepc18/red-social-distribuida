@@ -160,6 +160,14 @@ test("login recupera la ruta privada, persiste la sesión y permite salir", asyn
     page.getByRole("heading", { name: "Mi perfil", exact: true }),
   ).toBeVisible();
   expect(profileRequests).toBeGreaterThan(1);
+  if (
+    await page
+      .getByRole("button", { name: "Abrir opciones de cuenta" })
+      .isVisible()
+  )
+    await page
+      .getByRole("button", { name: "Abrir opciones de cuenta" })
+      .click();
   await page
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();
@@ -199,7 +207,7 @@ test("búsqueda, perfil ajeno, seguir, listas y dejar de seguir", async ({
 }) => {
   await login(page, "/explorar");
   await expect(
-    page.getByRole("heading", { name: "Encuentra a tu comunidad" }),
+    page.getByRole("heading", { name: "Amigos", exact: true }),
   ).toBeVisible();
   await page.getByLabel("Buscar personas", { exact: true }).fill("jose");
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
@@ -300,9 +308,9 @@ test("móvil mantiene navegación, formularios y cierre de sesión accesibles", 
     fullPage: true,
   });
   await login(page, "/explorar");
+  await page.getByRole("button", { name: "Abrir opciones de cuenta" }).click();
   await page
-    .getByRole("link", { name: "Mi perfil", exact: true })
-    .last()
+    .getByRole("link", { name: "Perfil Edita tu nombre y biografía" })
     .click();
   await expect(
     page.getByRole("heading", { name: "Mi perfil", exact: true }),
@@ -316,6 +324,14 @@ test("móvil mantiene navegación, formularios y cierre de sesión accesibles", 
     path: ".stitch/qa/profile-mobile.png",
     fullPage: true,
   });
+  if (
+    await page
+      .getByRole("button", { name: "Abrir opciones de cuenta" })
+      .isVisible()
+  )
+    await page
+      .getByRole("button", { name: "Abrir opciones de cuenta" })
+      .click();
   await page
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();
@@ -365,6 +381,14 @@ test("restauración fallida permite reintentar o cerrar sesión sin quedar atrap
     }),
   );
   await page.reload();
+  if (
+    await page
+      .getByRole("button", { name: "Abrir opciones de cuenta" })
+      .isVisible()
+  )
+    await page
+      .getByRole("button", { name: "Abrir opciones de cuenta" })
+      .click();
   await page
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();

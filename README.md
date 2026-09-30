@@ -192,7 +192,7 @@ docker compose logs tunnel
 
 Copiar la URL `https://<aleatorio>.trycloudflare.com` que aparece en los logs y abrirla desde el otro equipo o teléfono. `cloudflared` accede a `frontend:80` **dentro** de Docker; `localhost:8080` es el puerto publicado en la computadora. El túnel solo se inicia con el perfil `demo`; para cerrarlo, `docker compose stop tunnel`. [Cloudflare documenta este tipo de túnel para pruebas](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/).
 
-En el equipo remoto: iniciar sesión con una cuenta que siga a otro usuario, pulsar **Activar notificaciones** y permitirlas en el navegador. Publicar desde la cuenta seguida (en otra sesión) y comprobar que llega el aviso Web Push. Cada URL nueva es un origen diferente: hay que iniciar sesión y activar las notificaciones otra vez; la suscripción del dominio anterior no se traslada.
+En el equipo remoto: iniciar sesión con una cuenta que siga a otro usuario, abrir el menú del avatar, entrar en **Configuración**, pulsar **Activar notificaciones** y permitirlas en el navegador. Publicar desde la cuenta seguida (en otra sesión) y comprobar que llega el aviso Web Push. Cada URL nueva es un origen diferente: hay que iniciar sesión y activar las notificaciones otra vez; la suscripción del dominio anterior no se traslada.
 
 Como respaldo en Chrome, si ambos equipos comparten red local y el puerto 8080 es accesible, abrir `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, agregar `http://<IP-del-servidor>:8080` y reiniciar Chrome. Es una opción de prueba para permitir Service Worker y notificaciones en ese origen HTTP; [Chromium la documenta para desarrollo](https://www.chromium.org/Home/chromium-security/deprecating-powerful-features-on-insecure-origins/).
 
@@ -235,7 +235,7 @@ Para una demostración completa, prepara primero una base vacía con `docker com
 7. **Feed personalizado:** confirma que aparecen publicaciones de cuentas seguidas y no publicaciones de toda la red.
 8. **Recomendaciones:** revisa las sugerencias de la interfaz y sus conexiones mutuas con C2.
 9. **Chat en tiempo real:** desde los clientes local y HTTPS, envía mensajes en ambos sentidos con la conversación abierta; cada mensaje debe aparecer sin recargar.
-10. **Web Push con la aplicación cerrada:** con VAPID configurado, activa las notificaciones en el cliente HTTPS, cierra las pestañas de NodoUni, publica desde una cuenta seguida y abre el aviso. Debe llevar a `/posts/<postId>`.
+10. **Web Push con la aplicación cerrada:** con VAPID configurado, abre **Configuración** desde el menú del avatar y activa las notificaciones en el cliente HTTPS. Cierra las pestañas de NodoUni, publica desde una cuenta seguida y abre el aviso. Debe llevar a `/posts/<postId>`.
 11. **Consultas Cypher:** ejecuta C1–C7 en **Table** desde `consultas-demo.cypher`; no compartas los campos de suscripción de C6.
 12. **Infraestructura:** confirma con `docker compose --profile demo ps` que Nginx, ambos backends, Neo4j, MinIO, Redis y el túnel estén activos y saludables.
 

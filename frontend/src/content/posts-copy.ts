@@ -23,7 +23,6 @@ export const postsCopy = {
     count +
     (count === 1 ? " persona que sigues" : " personas que sigues"),
   userPosts: "Publicaciones",
-  refresh: "Actualizar feed",
   more: "Cargar más publicaciones",
   emptyFeed: "Tu feed está por comenzar",
   emptyFeedBody: "Sigue a tus compañeros para ver aquí sus publicaciones.",

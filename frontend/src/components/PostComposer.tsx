@@ -10,9 +10,10 @@ import { posts } from "../services/posts";
 import { errorMessage } from "../lib/api";
 
 interface PostComposerProps {
+  readonly onPublished?: () => void;
   readonly children?: never;
 }
-export function PostComposer(_props: PostComposerProps) {
+export function PostComposer({ onPublished }: PostComposerProps) {
   const { session } = useAuth();
   const [text, setText] = useState("");
   const [image, setImage] = useState<{ file: File; url: string }>();
@@ -20,6 +21,7 @@ export function PostComposer(_props: PostComposerProps) {
   const [created, setCreated] = useState("");
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const textArea = useRef<HTMLTextAreaElement>(null);
   const request = useRef<AbortController | null>(null);
   const count = [...text.trim()].length;
   useEffect(
@@ -29,6 +31,15 @@ export function PostComposer(_props: PostComposerProps) {
     [image],
   );
   useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => {
+    const element = textArea.current;
+    if (!element) return;
+    element.style.height = "auto";
+    const maxHeight = 180;
+    element.style.height = `${Math.min(element.scrollHeight, maxHeight)}px`;
+    element.style.overflowY =
+      element.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [text]);
   function removeImage() {
     setImage(undefined);
     if (fileInput.current) fileInput.current.value = "";
@@ -65,6 +76,7 @@ export function PostComposer(_props: PostComposerProps) {
       setCreated(post.id);
       setText("");
       removeImage();
+      onPublished?.();
     } catch (cause) {
       if (!controller.signal.aborted) setError(errorMessage(cause));
     } finally {
@@ -92,8 +104,9 @@ export function PostComposer(_props: PostComposerProps) {
           </label>
           <textarea
             id="post-text"
+            ref={textArea}
             className="compose-text"
-            rows={2}
+            rows={1}
             placeholder={
               "¿Qué estás pensando, " +
               (session?.user.nombre.split(" ")[0] ?? "") +

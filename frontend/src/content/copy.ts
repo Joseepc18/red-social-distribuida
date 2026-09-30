@@ -44,8 +44,6 @@ export const homeCopy = {
   feedTabsLabel: "Tipo de publicaciones",
   forYou: "Para ti",
   following: "Siguiendo",
-  refreshFeed: "Actualizar feed",
-  refreshForYou: "Actualizar publicaciones",
   suggestedPosts: "Publicaciones para ti",
   followEyebrow: "Tu red",
   followTitle: "A quién seguir",

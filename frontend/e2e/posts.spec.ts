@@ -53,6 +53,30 @@ async function setup(page: Page, feed = [makePost(1)]) {
   });
 }
 
+test("Inicio abre en Siguiendo y muestra Para ti en una sola pestaña", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/feed");
+  const tabs = page.getByRole("navigation", {
+    name: "Tipo de publicaciones",
+  });
+  await expect(tabs.getByRole("link", { name: "Siguiendo" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByRole("article")).toHaveCount(1);
+
+  await tabs.getByRole("link", { name: "Para ti" }).click();
+  await expect(page).toHaveURL(/\/feed\?vista=para-ti$/);
+  await expect(
+    page.getByRole("navigation", { name: "Navegación principal" }),
+  ).not.toContainText("Descubrir");
+
+  await page.goto("/descubrir");
+  await expect(page).toHaveURL(/\/feed\?vista=para-ti$/);
+});
+
 test("feed pagina sin duplicados y conserva tarjetas al reintentar una página", async ({
   page,
 }) => {
@@ -72,7 +96,7 @@ test("feed pagina sin duplicados y conserva tarjetas al reintentar una página",
     // An offset page can overlap when new posts arrive.
     return route.fulfill({ json: [makePost(20), makePost(21)] });
   });
-  await page.goto("/feed?vista=siguiendo");
+  await page.goto("/feed");
   await expect(page.getByRole("article")).toHaveCount(20);
   await page.getByRole("button", { name: "Cargar más publicaciones" }).click();
   await expect(page.getByRole("alert")).toContainText("Intenta nuevamente");
@@ -111,7 +135,7 @@ test("crear con imagen conserva el borrador al fallar y abre el detalle tras gua
       });
     return route.fulfill({ status: 201, json: makePost(1) });
   });
-  await page.goto("/feed?vista=siguiendo");
+  await page.goto("/feed");
   await page
     .getByLabel("Texto de la publicación")
     .fill("Mi primera publicación");
@@ -153,7 +177,7 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page, []);
-  await page.goto("/feed?vista=siguiendo");
+  await page.goto("/feed");
   await expect(
     page.getByRole("heading", { name: "Tu feed está por comenzar" }),
   ).toBeVisible();
@@ -245,7 +269,7 @@ test("reaccionar actualiza estado y contador solo tras confirmar el servidor", a
       });
     return route.fulfill({ status: 204 });
   });
-  await page.goto("/feed?vista=siguiendo");
+  await page.goto("/feed");
   const like = page.getByRole("button", {
     name: "Me gusta, 1 reacción",
     exact: true,

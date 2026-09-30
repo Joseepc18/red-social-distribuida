@@ -9,7 +9,6 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { FeedPage } from "./pages/FeedPage";
 import { PostPage } from "./pages/PostPage";
 import { ChatPage } from "./pages/ChatPage";
-import { DiscoverPage } from "./pages/DiscoverPage";
 interface AppProps {
   readonly children?: never;
 }
@@ -26,7 +25,10 @@ export function App(_props: AppProps) {
           <Route index element={<Navigate to="/feed" replace />} />
           <Route path="configuracion" element={<SettingsPage />} />
           <Route path="feed" element={<FeedPage />} />
-          <Route path="descubrir" element={<DiscoverPage />} />
+          <Route
+            path="descubrir"
+            element={<Navigate to="/feed?vista=para-ti" replace />}
+          />
           <Route path="explorar" element={<PeoplePage />} />
           <Route path="perfil" element={<ProfilePage />} />
           <Route path="usuarios/:id" element={<ProfilePage />} />

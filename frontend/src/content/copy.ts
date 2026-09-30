@@ -11,7 +11,6 @@ export const copy = {
   login: "Iniciar sesión",
   register: "Crear una cuenta",
   explore: "Amigos",
-  discover: "Descubrir",
   profile: "Mi perfil",
   back: "Volver al inicio",
   loading: "Cargando…",
@@ -37,9 +36,30 @@ export const copy = {
 export const navigation = [
   { to: "/feed", label: copy.feed, icon: "feed" },
   { to: "/explorar", label: copy.explore, icon: "people" },
-  { to: "/descubrir", label: copy.discover, icon: "compass" },
   { to: "/chat", label: copy.chat, icon: "chat" },
 ] as const;
+export const homeCopy = {
+  sidebarTagline: "Un espacio para compartir lo que nos conecta.",
+  communityLabel: "NodoUni · Comunidad universitaria",
+  feedTabsLabel: "Tipo de publicaciones",
+  forYou: "Para ti",
+  following: "Siguiendo",
+  refreshFeed: "Actualizar feed",
+  refreshForYou: "Actualizar publicaciones",
+  suggestedPosts: "Publicaciones para ti",
+  followEyebrow: "Tu red",
+  followTitle: "A quién seguir",
+  follow: "Seguir",
+  viewProfile: (name: string) => "Ver perfil de " + name,
+  followPerson: (name: string) => "Seguir a " + name,
+  followPending: "…",
+  showSuggestions: "Ver todas las sugerencias",
+  communityEyebrow: "Comunidad universitaria",
+  communityTitle: "Amplía tu red",
+  communityDescription: "Busca compañeros y conexiones mutuas.",
+  findPeople: "Buscar personas",
+  motto: "NodoUni · Conecta. Comparte. Aprende.",
+} as const;
 export const pages = {
   feed: {
     title: copy.feed,
@@ -113,9 +133,14 @@ export const profileCopy = {
 } as const;
 export const peopleCopy = {
   eyebrow: "Tu red universitaria",
-  title: "Encuentra a tu comunidad",
+  title: "Amigos",
   intro:
     "Conecta con tus compañeros. Busca por nombre o usuario y visita sus perfiles para conocerlos mejor.",
+  friendsTitle: "Tus amigos",
+  friendsDescription: "Personas que sigues y que también te siguen.",
+  friendsEmpty:
+    "Todavía no tienes seguimientos mutuos. Conoce a más personas abajo.",
+  friendsRegion: "Tus amigos",
   placeholder: "Nombre o usuario…",
   search: "Buscar",
   results: "Resultados de búsqueda",

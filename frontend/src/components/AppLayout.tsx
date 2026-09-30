@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router";
-import { copy, navigation } from "../content/copy";
+import { copy, homeCopy, navigation } from "../content/copy";
 import { useAuth } from "../hooks/useAuth";
 import { ChatProvider } from "../context/ChatProvider";
 import { useChat } from "../context/chat-context";
@@ -25,7 +25,7 @@ function LayoutContent() {
   const total = Object.values(unread).reduce((sum, value) => sum + value, 0);
   const { pathname, search } = useLocation();
   const feed = pathname === "/feed";
-  const following = new URLSearchParams(search).get("vista") === "siguiendo";
+  const forYou = new URLSearchParams(search).get("vista") === "para-ti";
   return (
     <div className="app-shell">
       <a href="#main-content" className="skip-link">
@@ -58,12 +58,8 @@ function LayoutContent() {
           </Link>
         </nav>
         <p className="sidebar-caption">
-          Un espacio para compartir
-          <br />
-          lo que nos conecta.
-          <span className="block mt-3 text-xs">
-            NodoUni · Comunidad universitaria
-          </span>
+          {homeCopy.sidebarTagline}
+          <span className="block mt-3 text-xs">{homeCopy.communityLabel}</span>
         </p>
       </aside>
       <div className="app-main">
@@ -72,20 +68,20 @@ function LayoutContent() {
             <Brand compact />
           </div>
           {feed ? (
-            <nav aria-label="Tipo de publicaciones" className="feed-tabs">
-              <Link
-                to="/feed"
-                className={!following ? "active" : ""}
-                aria-current={!following ? "page" : undefined}
-              >
-                Para ti
-              </Link>
+            <nav aria-label={homeCopy.feedTabsLabel} className="feed-tabs">
               <Link
                 to="/feed?vista=siguiendo"
-                className={following ? "active" : ""}
-                aria-current={following ? "page" : undefined}
+                className={!forYou ? "active" : ""}
+                aria-current={!forYou ? "page" : undefined}
               >
-                Siguiendo
+                {homeCopy.following}
+              </Link>
+              <Link
+                to="/feed?vista=para-ti"
+                className={forYou ? "active" : ""}
+                aria-current={forYou ? "page" : undefined}
+              >
+                {homeCopy.forYou}
               </Link>
             </nav>
           ) : (

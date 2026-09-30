@@ -4,7 +4,7 @@ import { Avatar } from "./Avatar";
 import { Button } from "./Button";
 import { StatusMessage } from "./StatusMessage";
 import { Icon } from "./Icon";
-import { copy } from "../content/copy";
+import { copy, homeCopy } from "../content/copy";
 import { socialCopy } from "../content/social-copy";
 interface WhoToFollowProps {
   readonly onFollow: () => void;
@@ -12,11 +12,11 @@ interface WhoToFollowProps {
 export function WhoToFollow({ onFollow }: WhoToFollowProps) {
   const state = useSuggestions(onFollow);
   return (
-    <aside className="home-aside" aria-label="A quién seguir">
+    <aside className="home-aside" aria-label={homeCopy.followTitle}>
       <section className="follow-box">
         <div className="follow-heading">
-          <p className="eyebrow">Tu red</p>
-          <h2>A quién seguir</h2>
+          <p className="eyebrow">{homeCopy.followEyebrow}</p>
+          <h2>{homeCopy.followTitle}</h2>
         </div>
         {state.loading && <StatusMessage message={copy.loading} />}
         {state.error && (
@@ -34,7 +34,7 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
           <div key={user.id} className="follow-row">
             <Link
               to={"/usuarios/" + encodeURIComponent(user.id)}
-              aria-label={"Ver perfil de " + user.nombre}
+              aria-label={homeCopy.viewProfile(user.nombre)}
             >
               <Avatar name={user.nombre} />
             </Link>
@@ -52,9 +52,11 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
               className="!min-h-8 !px-3 !py-1.5 !text-xs"
               disabled={!!state.busyId}
               onClick={() => state.follow(user)}
-              aria-label={"Seguir a " + user.nombre}
+              aria-label={homeCopy.followPerson(user.nombre)}
             >
-              {state.busyId === user.id ? "…" : "Seguir"}
+              {state.busyId === user.id
+                ? homeCopy.followPending
+                : homeCopy.follow}
             </Button>
           </div>
         ))}
@@ -64,21 +66,21 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
           </p>
         )}
         <Link to="/explorar#sugerencias" className="show-more">
-          Ver todas las sugerencias
+          {homeCopy.showSuggestions}
         </Link>
       </section>
       <section className="community-card">
         <span className="community-mark" aria-hidden="true">
           <Icon name="people" />
         </span>
-        <p className="eyebrow">Comunidad universitaria</p>
-        <h2>Amplía tu red</h2>
-        <p>Busca compañeros y conexiones mutuas.</p>
+        <p className="eyebrow">{homeCopy.communityEyebrow}</p>
+        <h2>{homeCopy.communityTitle}</h2>
+        <p>{homeCopy.communityDescription}</p>
         <Link to="/explorar" className="community-link">
-          Buscar personas <span aria-hidden="true">↗</span>
+          {homeCopy.findPeople} <span aria-hidden="true">↗</span>
         </Link>
       </section>
-      <p className="home-meta">NodoUni · Conecta. Comparte. Aprende.</p>
+      <p className="home-meta">{homeCopy.motto}</p>
     </aside>
   );
 }

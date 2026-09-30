@@ -154,29 +154,29 @@
 
 /* Main-screen proposal: shared canvas, a readable timeline and a quiet side rail. */
 :root {
-  --canvas: #f0f2f5;
+  --canvas: #f3f5f8;
   --panel: #ffffff;
-  --ink: #1c1e21;
-  --subtle: #65676b;
-  --line: #e4e6eb;
-  --hover: #f2f4f7;
-  --accent: #0866ff;
-  --accent-fill: #0866ff;
+  --ink: #1b2530;
+  --subtle: #59697a;
+  --line: #e1e7ef;
+  --hover: #edf2f8;
+  --accent: #416fdd;
+  --accent-fill: #416fdd;
   --accent-contrast: #ffffff;
-  --accent-soft: #e7f3ff;
+  --accent-soft: #e8efff;
   --shadow-card: 0 2px 8px rgb(0 0 0 / 6%);
 }
 .dark {
-  --canvas: #000000;
-  --panel: #000000;
-  --ink: #e7e9ea;
-  --subtle: #71767b;
-  --line: #2f3336;
-  --hover: #16181c;
-  --accent: #1d9bf0;
-  --accent-fill: #1d9bf0;
-  --accent-contrast: #0f1419;
-  --accent-soft: #071d2a;
+  --canvas: #111923;
+  --panel: #161f2b;
+  --ink: #eef2f8;
+  --subtle: #9aaabc;
+  --line: #2c3949;
+  --hover: #202c3b;
+  --accent: #78a4ff;
+  --accent-fill: #78a4ff;
+  --accent-contrast: #17243b;
+  --accent-soft: #233650;
   --shadow-card: none;
 }
 body {
@@ -192,7 +192,7 @@ body {
   color: var(--accent-contrast);
 }
 .dark .button-primary {
-  color: #0f1419;
+  color: #17243b;
 }
 .button-primary:hover:not(:disabled) {
   filter: brightness(0.92);

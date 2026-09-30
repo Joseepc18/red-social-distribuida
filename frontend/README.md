@@ -1,6 +1,6 @@
 # Frontend · NodoUni
 
-Aplicación React + TypeScript con Vite y React Router. La identidad visual combina un tema claro neutro con superficies blancas y texto oscuro, y un tema oscuro negro con acento azul. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
+Aplicación React + TypeScript con Vite y React Router. La identidad visual combina superficies claras con matices fríos, texto oscuro y un tema oscuro grafito azulado, con acentos propios de NodoUni. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
 
 ## Desarrollo
 
@@ -27,7 +27,8 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 | `/perfil` | Perfil propio, edición de nombre y bio, seguidores y seguidos |
 | `/usuarios/:id` | Perfil ajeno, seguir/dejar de seguir y listas de conexiones |
 | `/explorar?q=` | Búsqueda de usuarios por nombre o username |
-| `/feed` | Composición de publicaciones y feed paginado de las personas seguidas |
+| `/feed` | Inicio abre en Siguiendo con el feed paginado real; Para ti muestra publicaciones recomendadas en la segunda pestaña |
+| `/descubrir` | Redirige a Para ti en Inicio para evitar dos entradas a las mismas recomendaciones |
 | `/posts/:id` | Detalle de publicación, también accesible desde Web Push |
 | `/chat` | Vista completa del chat, compartida con la ventana flotante |
 | `/configuracion` | Tema de este navegador y controles de notificaciones Web Push |
@@ -143,4 +144,4 @@ Las tarjetas del feed usan `reaccionado` y `reacciones` como estado inicial. **M
 
 ## Propuesta de la pantalla principal
 
-La estructura de Inicio, el menú de cuenta y el chat flotante están descritos en [la propuesta de diseño](proposals/pantalla-principal.md), con los contratos reutilizados y las decisiones pendientes de revisión. Para ti usa Descubrir; Siguiendo conserva el feed paginado. Amigos muestra seguimientos mutuos, búsqueda y sugerencias.
+La estructura de Inicio, el menú de cuenta y el chat flotante están descritos en [la propuesta de diseño](proposals/pantalla-principal.md), con los contratos reutilizados y las decisiones pendientes de revisión. Siguiendo abre Inicio y conserva el feed real paginado; Para ti usa Descubrir desde una sola entrada visible. Amigos muestra seguimientos mutuos, búsqueda y sugerencias.

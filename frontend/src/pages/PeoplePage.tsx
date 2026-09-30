@@ -34,7 +34,7 @@ export function PeoplePage(_props: PeoplePageProps) {
     <div className="space-y-8">
       <Card className="explore-header">
         <p className="eyebrow">{peopleCopy.eyebrow}</p>
-        <h1>Amigos</h1>
+        <h1>{peopleCopy.title}</h1>
         <p className="muted mt-3 max-w-2xl leading-relaxed">
           {peopleCopy.intro}
         </p>
@@ -61,11 +61,9 @@ export function PeoplePage(_props: PeoplePageProps) {
       </Card>
       {!search.query && (
         <>
-          <section aria-label="Tus amigos" className="space-y-4">
-            <h2>Tus amigos</h2>
-            <p className="muted text-sm">
-              Personas que sigues y que también te siguen.
-            </p>
+          <section aria-label={peopleCopy.friendsRegion} className="space-y-4">
+            <h2>{peopleCopy.friendsTitle}</h2>
+            <p className="muted text-sm">{peopleCopy.friendsDescription}</p>
             {friends.loading && <StatusMessage message={copy.loading} />}
             {friends.error && (
               <StatusMessage
@@ -75,10 +73,7 @@ export function PeoplePage(_props: PeoplePageProps) {
               />
             )}
             {friends.data?.length === 0 && (
-              <p className="muted">
-                Todavía no tienes seguimientos mutuos. Conoce a más personas
-                abajo.
-              </p>
+              <p className="muted">{peopleCopy.friendsEmpty}</p>
             )}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {friends.data?.map((user) => (

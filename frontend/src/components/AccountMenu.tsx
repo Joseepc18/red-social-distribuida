@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "../context/theme-context";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
 interface AccountMenuProps {
@@ -9,7 +8,6 @@ interface AccountMenuProps {
 }
 export function AccountMenu(_props: AccountMenuProps) {
   const { session, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -83,16 +81,6 @@ export function AccountMenu(_props: AccountMenuProps) {
             <Icon name="settings" />
             Configuración
           </Link>
-          <button
-            className="account-option"
-            type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            <Icon name={theme === "dark" ? "sun" : "moon"} />
-            {theme === "dark"
-              ? "Cambiar a tema claro"
-              : "Cambiar a tema oscuro"}
-          </button>
           <button className="account-option" type="button" onClick={logout}>
             <Icon name="logout" />
             Cerrar sesión

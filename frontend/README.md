@@ -1,6 +1,6 @@
 # Frontend · NodoUni
 
-Aplicación React + TypeScript con Vite y React Router. La identidad visual combina superficies claras con matices fríos, texto oscuro y un tema oscuro grafito azulado, con acentos propios de NodoUni. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
+Aplicación React + TypeScript con Vite y React Router. La identidad visual combina superficies claras y limpias, texto oscuro y un tema oscuro ciruela grafito, con acentos violetas propios de NodoUni. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
 
 ## Desarrollo
 
@@ -132,7 +132,7 @@ El formulario de `/feed` envía `texto` y el `archivo` opcional mediante `multip
 
 Quarkus guarda el texto y la clave del objeto en Neo4j y el archivo en MinIO. Las tarjetas cargan las imágenes mediante `/media/<clave>` del mismo origen, a través de Vite o Nginx. No se almacenan binarios en el grafo ni se envían credenciales de MinIO al navegador.
 
-`GET /api/feed?page=0` y `GET /api/usuarios/{id}/posts?page=0` devuelven arrays de hasta 20 elementos; menos de 20 indica el final. **Cargar más publicaciones** agrega páginas y elimina duplicados por id. Un fallo mantiene las tarjetas existentes y permite repetir la página pendiente. **Actualizar feed** reinicia desde la primera página. El feed solo contiene publicaciones de personas seguidas: las publicaciones propias se consultan en el perfil o desde el enlace de confirmación.
+`GET /api/feed?page=0` y `GET /api/usuarios/{id}/posts?page=0` devuelven arrays de hasta 20 elementos; menos de 20 indica el final. **Cargar más publicaciones** agrega páginas y elimina duplicados por id. Un fallo mantiene las tarjetas existentes y permite repetir la página pendiente. Tras publicar o seguir a alguien, Inicio vuelve a consultar la primera página. El feed solo contiene publicaciones de personas seguidas: las publicaciones propias se consultan en el perfil o desde el enlace de confirmación.
 
 `GET /api/posts/{id}` alimenta el detalle, incluido el destino de Web Push. El contador se muestra cuando la respuesta contiene `reacciones`; el contrato actual del detalle y de los perfiles no incluye ese campo, por lo que no se inventa un cero.
 

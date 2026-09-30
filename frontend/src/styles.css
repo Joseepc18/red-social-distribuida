@@ -363,6 +363,9 @@ body {
   box-shadow: var(--shadow-card);
   scroll-margin-top: 100px;
 }
+.home-composer + .timeline-posts {
+  margin-top: 14px;
+}
 .home-composer > .avatar {
   margin-top: 2px;
 }

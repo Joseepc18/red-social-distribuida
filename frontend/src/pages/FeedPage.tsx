@@ -5,6 +5,7 @@ import { PostComposer } from "../components/PostComposer";
 import { PostList } from "../components/PostList";
 import { DiscoverList } from "../components/DiscoverList";
 import { WhoToFollow } from "../components/WhoToFollow";
+import { feedRefreshEvent } from "../events/feed-events";
 interface FeedPageProps {
   readonly children?: never;
 }
@@ -15,6 +16,10 @@ export function FeedPage(_props: FeedPageProps) {
   const forYou = params.get("vista") === "para-ti";
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((value) => value + 1), []);
+  useEffect(() => {
+    window.addEventListener(feedRefreshEvent, refresh);
+    return () => window.removeEventListener(feedRefreshEvent, refresh);
+  }, [refresh]);
   useEffect(() => {
     if (location.hash === "#nueva-publicacion")
       document.getElementById("post-text")?.focus();

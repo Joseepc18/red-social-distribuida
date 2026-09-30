@@ -8,6 +8,7 @@ import { Icon } from "./Icon";
 import { AccountMenu } from "./AccountMenu";
 import { PushNotifications } from "./PushNotifications";
 import { ChatDock } from "./ChatDock";
+import { feedRefreshEvent } from "../events/feed-events";
 
 interface AppLayoutProps {
   readonly children?: never;
@@ -29,6 +30,12 @@ function LayoutContent() {
   const { pathname, search } = useLocation();
   const feed = pathname === "/feed";
   const forYou = new URLSearchParams(search).get("vista") === "para-ti";
+  const handleNavigationClick = (to: string) => {
+    if (to !== "/feed" || !feed) return;
+
+    window.scrollTo({ top: 0, behavior: "instant" });
+    if (!forYou) window.dispatchEvent(new Event(feedRefreshEvent));
+  };
   return (
     <div className="app-shell">
       <a href="#main-content" className="skip-link">
@@ -41,6 +48,7 @@ function LayoutContent() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => handleNavigationClick(item.to)}
               className={({ isActive }) =>
                 "nav-link " + (isActive ? "nav-active" : "")
               }
@@ -125,6 +133,7 @@ function LayoutContent() {
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={() => handleNavigationClick(item.to)}
             className={({ isActive }) =>
               "mobile-link " + (isActive ? "mobile-active" : "")
             }

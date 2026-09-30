@@ -1,6 +1,6 @@
 # Frontend · NodoUni
 
-Aplicación React + TypeScript con Vite y React Router. La identidad visual usa la paleta Academic Nexus, Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
+Aplicación React + TypeScript con Vite y React Router. La identidad visual combina un tema claro neutro con superficies blancas y texto oscuro, y un tema oscuro negro con acento azul. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
 
 ## Desarrollo
 

@@ -154,40 +154,53 @@
 
 /* Main-screen proposal: shared canvas, a readable timeline and a quiet side rail. */
 :root {
-  --canvas: #f3f5f8;
+  --canvas: #f0f2f5;
   --panel: #ffffff;
-  --ink: #182230;
-  --subtle: #667487;
-  --line: #e4e9f0;
-  --hover: #f0f3f8;
-  --accent: #3157c8;
-  --accent-fill: #3157c8;
+  --ink: #1c1e21;
+  --subtle: #65676b;
+  --line: #e4e6eb;
+  --hover: #f2f4f7;
+  --accent: #0866ff;
+  --accent-fill: #0866ff;
   --accent-contrast: #ffffff;
-  --accent-soft: #edf2ff;
-  --shadow-card: 0 10px 32px rgb(24 34 48 / 5%);
+  --accent-soft: #e7f3ff;
+  --shadow-card: 0 2px 8px rgb(0 0 0 / 6%);
 }
 .dark {
-  --canvas: #11161d;
-  --panel: #191f28;
-  --ink: #edf2fa;
-  --subtle: #a2afc1;
-  --line: #2d3745;
-  --hover: #232c38;
-  --accent: #a8bdff;
-  --accent-fill: #a8bdff;
-  --accent-contrast: #17233d;
-  --accent-soft: #222f4c;
-  --shadow-card: 0 12px 32px rgb(0 0 0 / 19%);
+  --canvas: #000000;
+  --panel: #000000;
+  --ink: #e7e9ea;
+  --subtle: #71767b;
+  --line: #2f3336;
+  --hover: #16181c;
+  --accent: #1d9bf0;
+  --accent-fill: #1d9bf0;
+  --accent-contrast: #0f1419;
+  --accent-soft: #071d2a;
+  --shadow-card: none;
 }
 body {
-  background:
-    radial-gradient(
-      ellipse at 65% -22%,
-      rgb(49 87 200 / 8%),
-      transparent 38rem
-    ),
-    var(--canvas);
+  background: var(--canvas);
   color: var(--ink);
+}
+.avatar {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.button-primary {
+  background: var(--accent-fill);
+  color: var(--accent-contrast);
+}
+.dark .button-primary {
+  color: #0f1419;
+}
+.button-primary:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+.button-primary:disabled {
+  background: var(--line);
+  color: var(--subtle);
+  filter: none;
 }
 .app-shell {
   max-width: 1440px;
@@ -234,7 +247,7 @@ body {
   margin-top: 14px;
   border-radius: 999px;
   min-height: 50px;
-  box-shadow: 0 8px 18px rgb(49 87 200 / 18%);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .sidebar-caption {
   margin-top: auto;

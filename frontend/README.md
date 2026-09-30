@@ -33,6 +33,17 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 | `/chat` | Lista de conversaciones e historial de mensajes en tiempo real |
 | `/configuracion` | Tema de este navegador y controles de notificaciones Web Push |
 
+## Estructura visual
+
+- src/styles/foundation.css reúne los estilos base y las clases reutilizables de interfaz.
+- src/styles/tokens.css define los colores y superficies de los temas claro y oscuro.
+- src/styles/application.css contiene la estructura de navegación y el diseño de Inicio.
+- src/styles/people.css contiene los estilos propios de Amigos.
+- src/styles/chat.css mantiene los estilos de la bandeja y el acceso rápido a Mensajes.
+- Los componentes compartidos de React, como Button, Card, Avatar e Input, están en src/components.
+
+Las pantallas reutilizan las clases y componentes compartidos; los estilos específicos permanecen junto a la sección correspondiente para que se puedan ajustar sin duplicar la base visual.
+
 ## Autenticación y datos
 
 1. `POST /api/auth/registro` crea la cuenta y devuelve el perfil (201). La pantalla confirma el registro y dirige al login; no repite el registro ni presupone que devuelva un token.

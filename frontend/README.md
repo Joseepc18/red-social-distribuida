@@ -26,7 +26,7 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 | `/login` | Inicio de sesión y regreso a la ruta privada solicitada |
 | `/perfil` | Perfil propio, edición de nombre y bio, seguidores y seguidos |
 | `/usuarios/:id` | Perfil ajeno, seguir/dejar de seguir y listas de conexiones |
-| `/explorar?q=` | Búsqueda de usuarios por nombre o username |
+| `/explorar?q=` | Amigos mutuos, seguidores, seguidos, sugerencias y búsqueda de usuarios |
 | `/feed` | Inicio abre en Siguiendo con el feed paginado real; Para ti muestra publicaciones recomendadas en la segunda pestaña |
 | `/descubrir` | Redirige a Para ti en Inicio para evitar dos entradas a las mismas recomendaciones |
 | `/posts/:id` | Detalle de publicación, también accesible desde Web Push |

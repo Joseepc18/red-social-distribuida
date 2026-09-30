@@ -132,13 +132,12 @@ export const profileCopy = {
 export const peopleCopy = {
   eyebrow: "Tu red universitaria",
   title: "Amigos",
-  intro:
-    "Conecta con tus compañeros. Busca por nombre o usuario y visita sus perfiles para conocerlos mejor.",
-  friendsTitle: "Tus amigos",
-  friendsDescription: "Personas que sigues y que también te siguen.",
+  tabsLabel: "Listas de personas",
+  suggestionsShortcut: "Sugerencias",
   friendsEmpty:
-    "Todavía no tienes seguimientos mutuos. Conoce a más personas abajo.",
-  friendsRegion: "Tus amigos",
+    "Aquí aparecerán las personas con las que se siguen mutuamente.",
+  followersEmpty: "Todavía no tienes seguidores.",
+  followingEmpty: "Todavía no sigues a nadie.",
   placeholder: "Nombre o usuario…",
   search: "Buscar",
   results: "Resultados de búsqueda",

@@ -49,6 +49,8 @@ La persistencia en localStorage sigue el contrato del proyecto. La autorización
 
 El perfil de otra persona permite iniciar o recuperar una conversación con `POST /api/conversaciones`. La ruta privada `/chat` lista las conversaciones con `GET /api/conversaciones` y carga el historial con `GET /api/conversaciones/{id}/mensajes`. El cursor `siguienteAntes` se reenvía sin cambios como `?antes=` para cargar mensajes anteriores.
 
+AppLayout mantiene un ChatProvider por sesión y una sola conexión al navegar entre rutas privadas. En escritorio, la burbuja abre la lista o una conversación flotante; en móvil abre `/chat`. La conversación completa y la flotante comparten historial, borrador e indicador de mensajes nuevos, que se conserva solo durante la sesión.
+
 Los mensajes nuevos se envían y reciben por WebSocket en `/ws/chat?token=<JWT>`. El cliente elige `ws` o `wss` según el origen, reconecta con espera exponencial hasta 30 segundos y vuelve a consultar el historial tras reconectar. Combina eventos y respuestas REST por id, así recupera mensajes persistidos mientras la conexión estuvo cerrada y evita duplicados. No consulta el servidor mediante polling.
 
 El código de la aplicación consume la API real. Las respuestas simuladas existen solamente en las pruebas, sin modo de demostración ni sustitución automática cuando falla el backend.

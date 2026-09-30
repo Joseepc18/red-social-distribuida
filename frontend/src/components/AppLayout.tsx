@@ -42,7 +42,7 @@ function LayoutContent() {
         {copy.skip}
       </a>
       <aside className="sidebar">
-        <Brand />
+        <Brand compact />
         <nav aria-label={copy.navigation} className="flex flex-col gap-2">
           {navigation.map((item) => (
             <NavLink
@@ -54,7 +54,7 @@ function LayoutContent() {
               }
             >
               <Icon name={item.icon} />
-              <span>{item.label}</span>
+              <span className="sidebar-label">{item.label}</span>
               {item.to === "/chat" && total > 0 && (
                 <span className="unread-badge">{total}</span>
               )}
@@ -63,9 +63,10 @@ function LayoutContent() {
           <Link
             to="/feed#nueva-publicacion"
             className="button button-primary sidebar-compose"
+            aria-label={copy.newPost}
           >
             <Icon name="plus" />
-            {copy.newPost}
+            <span className="sidebar-label">{copy.newPost}</span>
           </Link>
         </nav>
         <p className="sidebar-caption">

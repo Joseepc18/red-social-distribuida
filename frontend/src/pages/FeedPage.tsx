@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { useAuth } from "../hooks/useAuth";
-import { homeCopy } from "../content/copy";
 import { PostComposer } from "../components/PostComposer";
 import { PostList } from "../components/PostList";
 import { DiscoverList } from "../components/DiscoverList";
 import { WhoToFollow } from "../components/WhoToFollow";
+import { feedRefreshEvent } from "../events/feed-events";
 interface FeedPageProps {
   readonly children?: never;
 }
@@ -17,6 +17,10 @@ export function FeedPage(_props: FeedPageProps) {
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((value) => value + 1), []);
   useEffect(() => {
+    window.addEventListener(feedRefreshEvent, refresh);
+    return () => window.removeEventListener(feedRefreshEvent, refresh);
+  }, [refresh]);
+  useEffect(() => {
     if (location.hash === "#nueva-publicacion")
       document.getElementById("post-text")?.focus();
   }, [location]);
@@ -24,10 +28,7 @@ export function FeedPage(_props: FeedPageProps) {
     <div className="home-grid">
       <section className="home-timeline" aria-label="Inicio">
         <h1 className="sr-only">Inicio</h1>
-        <PostComposer key={session?.token} />
-        <button type="button" className="timeline-refresh" onClick={refresh}>
-          {forYou ? homeCopy.refreshForYou : homeCopy.refreshFeed}
-        </button>
+        <PostComposer key={session?.token} onPublished={refresh} />
         {forYou ? (
           <DiscoverList key={session?.token + ":" + version} />
         ) : (

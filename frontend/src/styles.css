@@ -810,3 +810,258 @@ body {
     padding: 18px 17px;
   }
 }
+
+/* People screen: relationship tabs lead, with recommendations one anchor away. */
+.people-page {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+.people-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.people-heading .eyebrow {
+  margin-bottom: 8px;
+}
+.people-heading-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+}
+.people-suggestions-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.people-suggestions-link:hover {
+  background: var(--accent-soft);
+}
+.people-search {
+  display: flex;
+  width: min(360px, 34vw);
+  align-items: flex-end;
+  gap: 8px;
+}
+.people-search .field {
+  min-width: 0;
+  flex: 1;
+  gap: 5px;
+}
+.people-search .field label {
+  color: var(--subtle);
+  font-size: 11px;
+}
+.people-search .input {
+  min-height: 42px;
+  padding-block: 9px;
+}
+.people-search .button {
+  min-height: 42px;
+  border-radius: 12px;
+  padding-inline: 12px;
+}
+.people-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+}
+.people-tab {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 12px;
+  color: var(--subtle);
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.people-tab:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.people-tab-active,
+.people-tab-active:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.people-tab-count {
+  min-width: 24px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+}
+.people-connections,
+.people-search-results {
+  min-height: 200px;
+}
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.people-grid .user-row {
+  min-height: 104px;
+  gap: 13px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--panel);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.people-grid .user-row:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 35%, var(--panel));
+}
+.people-grid .user-row > .avatar {
+  width: 54px;
+  height: 54px;
+  font-size: 15px;
+}
+.people-grid .user-row h3 {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.people-grid .user-row p {
+  font-size: 12px;
+}
+.people-grid .user-row > .text-link {
+  gap: 5px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.people-grid .user-row > .text-link svg {
+  width: 14px;
+  height: 14px;
+}
+.people-empty {
+  min-height: 170px;
+  gap: 10px;
+  border-color: var(--line);
+  background: var(--panel);
+  text-align: center;
+}
+.people-empty > svg {
+  color: var(--accent);
+}
+.people-empty h2 {
+  font-size: 16px;
+}
+.people-empty p {
+  max-width: 34rem;
+  color: var(--subtle);
+  font-size: 13px;
+}
+.people-results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.people-results-heading h2 {
+  font-size: 18px;
+}
+.people-suggestions {
+  margin-top: 56px;
+  scroll-margin-top: 100px;
+}
+.people-suggestions #suggestions-heading {
+  font-size: 21px;
+}
+@media (max-width: 1023px) {
+  .people-page {
+    max-width: 900px;
+  }
+  .people-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .people-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .people-heading-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .people-search {
+    width: 100%;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .people-suggestions-link {
+    gap: 6px;
+    padding-inline: 8px;
+    font-size: 12px;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .people-suggestions-link svg {
+    width: 17px;
+    height: 17px;
+  }
+  .people-tabs {
+    gap: 2px;
+    margin-bottom: 16px;
+    padding: 4px;
+  }
+  .people-tab {
+    min-height: 44px;
+    gap: 5px;
+    flex-direction: column;
+    font-size: 12px;
+  }
+  .people-tab-count {
+    min-width: 21px;
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+  .people-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .people-grid .user-row {
+    min-height: 88px;
+    padding: 12px;
+  }
+  .people-empty {
+    min-height: 150px;
+    border-radius: 16px;
+  }
+  .people-suggestions {
+    margin-top: 40px;
+  }
+}

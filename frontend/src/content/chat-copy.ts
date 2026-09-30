@@ -5,6 +5,8 @@ export const chatCopy = {
   emptyList: "Todavía no tienes conversaciones.",
   emptyListHelp: "Visita el perfil de un compañero para iniciar un chat.",
   selectConversation: "Elige una conversación para ver los mensajes.",
+  emptyStateTitle: "Tus mensajes",
+  emptyStateBody: "Envía mensajes privados a tus amigos.",
   emptyHistory: "Esta conversación todavía no tiene mensajes.",
   older: "Cargar mensajes anteriores",
   loadingOlder: "Cargando mensajes…",

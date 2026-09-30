@@ -4,6 +4,7 @@ import { useChat } from "../context/chat-context";
 import { ConversationList } from "../components/ConversationList";
 import { ConversationPanel } from "../components/ConversationPanel";
 import { Icon } from "../components/Icon";
+import { chatCopy } from "../content/chat-copy";
 interface ChatPageProps {
   readonly children?: never;
 }
@@ -19,9 +20,6 @@ export function ChatPage(_props: ChatPageProps) {
       <aside className={"chat-page-list " + (id ? "hidden md:flex" : "flex")}>
         <header className="p-5">
           <h1>Mensajes</h1>
-          <p className="muted text-sm mt-2">
-            Tu comunidad, a una conversación.
-          </p>
         </header>
         <ConversationList
           selected={id}
@@ -34,12 +32,12 @@ export function ChatPage(_props: ChatPageProps) {
         {id ? (
           <ConversationPanel key={id} id={id} onBack={() => setParams({})} />
         ) : (
-          <div className="m-auto text-center p-8 space-y-3">
-            <Icon name="chat" className="!h-12 !w-12 mx-auto" />
-            <h2>Empieza una conversación</h2>
-            <p className="muted text-sm">
-              Elige a alguien de la lista para conversar.
-            </p>
+          <div className="chat-empty-state">
+            <span className="chat-empty-icon" aria-hidden="true">
+              <Icon name="send" />
+            </span>
+            <h2>{chatCopy.emptyStateTitle}</h2>
+            <p>{chatCopy.emptyStateBody}</p>
           </div>
         )}
       </div>

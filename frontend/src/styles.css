@@ -345,11 +345,22 @@ body {
 .home-grid {
   display: grid;
   grid-template-columns: minmax(0, 760px) minmax(250px, 300px);
+  grid-template-areas: "timeline search" "timeline aside";
   justify-content: space-between;
   gap: 32px;
   align-items: start;
 }
+.home-search-row {
+  grid-area: search;
+  position: sticky;
+  top: 96px;
+  min-width: 0;
+  padding-top: 24px;
+  scroll-margin-top: 96px;
+  z-index: 2;
+}
 .home-timeline {
+  grid-area: timeline;
   min-width: 0;
   min-height: calc(100vh - 72px);
 }
@@ -482,10 +493,11 @@ body {
   padding-top: 18px;
 }
 .home-aside {
+  grid-area: aside;
   position: sticky;
   top: 96px;
   min-width: 0;
-  padding-top: 24px;
+  padding-top: 0;
   display: grid;
   gap: 16px;
 }
@@ -561,6 +573,9 @@ body {
   border-radius: 16px;
   background: var(--panel);
   box-shadow: var(--shadow-card);
+}
+#buscar-personas {
+  scroll-margin-top: 100px;
 }
 .home-search-result {
   display: flex;
@@ -876,6 +891,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+  }
+  .home-search-row {
+    position: static;
+    order: -1;
+    width: 100%;
+    padding: 12px 16px 0;
   }
   .home-timeline {
     width: 100%;

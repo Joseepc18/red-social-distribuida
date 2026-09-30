@@ -33,7 +33,7 @@ export function HomePeopleSearch(_props: HomePeopleSearchProps) {
   }
 
   return (
-    <div className="home-people-search">
+    <div className="home-people-search" id="buscar-personas">
       <form role="search" onSubmit={submit}>
         <label className="sr-only" htmlFor="home-people-search-input">
           {copy.search}

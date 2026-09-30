@@ -26,7 +26,7 @@ export function ConversationList({
     return (
       <div className="p-6 space-y-4">
         <p className="muted text-sm">{chatCopy.emptyList}</p>
-        <Link className="text-link" to="/explorar">
+        <Link className="text-link" to="/feed#buscar-personas">
           Buscar amigos
         </Link>
       </div>

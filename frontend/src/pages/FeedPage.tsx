@@ -5,6 +5,7 @@ import { PostComposer } from "../components/PostComposer";
 import { PostList } from "../components/PostList";
 import { DiscoverList } from "../components/DiscoverList";
 import { WhoToFollow } from "../components/WhoToFollow";
+import { HomePeopleSearch } from "../components/HomePeopleSearch";
 import { feedRefreshEvent } from "../events/feed-events";
 interface FeedPageProps {
   readonly children?: never;
@@ -23,9 +24,14 @@ export function FeedPage(_props: FeedPageProps) {
   useEffect(() => {
     if (location.hash === "#nueva-publicacion")
       document.getElementById("post-text")?.focus();
+    if (location.hash === "#buscar-personas")
+      document.getElementById("home-people-search-input")?.focus();
   }, [location]);
   return (
     <div className="home-grid">
+      <div className="home-search-row">
+        <HomePeopleSearch />
+      </div>
       <section className="home-timeline" aria-label="Inicio">
         <h1 className="sr-only">Inicio</h1>
         <PostComposer key={session?.token} onPublished={refresh} />

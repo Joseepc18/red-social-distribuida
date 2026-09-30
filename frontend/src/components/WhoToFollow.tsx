@@ -6,7 +6,6 @@ import { StatusMessage } from "./StatusMessage";
 import { Icon } from "./Icon";
 import { copy, homeCopy } from "../content/copy";
 import { socialCopy } from "../content/social-copy";
-import { HomePeopleSearch } from "./HomePeopleSearch";
 interface WhoToFollowProps {
   readonly onFollow: () => void;
 }
@@ -14,7 +13,6 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
   const state = useSuggestions(onFollow);
   return (
     <aside className="home-aside" aria-label={homeCopy.followTitle}>
-      <HomePeopleSearch />
       <section className="follow-box">
         <div className="follow-heading">
           <p className="eyebrow">{homeCopy.followEyebrow}</p>
@@ -78,7 +76,7 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
         <p className="eyebrow">{homeCopy.communityEyebrow}</p>
         <h2>{homeCopy.communityTitle}</h2>
         <p>{homeCopy.communityDescription}</p>
-        <Link to="/explorar" className="community-link">
+        <Link to="/feed#buscar-personas" className="community-link">
           {homeCopy.findPeople} <span aria-hidden="true">↗</span>
         </Link>
       </section>

@@ -973,7 +973,11 @@ body {
   height: 14px;
 }
 .people-empty {
+  display: flex;
   min-height: 170px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
   border-color: var(--line);
   background: var(--panel);

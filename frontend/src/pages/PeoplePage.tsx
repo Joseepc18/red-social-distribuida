@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { Link } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { useRemote } from "../hooks/useRemote";
 import { users } from "../services/users";
@@ -25,6 +25,7 @@ interface PeoplePageProps {
 }
 
 export function PeoplePage(_props: PeoplePageProps) {
+  const location = useLocation();
   const search = usePeopleSearch();
   const { session } = useAuth();
   const userId = session?.user.id ?? "";
@@ -45,6 +46,12 @@ export function PeoplePage(_props: PeoplePageProps) {
     [userId],
   );
   const people = useRemote("people:" + userId, loadPeople);
+  useEffect(() => {
+    if (location.hash !== "#sugerencias" || people.loading) return;
+    document
+      .getElementById("sugerencias")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location, people.loading]);
   const lists: Record<PeopleTab, UserSummary[]> = {
     friends: people.data?.friends ?? [],
     followers: people.data?.followers ?? [],

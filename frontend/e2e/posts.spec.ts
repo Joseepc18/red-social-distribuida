@@ -18,6 +18,7 @@ const png = Buffer.from(
   "base64",
 );
 async function setup(page: Page, feed = [makePost(1)]) {
+  await page.routeWebSocket(/\/ws\/chat/, () => {});
   const token =
     "header." +
     Buffer.from(JSON.stringify({ exp: Date.now() / 1000 + 3600 })).toString(
@@ -71,7 +72,7 @@ test("feed pagina sin duplicados y conserva tarjetas al reintentar una página",
     // An offset page can overlap when new posts arrive.
     return route.fulfill({ json: [makePost(20), makePost(21)] });
   });
-  await page.goto("/feed");
+  await page.goto("/feed?vista=siguiendo");
   await expect(page.getByRole("article")).toHaveCount(20);
   await page.getByRole("button", { name: "Cargar más publicaciones" }).click();
   await expect(page.getByRole("alert")).toContainText("Intenta nuevamente");
@@ -110,7 +111,7 @@ test("crear con imagen conserva el borrador al fallar y abre el detalle tras gua
       });
     return route.fulfill({ status: 201, json: makePost(1) });
   });
-  await page.goto("/feed");
+  await page.goto("/feed?vista=siguiendo");
   await page
     .getByLabel("Texto de la publicación")
     .fill("Mi primera publicación");
@@ -152,7 +153,7 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page, []);
-  await page.goto("/feed");
+  await page.goto("/feed?vista=siguiendo");
   await expect(
     page.getByRole("heading", { name: "Tu feed está por comenzar" }),
   ).toBeVisible();
@@ -244,13 +245,16 @@ test("reaccionar actualiza estado y contador solo tras confirmar el servidor", a
       });
     return route.fulfill({ status: 204 });
   });
-  await page.goto("/feed");
-  const like = page.getByRole("button", { name: "Me gusta", exact: true });
+  await page.goto("/feed?vista=siguiendo");
+  const like = page.getByRole("button", {
+    name: "Me gusta, 1 reacción",
+    exact: true,
+  });
   await expect(like).toHaveAttribute("aria-pressed", "false");
   await expect(like).toContainText("1 reacción");
   await like.click();
   const unlike = page.getByRole("button", {
-    name: "Quitar Me gusta",
+    name: "Quitar Me gusta, 2 reacciones",
     exact: true,
   });
   await expect(unlike).toHaveAttribute("aria-pressed", "true");

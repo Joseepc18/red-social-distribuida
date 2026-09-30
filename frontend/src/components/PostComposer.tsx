@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { Button } from "./Button";
-import { Card } from "./Card";
+import { Avatar } from "./Avatar";
+import { Icon } from "./Icon";
+import { useAuth } from "../hooks/useAuth";
 import { StatusMessage } from "./StatusMessage";
 import { postsCopy } from "../content/posts-copy";
 import { posts } from "../services/posts";
@@ -11,6 +13,7 @@ interface PostComposerProps {
   readonly children?: never;
 }
 export function PostComposer(_props: PostComposerProps) {
+  const { session } = useAuth();
   const [text, setText] = useState("");
   const [image, setImage] = useState<{ file: File; url: string }>();
   const [error, setError] = useState("");
@@ -72,22 +75,37 @@ export function PostComposer(_props: PostComposerProps) {
     }
   }
   return (
-    <Card id="nueva-publicacion">
-      <h2 className="mb-5">{postsCopy.compose}</h2>
-      <form onSubmit={submit} className="space-y-4" aria-busy={busy}>
+    <section
+      id="nueva-publicacion"
+      className="home-composer"
+      aria-label={postsCopy.compose}
+    >
+      <Avatar name={session?.user.nombre ?? ""} />
+      <form
+        onSubmit={submit}
+        className="min-w-0 flex-1 space-y-3"
+        aria-busy={busy}
+      >
         <div className="field">
-          <label htmlFor="post-text">{postsCopy.text}</label>
+          <label className="sr-only" htmlFor="post-text">
+            {postsCopy.text}
+          </label>
           <textarea
             id="post-text"
-            className="input min-h-32 resize-y"
-            placeholder={postsCopy.placeholder}
+            className="compose-text"
+            rows={2}
+            placeholder={
+              "¿Qué estás pensando, " +
+              (session?.user.nombre.split(" ")[0] ?? "") +
+              "?"
+            }
             value={text}
             onChange={(event) => setText(event.target.value)}
             disabled={busy}
             required
             aria-describedby="post-count"
           />
-          <p id="post-count" className="muted text-right text-xs">
+          <p id="post-count" className="muted text-right text-[10px]">
             {count} / 5000
           </p>
         </div>
@@ -103,8 +121,11 @@ export function PostComposer(_props: PostComposerProps) {
             </Button>
           </div>
         )}
-        <div className="field">
-          <label htmlFor="post-image">{postsCopy.image}</label>
+        <div className="compose-tools">
+          <label htmlFor="post-image" className="image-picker">
+            <Icon name="image" />
+            {image?.file.name ?? postsCopy.image}
+          </label>
           <input
             id="post-image"
             ref={fileInput}
@@ -112,12 +133,15 @@ export function PostComposer(_props: PostComposerProps) {
             accept="image/png,image/jpeg,image/gif"
             disabled={busy}
             onChange={(event) => selectImage(event.target.files?.[0])}
-            className="w-full min-w-0 text-sm"
+            className="sr-only"
             aria-describedby="post-image-help"
           />
-          <p id="post-image-help" className="muted text-xs">
+          <p id="post-image-help" className="sr-only">
             {postsCopy.imageHelp}
           </p>
+          <Button type="submit" disabled={busy || !count || count > 5000}>
+            {busy ? postsCopy.publishing : postsCopy.publish}
+          </Button>
         </div>
         {error && <StatusMessage message={error} error />}
         {created && (
@@ -131,12 +155,7 @@ export function PostComposer(_props: PostComposerProps) {
             </Link>
           </div>
         )}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={busy || !count || count > 5000}>
-            {busy ? postsCopy.publishing : postsCopy.publish}
-          </Button>
-        </div>
       </form>
-    </Card>
+    </section>
   );
 }

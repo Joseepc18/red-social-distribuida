@@ -29,7 +29,8 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 | `/explorar?q=` | Búsqueda de usuarios por nombre o username |
 | `/feed` | Composición de publicaciones y feed paginado de las personas seguidas |
 | `/posts/:id` | Detalle de publicación, también accesible desde Web Push |
-| `/chat` | Lista de conversaciones e historial de mensajes en tiempo real |
+| `/chat` | Vista completa del chat, compartida con la ventana flotante |
+| `/configuracion` | Tema de este navegador y controles de notificaciones Web Push |
 
 ## Autenticación y datos
 
@@ -46,6 +47,8 @@ La persistencia en localStorage sigue el contrato del proyecto. La autorización
 ## Chat en tiempo real
 
 El perfil de otra persona permite iniciar o recuperar una conversación con `POST /api/conversaciones`. La ruta privada `/chat` lista las conversaciones con `GET /api/conversaciones` y carga el historial con `GET /api/conversaciones/{id}/mensajes`. El cursor `siguienteAntes` se reenvía sin cambios como `?antes=` para cargar mensajes anteriores.
+
+AppLayout mantiene un ChatProvider por sesión y una única conexión al navegar entre las páginas privadas. La burbuja abre una conversación flotante en escritorio y dirige a la vista completa en móvil. Los historiales, borradores y avisos de mensajes nuevos se comparten entre ambas vistas; los avisos son locales a la sesión, sin persistencia ni sincronización entre dispositivos.
 
 Los mensajes nuevos se envían y reciben por WebSocket en `/ws/chat?token=<JWT>`. El cliente elige `ws` o `wss` según el origen, reconecta con espera exponencial hasta 30 segundos y vuelve a consultar el historial tras reconectar. Combina eventos y respuestas REST por id, así recupera mensajes persistidos mientras la conexión estuvo cerrada y evita duplicados. No consulta el servidor mediante polling.
 
@@ -65,7 +68,7 @@ Las sesiones restauradas se validan una vez contra el servidor. Sincronizar camb
 
 ## Notificaciones Web Push
 
-Las páginas privadas ofrecen **Activar notificaciones**. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.
+La opción **Configuración** del menú de cuenta ofrece **Activar notificaciones**. La revisión de la suscripción sigue montada en el layout privado. El permiso se solicita únicamente al pulsar ese botón. Se registra `/sw.js`, se obtiene `clavePublica` desde `GET /api/push/clave-publica` y se crea una suscripción con `userVisibleOnly: true`. El cliente envía `{ endpoint, p256dh, auth }` a `POST /api/push/suscripciones` con el JWT.
 
 El backend consulta los seguidores en Neo4j y envía el aviso cifrado al servicio push del navegador. Ese servicio despierta al Service Worker, que muestra `titulo` y `cuerpo` aunque la aplicación esté cerrada. Al pulsar el aviso se enfoca una pestaña existente o se abre la publicación indicada por `url`. Solo se aceptan destinos `/posts/{id}` del mismo origen.
 
@@ -137,3 +140,7 @@ Las pruebas de publicaciones comprueban creación con imagen, reintentos, límit
 ## Reacciones
 
 Las tarjetas del feed usan `reaccionado` y `reacciones` como estado inicial. **Me gusta** llama a `POST /api/posts/{id}/reacciones`; quitarlo llama a `DELETE` en la misma ruta. El botón queda bloqueado durante la petición y actualiza estado y contador únicamente después de recibir `204`. Si falla, conserva el estado anterior y muestra un error recuperable.
+
+## Propuesta de la pantalla principal
+
+La estructura de Inicio, el menú de cuenta y el chat flotante están descritos en [la propuesta de diseño](proposals/pantalla-principal.md), con los contratos reutilizados y las decisiones pendientes de revisión. Para ti usa Descubrir; Siguiendo conserva el feed paginado. Amigos muestra seguimientos mutuos, búsqueda y sugerencias.

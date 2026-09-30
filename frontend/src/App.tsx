@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router";
+import { SettingsPage } from "./pages/SettingsPage";
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthPage } from "./pages/AuthPage";
@@ -23,6 +24,7 @@ export function App(_props: AppProps) {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/feed" replace />} />
+          <Route path="configuracion" element={<SettingsPage />} />
           <Route path="feed" element={<FeedPage />} />
           <Route path="descubrir" element={<DiscoverPage />} />
           <Route path="explorar" element={<PeoplePage />} />

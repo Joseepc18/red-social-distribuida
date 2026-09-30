@@ -3,14 +3,17 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./styles.css";
+import { ThemeProvider } from "./context/ThemeProvider";
 import { App } from "./App";
 import { AuthProvider } from "./context/AuthProvider";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
 );

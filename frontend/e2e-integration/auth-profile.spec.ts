@@ -89,6 +89,7 @@ test("registro, sesión, perfil y seguimiento contra el backend real", async ({
     page.getByRole("button", { name: "0 Seguidores", exact: true }),
   ).toBeVisible();
 
+  await page.getByRole("button", { name: "Abrir opciones de cuenta" }).click();
   await page
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();

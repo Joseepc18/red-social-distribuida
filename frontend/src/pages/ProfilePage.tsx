@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useProfile } from "../hooks/useProfile";
@@ -12,6 +12,7 @@ import { ProfileGraph } from "../components/ProfileGraph";
 import { copy, profileCopy } from "../content/copy";
 import { PostList } from "../components/PostList";
 import { postsCopy } from "../content/posts-copy";
+import { useChat } from "../context/chat-context";
 import { chatCopy } from "../content/chat-copy";
 import { chat } from "../services/chat";
 import { errorMessage } from "../lib/api";
@@ -30,7 +31,7 @@ export function ProfilePage(_props: ProfilePageProps) {
 }
 function ProfileContent({ userId = "" }: ProfilePageProps) {
   const state = useProfile(userId);
-  const navigate = useNavigate();
+  const { openConversation } = useChat();
   const [startingChat, setStartingChat] = useState(false);
   const [chatError, setChatError] = useState("");
   if (state.loading) return <StatusMessage message={copy.loading} />;
@@ -86,10 +87,7 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
                     setChatError("");
                     try {
                       const conversation = await chat.create(profile.id);
-                      navigate(
-                        "/chat?conversacion=" +
-                          encodeURIComponent(conversation.id),
-                      );
+                      openConversation(conversation.id);
                     } catch (error: unknown) {
                       setChatError(errorMessage(error) || chatCopy.startError);
                     } finally {

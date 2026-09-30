@@ -1,3 +1,7 @@
+import { useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { useRemote } from "../hooks/useRemote";
+import { users } from "../services/users";
 import { usePeopleSearch } from "../hooks/usePeopleSearch";
 import { Card } from "../components/Card";
 import { Input } from "../components/Input";
@@ -12,11 +16,25 @@ interface PeoplePageProps {
 }
 export function PeoplePage(_props: PeoplePageProps) {
   const search = usePeopleSearch();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? "";
+  const loadFriends = useCallback(
+    async (signal: AbortSignal) => {
+      const [followers, following] = await Promise.all([
+        users.followers(userId, signal),
+        users.following(userId, signal),
+      ]);
+      const ids = new Set(followers.map((user) => user.id));
+      return following.filter((user) => ids.has(user.id));
+    },
+    [userId],
+  );
+  const friends = useRemote("friends:" + userId, loadFriends);
   return (
     <div className="space-y-8">
       <Card className="explore-header">
         <p className="eyebrow">{peopleCopy.eyebrow}</p>
-        <h1>{peopleCopy.title}</h1>
+        <h1>Amigos</h1>
         <p className="muted mt-3 max-w-2xl leading-relaxed">
           {peopleCopy.intro}
         </p>
@@ -41,7 +59,38 @@ export function PeoplePage(_props: PeoplePageProps) {
           </Button>
         </form>
       </Card>
-      {!search.query && <NetworkExplorer />}
+      {!search.query && (
+        <>
+          <section aria-label="Tus amigos" className="space-y-4">
+            <h2>Tus amigos</h2>
+            <p className="muted text-sm">
+              Personas que sigues y que también te siguen.
+            </p>
+            {friends.loading && <StatusMessage message={copy.loading} />}
+            {friends.error && (
+              <StatusMessage
+                message={friends.error}
+                error
+                onRetry={friends.reload}
+              />
+            )}
+            {friends.data?.length === 0 && (
+              <p className="muted">
+                Todavía no tienes seguimientos mutuos. Conoce a más personas
+                abajo.
+              </p>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {friends.data?.map((user) => (
+                <UserCard key={user.id} user={user} />
+              ))}
+            </div>
+          </section>
+          <div id="sugerencias">
+            <NetworkExplorer />
+          </div>
+        </>
+      )}
       {search.query && (
         <section aria-live="polite" aria-busy={search.loading}>
           <div className="mb-5 flex items-center justify-between gap-3">

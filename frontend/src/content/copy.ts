@@ -10,7 +10,7 @@ export const copy = {
   logout: "Cerrar sesión",
   login: "Iniciar sesión",
   register: "Crear una cuenta",
-  explore: "Explorar personas",
+  explore: "Amigos",
   discover: "Descubrir",
   profile: "Mi perfil",
   back: "Volver al inicio",
@@ -30,8 +30,8 @@ export const copy = {
     "Estamos preparando este espacio. Mientras tanto, puedes explorar tu comunidad.",
   newPost: "Nueva publicación",
   search: "Buscar personas",
-  feed: "Feed principal",
-  chat: "Mensajes privados",
+  feed: "Inicio",
+  chat: "Mensajes",
   member: "Comunidad universitaria",
 } as const;
 export const navigation = [
@@ -39,7 +39,6 @@ export const navigation = [
   { to: "/explorar", label: copy.explore, icon: "people" },
   { to: "/descubrir", label: copy.discover, icon: "compass" },
   { to: "/chat", label: copy.chat, icon: "chat" },
-  { to: "/perfil", label: copy.profile, icon: "profile" },
 ] as const;
 export const pages = {
   feed: {

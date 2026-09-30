@@ -215,21 +215,7 @@ body {
   gap: 42px;
   border-right: 1px solid transparent;
   background: transparent;
-  overflow: hidden;
-  transition:
-    width 0.24s ease,
-    padding 0.24s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.sidebar:hover,
-.sidebar:focus-within {
-  width: 272px;
-  padding-inline: 22px;
-  border-color: var(--line);
-  background: var(--canvas);
-  box-shadow: 12px 0 32px color-mix(in srgb, var(--ink) 8%, transparent);
+  overflow: visible;
 }
 .sidebar .brand {
   width: 100%;
@@ -237,23 +223,18 @@ body {
   justify-content: center;
   padding: 0;
   gap: 0;
-  transition: justify-content 0.2s ease;
-}
-.sidebar:hover .brand,
-.sidebar:focus-within .brand {
-  justify-content: flex-start;
-  padding-left: 10px;
 }
 .sidebar .brand > span {
   display: none;
 }
 .sidebar .nav-link {
   position: relative;
-  width: 100%;
+  width: 52px;
   font-size: 16px;
   min-height: 52px;
   justify-content: center;
-  gap: 14px;
+  gap: 0;
+  margin-inline: auto;
   padding-inline: 0;
   color: var(--ink);
   font-weight: 500;
@@ -263,36 +244,39 @@ body {
     background 0.16s ease,
     transform 0.16s ease;
 }
-.sidebar:not(:hover):not(:focus-within) .nav-link,
-.sidebar:not(:hover):not(:focus-within) .sidebar-compose {
-  gap: 0;
-}
-.sidebar:hover .nav-link,
-.sidebar:focus-within .nav-link {
-  justify-content: flex-start;
-  padding-inline: 16px;
-}
 .sidebar .nav-link svg {
   width: 23px;
   height: 23px;
 }
 .sidebar-label {
-  max-width: 0;
-  overflow: hidden;
+  position: absolute;
+  z-index: 35;
+  top: 50%;
+  left: calc(100% + 12px);
+  width: max-content;
+  max-width: min(220px, calc(100vw - 112px));
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--canvas);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.25;
+  pointer-events: none;
   opacity: 0;
-  transform: translateX(-6px);
+  transform: translate(-5px, -50%);
   white-space: nowrap;
   transition:
-    max-width 0.22s ease,
     opacity 0.16s ease,
-    transform 0.22s ease;
+    transform 0.16s ease;
 }
-.sidebar:hover .sidebar-label,
-.sidebar:focus-within .sidebar-label {
-  max-width: 190px;
+.sidebar .nav-link:hover .sidebar-label,
+.sidebar .nav-link:focus-visible .sidebar-label,
+.sidebar-compose:hover .sidebar-label,
+.sidebar-compose:focus-visible .sidebar-label {
   opacity: 1;
-  transform: translateX(0);
-  transition-delay: 0.04s;
+  transform: translate(0, -50%);
 }
 .sidebar .nav-link:hover {
   background: var(--hover);
@@ -311,17 +295,7 @@ body {
   border-radius: 17px;
   min-height: 50px;
   box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 18%, transparent);
-  transition:
-    width 0.24s ease,
-    padding 0.24s ease,
-    border-radius 0.2s ease;
-}
-.sidebar:hover .sidebar-compose,
-.sidebar:focus-within .sidebar-compose {
-  width: 100%;
-  align-self: stretch;
-  padding-inline: 16px;
-  border-radius: 999px;
+  position: relative;
 }
 .sidebar .nav-link .unread-badge {
   position: absolute;
@@ -331,32 +305,8 @@ body {
   height: 17px;
   border: 2px solid var(--canvas);
 }
-.sidebar:hover .nav-link .unread-badge,
-.sidebar:focus-within .nav-link .unread-badge {
-  position: static;
-  min-width: 20px;
-  height: 20px;
-  margin-left: auto;
-}
 .sidebar-caption {
-  max-height: 0;
-  margin-top: auto;
-  padding: 0 12px;
-  overflow: hidden;
-  opacity: 0;
-  color: var(--subtle);
-  font-size: 13px;
-  line-height: 1.6;
-  transition:
-    max-height 0.2s ease,
-    padding 0.2s ease,
-    opacity 0.16s ease;
-}
-.sidebar:hover .sidebar-caption,
-.sidebar:focus-within .sidebar-caption {
-  max-height: 100px;
-  padding-top: 18px;
-  opacity: 1;
+  display: none;
 }
 .app-main {
   padding: 0 clamp(20px, 3vw, 48px) 0 0;

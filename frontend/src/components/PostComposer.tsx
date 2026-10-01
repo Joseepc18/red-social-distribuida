@@ -1,24 +1,34 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { Button } from "./Button";
-import { Card } from "./Card";
+import { Avatar } from "./Avatar";
+import { Icon } from "./Icon";
+import { useAuth } from "../hooks/useAuth";
 import { StatusMessage } from "./StatusMessage";
 import { postsCopy } from "../content/posts-copy";
 import { posts } from "../services/posts";
 import { errorMessage } from "../lib/api";
 
+const MAX_CHARS = 5000;
+// Like X: the counter only shows up near the limit, to explain a disabled Publicar.
+const COUNTER_FROM = MAX_CHARS - 200;
+
 interface PostComposerProps {
+  readonly onPublished?: () => void;
   readonly children?: never;
 }
-export function PostComposer(_props: PostComposerProps) {
+export function PostComposer({ onPublished }: PostComposerProps) {
+  const { session } = useAuth();
   const [text, setText] = useState("");
   const [image, setImage] = useState<{ file: File; url: string }>();
   const [error, setError] = useState("");
   const [created, setCreated] = useState("");
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const textArea = useRef<HTMLTextAreaElement>(null);
   const request = useRef<AbortController | null>(null);
   const count = [...text.trim()].length;
+  const showCount = count >= COUNTER_FROM;
   useEffect(
     () => () => {
       if (image) URL.revokeObjectURL(image.url);
@@ -26,6 +36,15 @@ export function PostComposer(_props: PostComposerProps) {
     [image],
   );
   useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => {
+    const element = textArea.current;
+    if (!element) return;
+    element.style.height = "auto";
+    const maxHeight = 180;
+    element.style.height = `${Math.min(element.scrollHeight, maxHeight)}px`;
+    element.style.overflowY =
+      element.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [text]);
   function removeImage() {
     setImage(undefined);
     if (fileInput.current) fileInput.current.value = "";
@@ -49,7 +68,7 @@ export function PostComposer(_props: PostComposerProps) {
     if (request.current) return;
     setError("");
     setCreated("");
-    if (count < 1 || count > 5000) {
+    if (count < 1 || count > MAX_CHARS) {
       setError(postsCopy.invalidText);
       return;
     }
@@ -62,6 +81,7 @@ export function PostComposer(_props: PostComposerProps) {
       setCreated(post.id);
       setText("");
       removeImage();
+      onPublished?.();
     } catch (cause) {
       if (!controller.signal.aborted) setError(errorMessage(cause));
     } finally {
@@ -72,24 +92,50 @@ export function PostComposer(_props: PostComposerProps) {
     }
   }
   return (
-    <Card id="nueva-publicacion">
-      <h2 className="mb-5">{postsCopy.compose}</h2>
-      <form onSubmit={submit} className="space-y-4" aria-busy={busy}>
+    <section
+      id="nueva-publicacion"
+      className="home-composer"
+      aria-label={postsCopy.compose}
+    >
+      <Avatar name={session?.user.nombre ?? ""} />
+      <form
+        onSubmit={submit}
+        className="min-w-0 flex-1 space-y-3"
+        aria-busy={busy}
+      >
         <div className="field">
-          <label htmlFor="post-text">{postsCopy.text}</label>
+          <label className="sr-only" htmlFor="post-text">
+            {postsCopy.text}
+          </label>
           <textarea
             id="post-text"
-            className="input min-h-32 resize-y"
-            placeholder={postsCopy.placeholder}
+            ref={textArea}
+            className="compose-text"
+            rows={1}
+            placeholder={
+              "¿Qué estás pensando, " +
+              (session?.user.nombre.split(" ")[0] ?? "") +
+              "?"
+            }
             value={text}
             onChange={(event) => setText(event.target.value)}
             disabled={busy}
             required
-            aria-describedby="post-count"
+            aria-describedby={showCount ? "post-count" : undefined}
           />
-          <p id="post-count" className="muted text-right text-xs">
-            {count} / 5000
-          </p>
+          {showCount && (
+            <p
+              id="post-count"
+              className={
+                "text-right text-[11px] " +
+                (count > MAX_CHARS
+                  ? "font-semibold text-error dark:text-error-container"
+                  : "muted")
+              }
+            >
+              {count} / {MAX_CHARS}
+            </p>
+          )}
         </div>
         {image && (
           <div className="space-y-2">
@@ -103,8 +149,11 @@ export function PostComposer(_props: PostComposerProps) {
             </Button>
           </div>
         )}
-        <div className="field">
-          <label htmlFor="post-image">{postsCopy.image}</label>
+        <div className="compose-tools">
+          <label htmlFor="post-image" className="image-picker">
+            <Icon name="image" />
+            {image?.file.name ?? postsCopy.image}
+          </label>
           <input
             id="post-image"
             ref={fileInput}
@@ -112,12 +161,15 @@ export function PostComposer(_props: PostComposerProps) {
             accept="image/png,image/jpeg,image/gif"
             disabled={busy}
             onChange={(event) => selectImage(event.target.files?.[0])}
-            className="w-full min-w-0 text-sm"
+            className="sr-only"
             aria-describedby="post-image-help"
           />
-          <p id="post-image-help" className="muted text-xs">
+          <p id="post-image-help" className="sr-only">
             {postsCopy.imageHelp}
           </p>
+          <Button type="submit" disabled={busy || !count || count > MAX_CHARS}>
+            {busy ? postsCopy.publishing : postsCopy.publish}
+          </Button>
         </div>
         {error && <StatusMessage message={error} error />}
         {created && (
@@ -131,12 +183,7 @@ export function PostComposer(_props: PostComposerProps) {
             </Link>
           </div>
         )}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={busy || !count || count > 5000}>
-            {busy ? postsCopy.publishing : postsCopy.publish}
-          </Button>
-        </div>
       </form>
-    </Card>
+    </section>
   );
 }

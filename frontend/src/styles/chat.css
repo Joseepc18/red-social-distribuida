@@ -1,0 +1,190 @@
+.icon-button {
+  @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full;
+}
+
+.icon-button:hover {
+  @apply bg-surface-container-low dark:bg-on-surface;
+}
+
+.unread-badge {
+  @apply inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error;
+}
+
+.chat-dock {
+  @apply fixed bottom-6 right-6 z-[35] flex flex-col items-end gap-3;
+}
+
+.chat-trigger {
+  @apply relative inline-flex h-[58px] w-[58px] items-center justify-center rounded-2xl border border-outline-variant bg-surface-container-lowest text-primary-container shadow-lg;
+}
+
+.chat-trigger:hover {
+  @apply bg-surface-container-low;
+}
+
+.dark .chat-trigger {
+  @apply border-outline/30 bg-inverse-surface text-inverse-primary;
+}
+
+.dark .chat-trigger:hover {
+  @apply bg-on-surface;
+}
+
+.chat-trigger .unread-badge {
+  @apply absolute -right-1 -top-1;
+}
+
+.chat-window {
+  @apply flex flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-2xl;
+  width: 380px;
+  height: min(570px, calc(100dvh - 120px));
+}
+
+.dark .chat-window {
+  @apply border-outline/30 bg-inverse-surface;
+}
+
+.dock-header {
+  @apply flex items-center justify-between border-b border-outline-variant/30 px-4 py-2.5;
+}
+
+.dock-header h2 {
+  @apply text-base;
+}
+
+.conversation-panel {
+  @apply flex min-h-0 w-full min-w-0 flex-1 flex-col;
+}
+
+.conversation-header {
+  @apply flex items-center gap-2.5 border-b border-outline-variant/30 p-3;
+}
+
+.conversation-header .avatar {
+  @apply h-[34px] w-[34px] text-xs;
+}
+
+.conversation-row {
+  @apply flex w-full items-center gap-3 px-4 py-[18px] text-left;
+}
+
+.conversation-row:hover,
+.conversation-row.selected {
+  @apply bg-surface-container-low dark:bg-on-surface;
+}
+
+.message-scroll {
+  @apply flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-5;
+  overscroll-behavior: contain;
+}
+
+.message-bubble {
+  @apply mr-auto max-w-[85%] rounded-2xl bg-surface-container-low px-3.5 py-2.5 dark:bg-on-surface;
+  border-radius: 16px 16px 16px 4px;
+}
+
+.message-bubble.own {
+  @apply ml-auto mr-0 bg-primary-container text-on-primary dark:bg-inverse-primary dark:text-on-primary-fixed;
+  border-radius: 16px 16px 4px 16px;
+}
+
+.message-composer {
+  @apply flex items-end gap-2 border-t border-outline-variant/30 p-3;
+}
+
+.message-composer .input {
+  @apply min-h-11 max-h-[110px] rounded-[14px] border-transparent bg-surface-container-low dark:bg-on-surface;
+}
+
+.message-composer .button {
+  @apply rounded-[14px] px-3 py-2.5;
+}
+
+.chat-page {
+  @apply flex overflow-hidden bg-transparent;
+  height: calc(100dvh - 132px);
+  min-height: 400px;
+}
+
+.chat-page-list {
+  @apply w-[360px] shrink-0 flex-col overflow-y-auto border-r border-outline-variant/30;
+}
+
+.chat-page-list > header {
+  @apply border-b border-outline-variant/30 px-6 pb-5 pt-7;
+}
+
+.chat-page-list > header h1 {
+  @apply text-2xl;
+}
+
+.chat-empty-state {
+  @apply m-auto flex max-w-md flex-col items-center gap-3 px-8 py-10 text-center;
+}
+
+.chat-empty-icon {
+  @apply mb-2 inline-flex h-[76px] w-[76px] items-center justify-center rounded-full border border-outline-variant text-primary-container dark:border-outline dark:text-inverse-primary;
+}
+
+.chat-empty-icon svg {
+  @apply h-9 w-9;
+}
+
+.chat-empty-state h2 {
+  @apply text-xl;
+}
+
+.chat-empty-state p {
+  @apply max-w-sm text-sm text-on-surface-variant dark:text-outline-variant;
+}
+
+@media (max-width: 1023px) {
+  .chat-dock {
+    bottom: 90px;
+  }
+
+  .chat-window {
+    height: min(540px, calc(100dvh - 195px));
+  }
+
+  .chat-page {
+    height: calc(100dvh - 195px);
+  }
+
+  .chat-page-list {
+    @apply w-[310px];
+  }
+}
+
+@media (max-width: 767px) {
+  .chat-dock {
+    right: 16px;
+    bottom: 90px;
+  }
+
+  .chat-trigger {
+    @apply h-[50px] w-[50px] rounded-[17px];
+  }
+
+  .chat-window {
+    display: none;
+  }
+
+  .chat-container {
+    @apply px-0 pb-[76px];
+  }
+
+  .chat-page {
+    @apply rounded-none border-x-0;
+    height: calc(100dvh - 140px);
+    min-height: 300px;
+  }
+
+  .chat-page-list {
+    @apply w-full border-0;
+  }
+
+  .chat-page-list > header {
+    @apply px-5 pb-4 pt-4;
+  }
+}

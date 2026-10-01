@@ -1,7 +1,7 @@
 // Shared interface copy. User records are always loaded from the API.
 export const copy = {
-  brand: "NodoUni",
-  tagline: "Red Social Universitaria",
+  brand: "ZENIT",
+  tagline: "Conecta. Comparte. Aprende.",
   community: "Tu comunidad, más cerca.",
   intro:
     "Un espacio para conectar con tus compañeros y compartir lo que estás construyendo.",
@@ -10,8 +10,7 @@ export const copy = {
   logout: "Cerrar sesión",
   login: "Iniciar sesión",
   register: "Crear una cuenta",
-  explore: "Explorar personas",
-  discover: "Descubrir",
+  explore: "Amigos",
   profile: "Mi perfil",
   back: "Volver al inicio",
   loading: "Cargando…",
@@ -25,22 +24,40 @@ export const copy = {
   invalidResponse: "El servidor devolvió una respuesta inesperada.",
   notFound: "No encontramos esta página",
   notFoundBody: "Comprueba la dirección o vuelve al inicio.",
-  soon: "Próximamente",
-  waiting:
-    "Estamos preparando este espacio. Mientras tanto, puedes explorar tu comunidad.",
   newPost: "Nueva publicación",
   search: "Buscar personas",
-  feed: "Feed principal",
-  chat: "Mensajes privados",
+  feed: "Inicio",
+  chat: "Mensajes",
   member: "Comunidad universitaria",
 } as const;
 export const navigation = [
   { to: "/feed", label: copy.feed, icon: "feed" },
   { to: "/explorar", label: copy.explore, icon: "people" },
-  { to: "/descubrir", label: copy.discover, icon: "compass" },
   { to: "/chat", label: copy.chat, icon: "chat" },
-  { to: "/perfil", label: copy.profile, icon: "profile" },
 ] as const;
+export const homeCopy = {
+  sidebarTagline: "Un espacio para compartir lo que nos conecta.",
+  communityLabel: "ZENIT · Comunidad universitaria",
+  feedTabsLabel: "Tipo de publicaciones",
+  forYou: "Para ti",
+  following: "Siguiendo",
+  suggestedPosts: "Publicaciones para ti",
+  followEyebrow: "Tu red",
+  followTitle: "A quién seguir",
+  follow: "Seguir",
+  viewProfile: (name: string) => "Ver perfil de " + name,
+  followPerson: (name: string) => "Seguir a " + name,
+  followPending: "…",
+  showSuggestions: "Ver todas las sugerencias",
+  globalSearchPlaceholder: "Buscar personas en ZENIT…",
+  globalSearchResults: "Resultados de personas",
+  searchEmpty: "No encontramos personas con ese nombre o usuario.",
+  communityEyebrow: "Comunidad universitaria",
+  communityTitle: "Amplía tu red",
+  communityDescription: "Busca compañeros y conexiones mutuas.",
+  findPeople: "Buscar personas",
+  motto: "ZENIT · Conecta. Comparte. Aprende.",
+} as const;
 export const pages = {
   feed: {
     title: copy.feed,
@@ -73,7 +90,7 @@ export const pages = {
   },
 } as const;
 export const authCopy = {
-  eyebrow: "Conecta · Comparte · Aprende",
+  eyebrow: "Acceso a ZENIT",
   loginTitle: "Qué bueno verte de nuevo",
   loginIntro:
     "Inicia sesión para encontrar a tus compañeros y formar parte de la conversación.",
@@ -84,15 +101,11 @@ export const authCopy = {
   email: "Correo electrónico",
   password: "Contraseña",
   hasAccount: "¿Ya tienes una cuenta?",
-  noAccount: "¿Primera vez en NodoUni?",
+  noAccount: "¿Primera vez en ZENIT?",
   registered:
     "Tu cuenta está lista. Inicia sesión con el usuario y la contraseña que elegiste.",
   required: "Completa los campos obligatorios sin dejarlos en blanco.",
-  image: "/images/community.png",
-  imageAlt: "Estudiante leyendo en una biblioteca universitaria",
-  photoCaption: "Las buenas ideas crecen en comunidad.",
-  photoDetail: "Un lugar para aprender juntos.",
-  footer: "NodoUni · Red social universitaria",
+  footer: "ZENIT · Red social universitaria",
 } as const;
 export const profileCopy = {
   title: "Perfil de la comunidad",
@@ -114,14 +127,14 @@ export const profileCopy = {
 } as const;
 export const peopleCopy = {
   eyebrow: "Tu red universitaria",
-  title: "Encuentra a tu comunidad",
-  intro:
-    "Conecta con tus compañeros. Busca por nombre o usuario y visita sus perfiles para conocerlos mejor.",
-  placeholder: "Nombre o usuario…",
-  search: "Buscar",
-  results: "Resultados de búsqueda",
-  people: "personas",
-  person: "persona",
-  emptyTitle: "No encontramos coincidencias",
-  emptyBody: "Prueba con otro nombre o usuario.",
+  title: "Amigos",
+  tabsLabel: "Listas de personas",
+  suggestionsShortcut: "Sugerencias",
+  friendsEmpty:
+    "Aquí aparecerán las personas con las que se siguen mutuamente.",
+  followersEmpty: "Todavía no tienes seguidores.",
+  followingEmpty: "Todavía no sigues a nadie.",
+  filterLabel: "Filtrar esta lista",
+  filterPlaceholder: "Nombre o usuario…",
+  filterEmpty: "No hay coincidencias en esta lista.",
 } as const;

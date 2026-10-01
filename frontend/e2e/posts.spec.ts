@@ -18,6 +18,7 @@ const png = Buffer.from(
   "base64",
 );
 async function setup(page: Page, feed = [makePost(1)]) {
+  await page.routeWebSocket(/\/ws\/chat/, () => {});
   const token =
     "header." +
     Buffer.from(JSON.stringify({ exp: Date.now() / 1000 + 3600 })).toString(
@@ -51,6 +52,30 @@ async function setup(page: Page, feed = [makePost(1)]) {
     return route.fulfill({ json: [] });
   });
 }
+
+test("Inicio abre en Siguiendo y muestra Para ti en una sola pestaña", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/feed");
+  const tabs = page.getByRole("navigation", {
+    name: "Tipo de publicaciones",
+  });
+  await expect(tabs.getByRole("link", { name: "Siguiendo" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByRole("article")).toHaveCount(1);
+
+  await tabs.getByRole("link", { name: "Para ti" }).click();
+  await expect(page).toHaveURL(/\/feed\?vista=para-ti$/);
+  await expect(
+    page.getByRole("navigation", { name: "Navegación principal" }),
+  ).not.toContainText("Descubrir");
+
+  await page.goto("/descubrir");
+  await expect(page).toHaveURL(/\/feed\?vista=para-ti$/);
+});
 
 test("feed pagina sin duplicados y conserva tarjetas al reintentar una página", async ({
   page,
@@ -159,10 +184,15 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
   await expect(
     page.getByRole("button", { name: "Publicar", exact: true }),
   ).toBeDisabled();
+  await page.getByLabel("Texto de la publicación").fill("a".repeat(10));
+  await expect(page.getByText("10 / 5000")).toHaveCount(0);
   await page.getByLabel("Texto de la publicación").fill("a".repeat(5001));
   await expect(
     page.getByRole("button", { name: "Publicar", exact: true }),
   ).toBeDisabled();
+  await expect(
+    page.getByLabel("Texto de la publicación"),
+  ).toHaveAccessibleDescription("5001 / 5000");
   await page.getByLabel("Añadir imagen").setInputFiles({
     name: "no.svg",
     mimeType: "image/svg+xml",
@@ -186,9 +216,7 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
   await expect(page.getByRole("article")).toContainText(
     "Avance del proyecto 1",
   );
-  await page
-    .getByRole("link", { name: "Ver publicación", exact: true })
-    .click();
+  await page.getByText("Avance del proyecto 1").click();
   await expect(
     page.getByRole("heading", { name: "Publicación", exact: true }),
   ).toBeVisible();
@@ -245,12 +273,15 @@ test("reaccionar actualiza estado y contador solo tras confirmar el servidor", a
     return route.fulfill({ status: 204 });
   });
   await page.goto("/feed");
-  const like = page.getByRole("button", { name: "Me gusta", exact: true });
+  const like = page.getByRole("button", {
+    name: "Me gusta, 1 reacción",
+    exact: true,
+  });
   await expect(like).toHaveAttribute("aria-pressed", "false");
   await expect(like).toContainText("1 reacción");
   await like.click();
   const unlike = page.getByRole("button", {
-    name: "Quitar Me gusta",
+    name: "Quitar Me gusta, 2 reacciones",
     exact: true,
   });
   await expect(unlike).toHaveAttribute("aria-pressed", "true");

@@ -12,6 +12,7 @@ export const postsCopy = {
   publishing: "Publicando…",
   created: "Tu publicación está lista.",
   view: "Ver publicación",
+  showMore: "Mostrar más",
   detail: "Publicación",
   discover: "Descubrir",
   discoverRefresh: "Actualizar",
@@ -23,7 +24,6 @@ export const postsCopy = {
     count +
     (count === 1 ? " persona que sigues" : " personas que sigues"),
   userPosts: "Publicaciones",
-  refresh: "Actualizar feed",
   more: "Cargar más publicaciones",
   emptyFeed: "Tu feed está por comenzar",
   emptyFeedBody: "Sigue a tus compañeros para ver aquí sus publicaciones.",

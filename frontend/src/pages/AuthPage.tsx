@@ -2,7 +2,7 @@ import { Link, Navigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { AuthPanel } from "../components/AuthPanel";
-import { Brand } from "../components/Brand";
+import { AnimatedBrandMark } from "../components/AnimatedBrandMark";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Icon } from "../components/Icon";
@@ -20,8 +20,8 @@ export function AuthPage({ mode }: AuthPageProps) {
     <main className="auth-layout">
       <AuthPanel />
       <section className="auth-form-panel">
-        <div className="mb-12 lg:hidden">
-          <Brand />
+        <div className="auth-mobile-brand lg:hidden">
+          <AnimatedBrandMark className="w-40" />
         </div>
         <div className="w-full max-w-md">
           <p className="eyebrow">{authCopy.eyebrow}</p>

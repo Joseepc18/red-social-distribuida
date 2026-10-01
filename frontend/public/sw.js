@@ -39,7 +39,7 @@ self.addEventListener("push", (event) => {
       await self.registration.showNotification(
         typeof payload.titulo === "string"
           ? payload.titulo
-          : "Nueva publicación en NodoUni",
+          : "Nueva publicación en ZENIT",
         {
           body:
             typeof payload.cuerpo === "string"

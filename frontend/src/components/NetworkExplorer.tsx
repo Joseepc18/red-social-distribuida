@@ -8,11 +8,15 @@ import { SuggestionCard } from "./SuggestionCard";
 import { UserCard } from "./UserCard";
 import { Card } from "./Card";
 interface NetworkExplorerProps {
+  readonly onFollow?: () => void;
   readonly children?: never;
 }
-export function NetworkExplorer(_props: NetworkExplorerProps) {
+export function NetworkExplorer({ onFollow }: NetworkExplorerProps) {
   const reach = useRemote("reach", social.reach);
-  const suggestions = useSuggestions(reach.reload);
+  const suggestions = useSuggestions(() => {
+    reach.reload();
+    onFollow?.();
+  });
   return (
     <div className="space-y-8">
       <section

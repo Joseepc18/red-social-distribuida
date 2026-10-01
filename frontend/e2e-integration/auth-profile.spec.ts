@@ -62,12 +62,14 @@ test("registro, sesión, perfil y seguimiento contra el backend real", async ({
     page.getByText("Biografía guardada en Neo4j.", { exact: true }),
   ).toBeVisible();
 
-  await page.goto("/explorar");
-  await page.getByLabel("Buscar personas", { exact: true }).fill(peer.username);
-  await page.getByRole("button", { name: "Buscar", exact: true }).click();
+  await page.goto("/feed#buscar-personas");
   await page
-    .getByRole("link", { name: new RegExp(peer.nombre + ".*Ver perfil") })
+    .getByRole("searchbox", { name: "Buscar personas" })
+    .fill(peer.username);
+  await page
+    .getByRole("button", { name: "Buscar personas", exact: true })
     .click();
+  await page.getByRole("link", { name: new RegExp(peer.nombre) }).click();
   await expect(page).toHaveURL(new RegExp("/usuarios/" + peerProfile.id + "$"));
   await page.getByRole("button", { name: "Seguir", exact: true }).click();
   await expect(
@@ -89,6 +91,7 @@ test("registro, sesión, perfil y seguimiento contra el backend real", async ({
     page.getByRole("button", { name: "0 Seguidores", exact: true }),
   ).toBeVisible();
 
+  await page.getByRole("button", { name: "Abrir opciones de cuenta" }).click();
   await page
     .getByRole("button", { name: "Cerrar sesión", exact: true })
     .click();

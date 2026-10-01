@@ -7,11 +7,14 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -176,6 +179,31 @@ class UserResourceTest {
                 .then()
                 .statusCode(200)
                 .body("id", hasItem(viewer.id()));
+    }
+
+    @Test
+    void searchReturnsAtMostTenUsersOrderedByUsername() {
+        TestUser viewer = TestUsers.create();
+        String tag = "lim" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        List<String> usernames = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            String username = tag + "_" + String.format("%02d", i);
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(TestUsers.registration(username, username + "@test.com"))
+                    .when().post("/api/auth/registro")
+                    .then().statusCode(201);
+            usernames.add(username);
+        }
+
+        given()
+                .auth().oauth2(viewer.token())
+                .queryParam("q", tag)
+                .when().get("/api/usuarios")
+                .then()
+                .statusCode(200)
+                .body("$", hasSize(10))
+                .body("username", contains(usernames.subList(0, 10).toArray()));
     }
 
     @Test

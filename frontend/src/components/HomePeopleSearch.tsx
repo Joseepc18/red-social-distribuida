@@ -16,7 +16,8 @@ const SEARCH_DEBOUNCE_MS = 300;
 export function HomePeopleSearch(_props: HomePeopleSearchProps) {
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
-  const showResults = Boolean(query) && draft.trim() === query;
+  // Keep the previous results visible while typing; aria-busy reports the pending search.
+  const showResults = Boolean(query) && Boolean(draft.trim());
   const load = useCallback(
     (signal: AbortSignal) =>
       query ? users.search(query, signal) : Promise.resolve([]),

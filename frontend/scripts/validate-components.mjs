@@ -1,7 +1,7 @@
 import ts from 'typescript'
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-const files = ['src/components', 'src/pages'].flatMap((dir) => readdirSync(dir).filter((name) => name.endsWith('.tsx')).map((name) => join(dir, name)))
+const files = ['src/components', 'src/pages'].flatMap((dir) => readdirSync(dir).filter((name) => name.endsWith('.tsx') && !name.endsWith('.test.tsx')).map((name) => join(dir, name)))
 let failed = false
 for (const file of files) {
   const source = readFileSync(file, 'utf8')

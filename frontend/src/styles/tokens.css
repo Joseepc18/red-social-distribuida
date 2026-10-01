@@ -1,0 +1,50 @@
+/* Main-screen proposal: shared canvas, a readable timeline and a quiet side rail. */
+:root {
+  --canvas: #f7f5fa;
+  --panel: #ffffff;
+  --ink: #211d28;
+  --subtle: #625c6d;
+  --line: #e4deeb;
+  --hover: #f0ecf5;
+  --accent: #6d50c7;
+  --accent-fill: #7052c9;
+  --accent-contrast: #ffffff;
+  --accent-soft: #eee9f7;
+  --shadow-card: 0 2px 8px rgb(0 0 0 / 6%);
+}
+.dark {
+  --canvas: #12111b;
+  --panel: #191722;
+  --ink: #f1eef7;
+  --subtle: #aaa4b5;
+  --line: #353041;
+  --hover: #242130;
+  --accent: #b9a5ff;
+  --accent-fill: #a68eef;
+  --accent-contrast: #241a3a;
+  --accent-soft: #302942;
+  --shadow-card: none;
+}
+body {
+  background: var(--canvas);
+  color: var(--ink);
+}
+.avatar {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.button-primary {
+  background: var(--accent-fill);
+  color: var(--accent-contrast);
+}
+.dark .button-primary {
+  color: var(--accent-contrast);
+}
+.button-primary:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+.button-primary:disabled {
+  background: var(--line);
+  color: var(--subtle);
+  filter: none;
+}

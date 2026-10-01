@@ -29,9 +29,6 @@ export function FeedPage(_props: FeedPageProps) {
   }, [location]);
   return (
     <div className="home-grid">
-      <div className="home-search-row">
-        <HomePeopleSearch />
-      </div>
       <section className="home-timeline" aria-label="Inicio">
         <h1 className="sr-only">Inicio</h1>
         <PostComposer key={session?.token} onPublished={refresh} />
@@ -43,7 +40,12 @@ export function FeedPage(_props: FeedPageProps) {
           </div>
         )}
       </section>
-      <WhoToFollow onFollow={refresh} />
+      <div className="home-right-rail">
+        <div className="home-search-row">
+          <HomePeopleSearch />
+        </div>
+        <WhoToFollow onFollow={refresh} />
+      </div>
     </div>
   );
 }

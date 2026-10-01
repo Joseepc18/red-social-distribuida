@@ -1,7 +1,7 @@
 // Shared interface copy. User records are always loaded from the API.
 export const copy = {
-  brand: "NodoUni",
-  tagline: "Red Social Universitaria",
+  brand: "ZENIT",
+  tagline: "Conecta. Comparte. Aprende.",
   community: "Tu comunidad, más cerca.",
   intro:
     "Un espacio para conectar con tus compañeros y compartir lo que estás construyendo.",
@@ -40,7 +40,7 @@ export const navigation = [
 ] as const;
 export const homeCopy = {
   sidebarTagline: "Un espacio para compartir lo que nos conecta.",
-  communityLabel: "NodoUni · Comunidad universitaria",
+  communityLabel: "ZENIT · Comunidad universitaria",
   feedTabsLabel: "Tipo de publicaciones",
   forYou: "Para ti",
   following: "Siguiendo",
@@ -52,14 +52,14 @@ export const homeCopy = {
   followPerson: (name: string) => "Seguir a " + name,
   followPending: "…",
   showSuggestions: "Ver todas las sugerencias",
-  globalSearchPlaceholder: "Buscar personas en NodoUni…",
+  globalSearchPlaceholder: "Buscar personas en ZENIT…",
   globalSearchResults: "Resultados de personas",
   searchEmpty: "No encontramos personas con ese nombre o usuario.",
   communityEyebrow: "Comunidad universitaria",
   communityTitle: "Amplía tu red",
   communityDescription: "Busca compañeros y conexiones mutuas.",
   findPeople: "Buscar personas",
-  motto: "NodoUni · Conecta. Comparte. Aprende.",
+  motto: "ZENIT · Conecta. Comparte. Aprende.",
 } as const;
 export const pages = {
   feed: {
@@ -93,7 +93,7 @@ export const pages = {
   },
 } as const;
 export const authCopy = {
-  eyebrow: "Conecta · Comparte · Aprende",
+  eyebrow: "Acceso a ZENIT",
   loginTitle: "Qué bueno verte de nuevo",
   loginIntro:
     "Inicia sesión para encontrar a tus compañeros y formar parte de la conversación.",
@@ -104,15 +104,11 @@ export const authCopy = {
   email: "Correo electrónico",
   password: "Contraseña",
   hasAccount: "¿Ya tienes una cuenta?",
-  noAccount: "¿Primera vez en NodoUni?",
+  noAccount: "¿Primera vez en ZENIT?",
   registered:
     "Tu cuenta está lista. Inicia sesión con el usuario y la contraseña que elegiste.",
   required: "Completa los campos obligatorios sin dejarlos en blanco.",
-  image: "/images/community.png",
-  imageAlt: "Estudiante leyendo en una biblioteca universitaria",
-  photoCaption: "Las buenas ideas crecen en comunidad.",
-  photoDetail: "Un lugar para aprender juntos.",
-  footer: "NodoUni · Red social universitaria",
+  footer: "ZENIT · Red social universitaria",
 } as const;
 export const profileCopy = {
   title: "Perfil de la comunidad",

@@ -20,8 +20,8 @@ export function AuthPage({ mode }: AuthPageProps) {
     <main className="auth-layout">
       <AuthPanel />
       <section className="auth-form-panel">
-        <div className="mb-12 lg:hidden">
-          <Brand />
+        <div className="auth-mobile-brand lg:hidden">
+          <Brand showTagline={false} />
         </div>
         <div className="w-full max-w-md">
           <p className="eyebrow">{authCopy.eyebrow}</p>

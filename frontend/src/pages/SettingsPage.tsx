@@ -13,10 +13,15 @@ export function SettingsPage(_props: SettingsPageProps) {
         <h1>Configuración</h1>
         <p className="muted mt-2">Haz de ZENIT tu espacio.</p>
       </header>
-      <section className="settings-option" aria-labelledby="settings-appearance">
+      <section
+        className="settings-option"
+        aria-labelledby="settings-appearance"
+      >
         <div>
           <h2 id="settings-appearance">Apariencia</h2>
-          <p className="muted mt-2 text-sm">Elige el tema para este navegador.</p>
+          <p className="muted mt-2 text-sm">
+            Elige el tema para este navegador.
+          </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Button

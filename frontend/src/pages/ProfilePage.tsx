@@ -107,7 +107,10 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
             <h2 className="break-words text-2xl">{profile.nombre}</h2>
             <div className="profile-identity-row">
               <p className="muted break-all">@{profile.username}</p>
-              <div className="profile-stat-links" aria-label={profileCopy.connections}>
+              <div
+                className="profile-stat-links"
+                aria-label={profileCopy.connections}
+              >
                 <Button
                   variant="ghost"
                   className="profile-stat-link"
@@ -152,7 +155,10 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
               aria-labelledby="profile-connections-heading"
               className="profile-connections-panel"
             >
-              <h3 id="profile-connections-heading" className="mb-4 font-semibold">
+              <h3
+                id="profile-connections-heading"
+                className="mb-4 font-semibold"
+              >
                 {state.list === "followers"
                   ? profileCopy.followers
                   : profileCopy.following}

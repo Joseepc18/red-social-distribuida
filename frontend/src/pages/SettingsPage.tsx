@@ -11,7 +11,7 @@ export function SettingsPage(_props: SettingsPageProps) {
     <div className="space-y-6">
       <header>
         <h1>Configuración</h1>
-        <p className="muted mt-2">Haz de NodoUni tu espacio.</p>
+        <p className="muted mt-2">Haz de ZENIT tu espacio.</p>
       </header>
       <section className="card space-y-4">
         <h2>Apariencia</h2>

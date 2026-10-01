@@ -235,7 +235,7 @@ Para una demostración completa, prepara primero una base vacía con `docker com
 7. **Feed personalizado:** confirma que aparecen publicaciones de cuentas seguidas y no publicaciones de toda la red.
 8. **Recomendaciones:** revisa las sugerencias de la interfaz y sus conexiones mutuas con C2.
 9. **Chat en tiempo real:** desde los clientes local y HTTPS, envía mensajes en ambos sentidos con la conversación abierta; cada mensaje debe aparecer sin recargar.
-10. **Web Push con la aplicación cerrada:** con VAPID configurado, abre **Configuración** desde el menú del avatar y activa las notificaciones en el cliente HTTPS. Cierra las pestañas de NodoUni, publica desde una cuenta seguida y abre el aviso. Debe llevar a `/posts/<postId>`.
+10. **Web Push con la aplicación cerrada:** con VAPID configurado, abre **Configuración** desde el menú del avatar y activa las notificaciones en el cliente HTTPS. Cierra las pestañas de ZENIT, publica desde una cuenta seguida y abre el aviso. Debe llevar a `/posts/<postId>`.
 11. **Consultas Cypher:** ejecuta C1–C7 en **Table** desde `consultas-demo.cypher`; no compartas los campos de suscripción de C6.
 12. **Infraestructura:** confirma con `docker compose --profile demo ps` que Nginx, ambos backends, Neo4j, MinIO, Redis y el túnel estén activos y saludables.
 

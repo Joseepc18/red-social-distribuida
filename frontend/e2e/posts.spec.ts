@@ -211,9 +211,7 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
   await expect(page.getByRole("article")).toContainText(
     "Avance del proyecto 1",
   );
-  await page
-    .getByRole("link", { name: "Ver publicación", exact: true })
-    .click();
+  await page.getByText("Avance del proyecto 1").click();
   await expect(
     page.getByRole("heading", { name: "Publicación", exact: true }),
   ).toBeVisible();

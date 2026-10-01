@@ -116,11 +116,7 @@ export function PostComposer({ onPublished }: PostComposerProps) {
             onChange={(event) => setText(event.target.value)}
             disabled={busy}
             required
-            aria-describedby="post-count"
           />
-          <p id="post-count" className="muted text-right text-[10px]">
-            {count} / 5000
-          </p>
         </div>
         {image && (
           <div className="space-y-2">

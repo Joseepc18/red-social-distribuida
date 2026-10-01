@@ -140,7 +140,9 @@ El proxy admite peticiones de hasta 6 MiB para las publicaciones con imágenes d
 
 ### Publicaciones y feed
 
-El formulario de `/feed` envía `texto` y el `archivo` opcional mediante `multipart/form-data` a `POST /api/posts`. El navegador genera el boundary; el cliente compartido adjunta el JWT. Se admiten entre 1 y 5000 caracteres y PNG, JPEG o GIF de hasta 5 MiB. El servidor verifica el contenido y el límite de 20 megapíxeles. La vista previa se libera al quitar o reemplazar la imagen. Si falla la solicitud se conserva el borrador; una creación confirmada ofrece un enlace al detalle.
+El formulario de `/feed` envía `texto` y el `archivo` opcional mediante `multipart/form-data` a `POST /api/posts`. El navegador genera el boundary; el cliente compartido adjunta el JWT. Se admiten entre 1 y 5000 caracteres y PNG, JPEG o GIF de hasta 5 MiB. El servidor verifica el contenido y el límite de 20 megapíxeles. La vista previa se libera al quitar o reemplazar la imagen. Si falla la solicitud se conserva el borrador; una creación confirmada ofrece un enlace al detalle. El límite de caracteres se valida sin mostrar un contador.
+
+Fuera del detalle, toda la tarjeta de una publicación abre `/posts/{id}`, salvo sus enlaces y botones, o si hay texto seleccionado. Con teclado, la fecha es el enlace al detalle; el nombre y el avatar llevan al perfil. Los textos de más de 280 caracteres o 6 líneas se recortan y **Mostrar más** los expande en la misma tarjeta (`src/lib/text.ts`). El detalle siempre muestra el texto completo.
 
 Quarkus guarda el texto y la clave del objeto en Neo4j y el archivo en MinIO. Las tarjetas cargan las imágenes mediante `/media/<clave>` del mismo origen, a través de Vite o Nginx. No se almacenan binarios en el grafo ni se envían credenciales de MinIO al navegador.
 

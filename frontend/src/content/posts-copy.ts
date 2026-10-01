@@ -12,6 +12,7 @@ export const postsCopy = {
   publishing: "Publicando…",
   created: "Tu publicación está lista.",
   view: "Ver publicación",
+  showMore: "Mostrar más",
   detail: "Publicación",
   discover: "Descubrir",
   discoverRefresh: "Actualizar",

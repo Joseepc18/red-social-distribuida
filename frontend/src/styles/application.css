@@ -339,6 +339,10 @@
 .compose-text::placeholder {
   color: var(--subtle);
 }
+/* The composer card already frames the field: the caret is enough focus feedback. */
+.compose-text:focus-visible {
+  outline: none;
+}
 .compose-tools {
   display: flex;
   align-items: center;
@@ -416,6 +420,20 @@
 .timeline-posts .card > img {
   border-radius: 16px;
   border: 1px solid var(--line);
+}
+/* PostCard outside the detail page: the whole card opens the post. */
+.post-card-link {
+  cursor: pointer;
+}
+.post-date:hover,
+.post-more:hover {
+  text-decoration: underline;
+}
+.post-more {
+  display: block;
+  margin-top: 4px;
+  color: var(--accent);
+  font-weight: 650;
 }
 .discovery-reason {
   display: flex;

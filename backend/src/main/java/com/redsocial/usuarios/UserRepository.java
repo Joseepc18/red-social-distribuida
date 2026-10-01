@@ -43,8 +43,9 @@ public class UserRepository {
     }
 
     /**
-     * Case-insensitive substring search on username or nombre. A missing text is a null
-     * parameter: {@code CONTAINS null} is never true, so the query returns no users.
+     * Case-insensitive substring search on username or nombre, limited to the first 10 users
+     * by username. A missing text is a null parameter: {@code CONTAINS null} is never true,
+     * so the query returns no users.
      */
     public List<UserSummary> search(String text) {
         return driver.executableQuery("""
@@ -53,6 +54,7 @@ public class UserRepository {
                            OR toLower(u.nombre) CONTAINS toLower($text)
                         RETURN u.id AS id, u.username AS username, u.nombre AS nombre
                         ORDER BY u.username
+                        LIMIT 10
                         """)
                 // Map.of rejects null values; singletonMap accepts them
                 .withParameters(Collections.singletonMap("text", text))

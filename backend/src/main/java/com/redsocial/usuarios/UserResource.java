@@ -72,8 +72,9 @@ public class UserResource {
     }
 
     @GET
-    @Operation(summary = "Busca usuarios por username o nombre, ordenados por username")
-    @APIResponse(responseCode = "200", description = "Usuarios encontrados")
+    @Operation(summary = "Busca usuarios por username o nombre, ordenados por username",
+            description = "Devuelve como máximo 10 usuarios.")
+    @APIResponse(responseCode = "200", description = "Hasta 10 usuarios encontrados")
     @APIResponse(responseCode = "401", description = "NO_AUTENTICADO")
     public List<UserSummary> search(
             @Parameter(description = "Texto a buscar, sin distinguir mayúsculas")

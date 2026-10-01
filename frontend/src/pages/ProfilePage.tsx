@@ -34,6 +34,14 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
   const [startingChat, setStartingChat] = useState(false);
   const [chatError, setChatError] = useState("");
   const [connectionsOpen, setConnectionsOpen] = useState(false);
+  const toggleConnections = (kind: "followers" | "following") => {
+    if (connectionsOpen && state.list === kind) {
+      setConnectionsOpen(false);
+      return;
+    }
+    state.selectList(kind);
+    setConnectionsOpen(true);
+  };
   if (state.loading) return <StatusMessage message={copy.loading} />;
   if (state.error || !state.data)
     return (
@@ -109,6 +117,7 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
               <p className="muted break-all">@{profile.username}</p>
               <div
                 className="profile-stat-links"
+                role="group"
                 aria-label={profileCopy.connections}
               >
                 <Button
@@ -116,14 +125,7 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
                   className="profile-stat-link"
                   aria-expanded={connectionsOpen && state.list === "followers"}
                   aria-controls="profile-connections"
-                  onClick={() => {
-                    if (connectionsOpen && state.list === "followers") {
-                      setConnectionsOpen(false);
-                    } else {
-                      state.selectList("followers");
-                      setConnectionsOpen(true);
-                    }
-                  }}
+                  onClick={() => toggleConnections("followers")}
                 >
                   <strong>{followers.length}</strong> {profileCopy.followers}
                 </Button>
@@ -132,14 +134,7 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
                   className="profile-stat-link"
                   aria-expanded={connectionsOpen && state.list === "following"}
                   aria-controls="profile-connections"
-                  onClick={() => {
-                    if (connectionsOpen && state.list === "following") {
-                      setConnectionsOpen(false);
-                    } else {
-                      state.selectList("following");
-                      setConnectionsOpen(true);
-                    }
-                  }}
+                  onClick={() => toggleConnections("following")}
                 >
                   <strong>{following.length}</strong> {profileCopy.following}
                 </Button>

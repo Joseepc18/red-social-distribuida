@@ -26,6 +26,7 @@ export function SettingsPage(_props: SettingsPageProps) {
         <div className="flex flex-wrap gap-3">
           <Button
             variant={theme === "light" ? "primary" : "secondary"}
+            className="theme-option"
             aria-pressed={theme === "light"}
             onClick={() => setTheme("light")}
           >
@@ -34,6 +35,7 @@ export function SettingsPage(_props: SettingsPageProps) {
           </Button>
           <Button
             variant={theme === "dark" ? "primary" : "secondary"}
+            className="theme-option"
             aria-pressed={theme === "dark"}
             onClick={() => setTheme("dark")}
           >

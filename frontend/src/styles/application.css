@@ -796,9 +796,9 @@
   gap: 2px 6px;
 }
 .profile-stat-link {
-  min-height: 32px !important;
-  padding: 4px 8px !important;
-  font-size: 14px !important;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .profile-stat-link strong {

@@ -58,3 +58,11 @@ body {
   color: var(--subtle);
   filter: none;
 }
+.theme-option[aria-pressed="true"] {
+  background: var(--accent-fill);
+  color: var(--accent-contrast);
+}
+.theme-option[aria-pressed="false"] {
+  background: var(--hover);
+  color: var(--ink);
+}

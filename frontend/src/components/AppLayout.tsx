@@ -117,16 +117,27 @@ function LayoutContent() {
           }
           tabIndex={-1}
         >
-          <Outlet />
-          {session && (
-            <div hidden={pathname !== "/configuracion"} className="mt-6">
-              <PushNotifications
-                key={session.user.id}
-                userId={session.user.id}
-                token={session.token}
-              />
-            </div>
-          )}
+          <div
+            className={
+              pathname === "/configuracion"
+                ? "settings-panel"
+                : "settings-panel-inactive"
+            }
+          >
+            <Outlet />
+            {session && (
+              <div
+                hidden={pathname !== "/configuracion"}
+                className="settings-notification-slot"
+              >
+                <PushNotifications
+                  key={session.user.id}
+                  userId={session.user.id}
+                  token={session.token}
+                />
+              </div>
+            )}
+          </div>
         </main>
       </div>
       <nav aria-label={copy.navigation} className="mobile-nav">

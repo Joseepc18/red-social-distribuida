@@ -24,9 +24,6 @@ export const copy = {
   invalidResponse: "El servidor devolvió una respuesta inesperada.",
   notFound: "No encontramos esta página",
   notFoundBody: "Comprueba la dirección o vuelve al inicio.",
-  soon: "Próximamente",
-  waiting:
-    "Estamos preparando este espacio. Mientras tanto, puedes explorar tu comunidad.",
   newPost: "Nueva publicación",
   search: "Buscar personas",
   feed: "Inicio",

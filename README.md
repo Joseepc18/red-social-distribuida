@@ -324,7 +324,7 @@ flowchart LR
 
 | Nodo | Propiedades |
 |---|---|
-| `Usuario` | `id` (UUID), `username`, `email`, `passwordHash`, `nombre`, `bio`, `avatarKey?`, `creadoEn` |
+| `Usuario` | `id` (UUID), `username`, `email`, `passwordHash`, `nombre`, `bio`, `creadoEn` |
 | `Post` | `id`, `texto`, `fecha`, `mediaKey?`, `mediaTipo?` |
 | `Conversacion` | `id`, `creadaEn` |
 | `Mensaje` | `id`, `texto`, `fecha` |
@@ -585,6 +585,7 @@ sequenceDiagram
     RS->>Q: GET /api/posts/{id}
 ```
 
+- **Qué se notifica:** solo las publicaciones nuevas de las personas que sigues, como pide el enunciado. Reaccionar, seguir a alguien o escribir por el chat no envía notificaciones push.
 - **Suscripción:** el permiso se solicita desde un botón **"Activar notificaciones"**, porque los navegadores bloquean o silencian las solicitudes que no provienen de una acción del usuario. La suscripción (`endpoint`, `p256dh`, `auth`) se guarda en el grafo como `SuscripcionPush`.
 - **Evento de publicación:** la respuesta al autor no espera el envío de notificaciones. El módulo de publicaciones emite el evento `PostCreated` y el módulo de notificaciones lo consume de forma asíncrona.
 - **Envío:** para cada seguidor suscrito (consulta C6), el payload `{ titulo, cuerpo, url }` se cifra con las claves de la suscripción y se firma con VAPID. Si el servicio push responde `404` o `410`, la suscripción expiró y se elimina del grafo.

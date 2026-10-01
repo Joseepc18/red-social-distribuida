@@ -1,0 +1,85 @@
+/* Animated ZENIT logo (AnimatedBrandMark). The width comes from the className of each use. */
+.brand-mark-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Orbits and floating dots may leave the viewBox by a few units. */
+  overflow: visible;
+}
+
+.brand-mark-stop-orange-3 {
+  stop-color: var(--zenit-orange-3);
+}
+.brand-mark-stop-orange-2 {
+  stop-color: var(--zenit-orange-2);
+}
+.brand-mark-stop-orange {
+  stop-color: var(--zenit-orange);
+}
+.brand-mark-stop-mauve {
+  stop-color: var(--zenit-mauve);
+}
+.brand-mark-stop-plum {
+  stop-color: var(--zenit-plum);
+}
+
+/* The global prefers-reduced-motion rule in foundation.css stops these animations. */
+.brand-mark-dot {
+  transform-box: fill-box;
+  animation: brand-mark-float var(--float-duration) ease-in-out
+    var(--float-delay) infinite;
+}
+.brand-mark-dot-a {
+  fill: var(--zenit-mauve);
+  --float-duration: 4.2s;
+  --dy: -5px;
+  --dx: 1px;
+  --float-delay: -1s;
+}
+.brand-mark-dot-b {
+  fill: var(--zenit-ink);
+  --float-duration: 5.6s;
+  --dy: 6px;
+  --dx: -2px;
+  --float-delay: -2.5s;
+}
+.brand-mark-dot-c {
+  fill: var(--zenit-mauve);
+  --float-duration: 6.4s;
+  --dy: -7px;
+  --dx: 2px;
+  --float-delay: -0.5s;
+}
+.brand-mark-dot-d {
+  fill: var(--zenit-lilac);
+  --float-duration: 4.9s;
+  --dy: 5px;
+  --dx: 1px;
+  --float-delay: -3s;
+}
+
+.brand-mark-wordmark {
+  fill: var(--zenit-plum);
+  font-family: "Plus Jakarta Sans Variable", sans-serif;
+  font-size: 30px;
+  font-weight: 450;
+  letter-spacing: 7px;
+}
+
+/* Dark theme: the plum text and the ink dot would disappear on the dark background. */
+.dark .brand-mark-wordmark {
+  fill: var(--zenit-paper);
+}
+.dark .brand-mark-dot-b {
+  fill: var(--zenit-lilac);
+}
+
+@keyframes brand-mark-float {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(var(--dx), var(--dy));
+  }
+}

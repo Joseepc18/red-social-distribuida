@@ -1,4 +1,4 @@
-import { Brand } from "./Brand";
+import { AnimatedBrandMark } from "./AnimatedBrandMark";
 
 interface AuthPanelProps {
   readonly children?: never;
@@ -7,7 +7,7 @@ interface AuthPanelProps {
 export function AuthPanel(_props: AuthPanelProps) {
   return (
     <aside className="auth-panel" aria-label="ZENIT">
-      <Brand showTagline={false} />
+      <AnimatedBrandMark className="w-80 xl:w-[28rem]" />
     </aside>
   );
 }

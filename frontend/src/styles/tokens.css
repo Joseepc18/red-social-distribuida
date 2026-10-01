@@ -11,6 +11,16 @@
   --accent-contrast: #ffffff;
   --accent-soft: #eee9f7;
   --shadow-card: 0 2px 8px rgb(0 0 0 / 6%);
+  /* ZENIT logo palette, shared by both themes. */
+  --zenit-orange: #fc711f;
+  --zenit-orange-2: #fd8f30;
+  --zenit-orange-3: #fdab44;
+  --zenit-plum: #371f55;
+  --zenit-mauve: #6e466c;
+  --zenit-lilac: #ad9db3;
+  --zenit-peach: #e69479;
+  --zenit-ink: #292530;
+  --zenit-paper: #f7f3fb;
 }
 .dark {
   --canvas: #12111b;

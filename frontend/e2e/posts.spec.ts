@@ -184,10 +184,15 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
   await expect(
     page.getByRole("button", { name: "Publicar", exact: true }),
   ).toBeDisabled();
+  await page.getByLabel("Texto de la publicación").fill("a".repeat(10));
+  await expect(page.getByText("10 / 5000")).toHaveCount(0);
   await page.getByLabel("Texto de la publicación").fill("a".repeat(5001));
   await expect(
     page.getByRole("button", { name: "Publicar", exact: true }),
   ).toBeDisabled();
+  await expect(
+    page.getByLabel("Texto de la publicación"),
+  ).toHaveAccessibleDescription("5001 / 5000");
   await page.getByLabel("Añadir imagen").setInputFiles({
     name: "no.svg",
     mimeType: "image/svg+xml",
@@ -211,9 +216,7 @@ test("feed vacío, validación local y perfil de autor funcionan en móvil", asy
   await expect(page.getByRole("article")).toContainText(
     "Avance del proyecto 1",
   );
-  await page
-    .getByRole("link", { name: "Ver publicación", exact: true })
-    .click();
+  await page.getByText("Avance del proyecto 1").click();
   await expect(
     page.getByRole("heading", { name: "Publicación", exact: true }),
   ).toBeVisible();

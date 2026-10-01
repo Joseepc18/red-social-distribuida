@@ -9,6 +9,10 @@ import { postsCopy } from "../content/posts-copy";
 import { posts } from "../services/posts";
 import { errorMessage } from "../lib/api";
 
+const MAX_CHARS = 5000;
+// Like X: the counter only shows up near the limit, to explain a disabled Publicar.
+const COUNTER_FROM = MAX_CHARS - 200;
+
 interface PostComposerProps {
   readonly onPublished?: () => void;
   readonly children?: never;
@@ -24,6 +28,7 @@ export function PostComposer({ onPublished }: PostComposerProps) {
   const textArea = useRef<HTMLTextAreaElement>(null);
   const request = useRef<AbortController | null>(null);
   const count = [...text.trim()].length;
+  const showCount = count >= COUNTER_FROM;
   useEffect(
     () => () => {
       if (image) URL.revokeObjectURL(image.url);
@@ -63,7 +68,7 @@ export function PostComposer({ onPublished }: PostComposerProps) {
     if (request.current) return;
     setError("");
     setCreated("");
-    if (count < 1 || count > 5000) {
+    if (count < 1 || count > MAX_CHARS) {
       setError(postsCopy.invalidText);
       return;
     }
@@ -116,11 +121,21 @@ export function PostComposer({ onPublished }: PostComposerProps) {
             onChange={(event) => setText(event.target.value)}
             disabled={busy}
             required
-            aria-describedby="post-count"
+            aria-describedby={showCount ? "post-count" : undefined}
           />
-          <p id="post-count" className="muted text-right text-[10px]">
-            {count} / 5000
-          </p>
+          {showCount && (
+            <p
+              id="post-count"
+              className={
+                "text-right text-[11px] " +
+                (count > MAX_CHARS
+                  ? "font-semibold text-error dark:text-error-container"
+                  : "muted")
+              }
+            >
+              {count} / {MAX_CHARS}
+            </p>
+          )}
         </div>
         {image && (
           <div className="space-y-2">
@@ -152,7 +167,7 @@ export function PostComposer({ onPublished }: PostComposerProps) {
           <p id="post-image-help" className="sr-only">
             {postsCopy.imageHelp}
           </p>
-          <Button type="submit" disabled={busy || !count || count > 5000}>
+          <Button type="submit" disabled={busy || !count || count > MAX_CHARS}>
             {busy ? postsCopy.publishing : postsCopy.publish}
           </Button>
         </div>

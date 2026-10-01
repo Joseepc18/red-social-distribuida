@@ -339,6 +339,13 @@
 .compose-text::placeholder {
   color: var(--subtle);
 }
+/* No outline box on the field: the composer card itself tints its border while writing. */
+.compose-text:focus-visible {
+  outline: none;
+}
+.home-composer:has(.compose-text:focus-visible) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
 .compose-tools {
   display: flex;
   align-items: center;
@@ -416,6 +423,20 @@
 .timeline-posts .card > img {
   border-radius: 16px;
   border: 1px solid var(--line);
+}
+/* PostCard outside the detail page: the whole card opens the post. */
+.post-card-link {
+  cursor: pointer;
+}
+.post-date:hover,
+.post-more:hover {
+  text-decoration: underline;
+}
+.post-more {
+  display: block;
+  margin-top: 4px;
+  color: var(--accent);
+  font-weight: 650;
 }
 .discovery-reason {
   display: flex;

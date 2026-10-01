@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
@@ -18,6 +18,7 @@ export function PostCard({ post, detail = false }: PostCardProps) {
   const [reactionBusy, setReactionBusy] = useState(false);
   const [reactionError, setReactionError] = useState("");
   const [expanded, setExpanded] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
   const navigate = useNavigate();
   const image = postImagePath(post);
   const date = new Date(post.fecha);
@@ -33,8 +34,16 @@ export function PostCard({ post, detail = false }: PostCardProps) {
     if (detail) return;
     if ((event.target as Element).closest("a, button")) return;
     if (window.getSelection()?.toString()) return;
+    if (event.ctrlKey || event.metaKey) {
+      window.open(postPath, "_blank", "noopener");
+      return;
+    }
     navigate(postPath);
   }
+  // "Mostrar más" disappears once used: keep keyboard focus on the text it revealed.
+  useEffect(() => {
+    if (expanded) textRef.current?.focus();
+  }, [expanded]);
   async function toggleReaction() {
     if (reactionBusy || post.reacciones === undefined) return;
     setReactionBusy(true);
@@ -80,7 +89,11 @@ export function PostCard({ post, detail = false }: PostCardProps) {
           )}
         </div>
       </header>
-      <p className="whitespace-pre-wrap break-words leading-relaxed">
+      <p
+        ref={textRef}
+        tabIndex={expanded ? -1 : undefined}
+        className="whitespace-pre-wrap break-words leading-relaxed"
+      >
         {preview === null ? post.texto : preview + "…"}
         {preview !== null && (
           <button

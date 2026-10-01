@@ -111,3 +111,23 @@ it("shows the whole text and stays put on the detail page", () => {
   ).not.toBeInTheDocument();
   expect(screen.queryByText("Detalle abierto")).not.toBeInTheDocument();
 });
+
+it("moves keyboard focus to the expanded text", () => {
+  renderCard({ ...post, texto: "palabra ".repeat(60) + "final" });
+
+  fireEvent.click(screen.getByRole("button", { name: "Mostrar más" }));
+
+  expect(screen.getByText(/final/)).toHaveFocus();
+});
+
+it("opens the post in a new tab with Ctrl or Cmd + click", () => {
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
+  renderCard();
+
+  fireEvent.click(screen.getByText("Avance del proyecto"), { ctrlKey: true });
+  fireEvent.click(screen.getByText("Avance del proyecto"), { metaKey: true });
+
+  expect(open).toHaveBeenCalledTimes(2);
+  expect(open).toHaveBeenCalledWith("/posts/p1", "_blank", "noopener");
+  expect(screen.queryByText("Detalle abierto")).not.toBeInTheDocument();
+});

@@ -339,9 +339,12 @@
 .compose-text::placeholder {
   color: var(--subtle);
 }
-/* The composer card already frames the field: the caret is enough focus feedback. */
+/* No outline box on the field: the composer card itself tints its border while writing. */
 .compose-text:focus-visible {
   outline: none;
+}
+.home-composer:has(.compose-text:focus-visible) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
 .compose-tools {
   display: flex;

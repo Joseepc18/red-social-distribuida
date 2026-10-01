@@ -40,7 +40,7 @@ El navegador usa rutas del mismo origen. Así el cliente REST y el cliente WebSo
 - src/styles/application.css contiene la estructura de navegación y el diseño de Inicio.
 - src/styles/people.css contiene los estilos propios de Amigos.
 - src/styles/chat.css mantiene los estilos de la bandeja y el acceso rápido a Mensajes.
-- src/styles/brand-mark.css contiene los estilos del logo animado. El login usa `AnimatedBrandMark`, el logo ZENIT redibujado en SVG: los nodos de la Z orbitan y sus trazos los siguen, y los puntos sueltos flotan con CSS. Con reducir movimiento queda quieto. El componente se puede reutilizar con otro tamaño mediante `className` (por ejemplo, `w-48` en el login); el resto de la app sigue usando `Brand`.
+- src/styles/brand-mark.css contiene los estilos del logo animado. El login usa `AnimatedBrandMark`, el logo ZENIT redibujado en SVG: los nodos de la Z orbitan y sus trazos los siguen, y los puntos sueltos flotan con CSS. Con reducir movimiento queda quieto. El componente se puede reutilizar con otro tamaño mediante `className` (por ejemplo, `w-80 xl:w-[28rem]` en el panel del login y `w-40` en el móvil); el resto de la app sigue usando `Brand`.
 - Los componentes compartidos de React, como Button, Card, Avatar e Input, están en src/components.
 
 Las pantallas reutilizan las clases y componentes compartidos; los estilos específicos permanecen junto a la sección correspondiente para que se puedan ajustar sin duplicar la base visual.

@@ -189,9 +189,7 @@
     isolation: isolate;
   }
   .auth-panel::before,
-  .auth-panel::after,
-  .auth-mobile-brand::before,
-  .auth-mobile-brand::after {
+  .auth-panel::after {
     position: absolute;
     z-index: -1;
     inset: -24%;
@@ -200,8 +198,7 @@
     filter: blur(56px);
     will-change: transform;
   }
-  .auth-panel::before,
-  .auth-mobile-brand::before {
+  .auth-panel::before {
     background:
       radial-gradient(
         ellipse at 25% 28%,
@@ -215,8 +212,7 @@
       );
     animation: zenit-aurora-drift 34s ease-in-out infinite alternate;
   }
-  .auth-panel::after,
-  .auth-mobile-brand::after {
+  .auth-panel::after {
     background:
       radial-gradient(
         ellipse at 77% 24%,
@@ -236,7 +232,9 @@
     z-index: 1;
   }
   .auth-mobile-brand {
-    @apply relative isolate grid min-h-48 w-full place-items-center overflow-hidden lg:hidden;
+    @apply relative grid w-full place-items-center lg:hidden;
+    padding-block: 0.75rem 1.25rem;
+    margin-bottom: 2rem;
   }
   .auth-mobile-brand > .brand {
     position: relative;
@@ -256,6 +254,43 @@
   }
   .user-row {
     @apply flex flex-wrap items-center gap-4 rounded-xl bg-surface-container-low/60 dark:bg-on-surface/60 p-4;
+  }
+}
+
+@media (max-width: 1023px) {
+  .auth-form-panel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .auth-form-panel::before,
+  .auth-form-panel::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+  }
+  .auth-form-panel::before {
+    background:
+      radial-gradient(
+        ellipse at 12% 6%,
+        rgb(126 87 255 / 12%),
+        transparent 35%
+      ),
+      radial-gradient(ellipse at 88% 70%, rgb(255 166 77 / 8%), transparent 35%);
+    animation: zenit-aurora-drift 34s ease-in-out infinite alternate;
+  }
+  .auth-form-panel::after {
+    background:
+      radial-gradient(
+        ellipse at 78% 18%,
+        rgb(180 151 255 / 9%),
+        transparent 32%
+      ),
+      radial-gradient(ellipse at 24% 82%, rgb(104 73 203 / 8%), transparent 35%);
+    animation: zenit-aurora-drift 46s ease-in-out -12s infinite
+      alternate-reverse;
   }
 }
 

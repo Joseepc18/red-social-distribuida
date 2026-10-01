@@ -1,6 +1,6 @@
-# Frontend · NodoUni
+# Frontend · ZENIT
 
-Aplicación React + TypeScript con Vite y React Router. La identidad visual combina superficies claras y limpias, texto oscuro y un tema oscuro ciruela grafito, con acentos violetas propios de NodoUni. Usa Plus Jakarta Sans servida localmente y los patrones de navegación y tarjetas del diseño de Stitch.
+Aplicación React + TypeScript con Vite y React Router. La identidad visual de ZENIT combina superficies claras y limpias, texto oscuro y un tema oscuro ciruela grafito, con acentos violetas y ámbar. Usa Plus Jakarta Sans servida localmente y componentes compartidos de navegación y tarjetas.
 
 ## Desarrollo
 

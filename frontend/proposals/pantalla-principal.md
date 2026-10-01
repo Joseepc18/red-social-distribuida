@@ -7,7 +7,7 @@ Propuesta de Luis iniciada en el issue #67 y refinada después del PR #68. El al
 - Navegación lateral sobre el mismo fondo de la página, sin panel ni separación vertical: Inicio, Amigos, Mensajes y Nueva publicación. Para ti queda en Inicio; no duplica la entrada Descubrir.
 - Inicio abre en Siguiendo, el feed real de personas seguidas. Para ti ocupa la segunda pestaña y conserva las recomendaciones existentes. El compositor de texto e imagen está debajo, con las validaciones y confirmación de publicación actuales.
 - La navegación lateral aprovecha el borde izquierdo de la pantalla y deja más espacio entre el menú y el feed. Las pestañas de Inicio son compactas; el compositor empieza bajo y crece conforme se escribe. Publicar o seguir a alguien actualiza el feed sin un botón manual.
-- La paleta usa fondos claros limpios y un fondo oscuro ciruela grafito, con violeta como acento de NodoUni. El menú de cuenta conserva Perfil, Configuración y Cerrar sesión; el tema se cambia desde Configuración.
+- La paleta usa fondos claros limpios y un fondo oscuro ciruela grafito, con violeta como acento de ZENIT. El menú de cuenta conserva Perfil, Configuración y Cerrar sesión; el tema se cambia desde Configuración.
 - A quién seguir ocupa la columna derecha en escritorio: máximo tres recomendaciones reales, botón Seguir y Mostrar más. En móvil aparece después de las publicaciones.
 - El avatar superior abre Perfil, Configuración y Cerrar sesión. Se retiran la búsqueda superior y la cuenta inferior izquierda. La búsqueda de personas permanece en Amigos.
 - El perfil usa las iniciales que admite el contrato actual; esta propuesta no incluye carga de fotografía de perfil.

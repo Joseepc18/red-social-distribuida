@@ -368,7 +368,7 @@ Todas las rutas usan el prefijo `/api`. Todas requieren JWT (`Authorization: Bea
 | POST | `/auth/login` | Público | Devuelve un JWT |
 | GET | `/usuarios/me` | JWT | Perfil propio |
 | PUT | `/usuarios/me` | JWT | Edita el perfil |
-| GET | `/usuarios?q=` | JWT | Busca usuarios |
+| GET | `/usuarios?q=` | JWT | Busca usuarios por username o nombre (máximo 10, ordenados por username) |
 | GET | `/usuarios/{id}` | JWT | Perfil de un usuario |
 | POST | `/usuarios/{id}/seguir` | JWT | Seguir |
 | DELETE | `/usuarios/{id}/seguir` | JWT | Dejar de seguir |

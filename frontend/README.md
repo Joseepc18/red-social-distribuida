@@ -156,3 +156,5 @@ Las tarjetas del feed usan `reaccionado` y `reacciones` como estado inicial. **M
 ## Propuesta de la pantalla principal
 
 La estructura de Inicio y el menú de cuenta están descritos en [la propuesta de diseño](proposals/pantalla-principal.md), con los contratos reutilizados y las decisiones pendientes de revisión. Siguiendo abre Inicio y conserva el feed real paginado; Para ti usa Descubrir desde una sola entrada visible. Amigos muestra seguimientos mutuos, búsqueda y sugerencias.
+
+La búsqueda de personas de Inicio consulta `GET /api/usuarios?q=` mientras se escribe, 300 ms después de la última tecla (debounce), para no enviar una petición por cada letra. Enter o la lupa buscan al instante. El texto vacío no consulta y oculta los resultados. Si llega una búsqueda nueva, la anterior se cancela para que una respuesta vieja no reemplace a la actual. El servidor devuelve como máximo 10 personas.

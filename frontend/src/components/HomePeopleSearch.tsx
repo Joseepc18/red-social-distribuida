@@ -1,4 +1,4 @@
-import { useCallback, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { users } from "../services/users";
 import { useRemote } from "../hooks/useRemote";
@@ -11,16 +11,30 @@ interface HomePeopleSearchProps {
   readonly children?: never;
 }
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 export function HomePeopleSearch(_props: HomePeopleSearchProps) {
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
-  const showResults = Boolean(query) && draft.trim() === query;
+  // Keep the previous results visible while typing; aria-busy reports the pending search.
+  const showResults = Boolean(query) && Boolean(draft.trim());
   const load = useCallback(
     (signal: AbortSignal) =>
       query ? users.search(query, signal) : Promise.resolve([]),
     [query],
   );
   const state = useRemote("home-people-search:" + query, load);
+
+  // Search while typing, once the user pauses; useRemote aborts any outdated request.
+  useEffect(() => {
+    const nextQuery = draft.trim();
+    if (!nextQuery) return;
+    const timer = window.setTimeout(
+      () => setQuery(nextQuery),
+      SEARCH_DEBOUNCE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [draft]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

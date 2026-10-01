@@ -208,18 +208,22 @@ test("búsqueda, perfil ajeno, seguir, listas y dejar de seguir", async ({
 }) => {
   await login(page, "/explorar");
   await expect(
-    page.getByRole("heading", { name: "Amigos", exact: true }),
+    page.locator(".people-heading").getByRole("heading", {
+      name: "Amigos",
+      exact: true,
+    }),
   ).toBeVisible();
-  await page.getByLabel("Buscar personas", { exact: true }).fill("jose");
-  await page.getByRole("button", { name: "Buscar", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "José Pérez", exact: true }),
-  ).toBeVisible();
+  await page.goto("/feed#buscar-personas");
+  await page.getByRole("searchbox", { name: "Buscar personas" }).fill("jose");
+  await page
+    .getByRole("button", { name: "Buscar personas", exact: true })
+    .click();
+  await expect(page.getByRole("link", { name: /José Pérez/ })).toBeVisible();
   await page.screenshot({
-    path: ".stitch/qa/explore-desktop.png",
+    path: ".stitch/qa/people-search-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: /José Pérez.*Ver perfil/ }).click();
+  await page.getByRole("link", { name: /José Pérez/ }).click();
   await page.getByRole("button", { name: "Seguir", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Dejar de seguir", exact: true }),
@@ -267,13 +271,16 @@ test("errores de credenciales y registro duplicado muestran mensaje del servidor
 test("un 401 privado cierra la sesión; una búsqueda vacía es recuperable", async ({
   page,
 }) => {
-  await login(page, "/explorar");
+  await login(page);
+  await page.goto("/feed#buscar-personas");
   await page
-    .getByLabel("Buscar personas", { exact: true })
+    .getByRole("searchbox", { name: "Buscar personas" })
     .fill("sinresultados");
-  await page.getByRole("button", { name: "Buscar", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Buscar personas", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: "No encontramos coincidencias" }),
+    page.getByText("No encontramos personas con ese nombre o usuario."),
   ).toBeVisible();
   await page.route("**/api/usuarios/me", (route) =>
     route.fulfill({
@@ -289,14 +296,17 @@ test("un 401 privado cierra la sesión; una búsqueda vacía es recuperable", as
 });
 
 test("fallo de red muestra error y permite reintentar", async ({ page }) => {
-  await login(page, "/explorar");
+  await login(page);
+  await page.goto("/feed#buscar-personas");
   await page.route("**/api/usuarios?q=*", (route) => route.abort("failed"));
-  await page.getByRole("searchbox").fill("José");
-  await page.getByRole("button", { name: "Buscar", exact: true }).click();
+  await page.getByRole("searchbox", { name: "Buscar personas" }).fill("José");
+  await page
+    .getByRole("button", { name: "Buscar personas", exact: true })
+    .click();
   await expect(page.getByRole("alert")).toContainText("No pudimos conectar");
   await page.unroute("**/api/usuarios?q=*");
   await page.getByRole("button", { name: "Volver a intentar" }).click();
-  await expect(page.getByRole("heading", { name: "José Pérez" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /José Pérez/ })).toBeVisible();
 });
 
 test("móvil mantiene navegación, formularios y cierre de sesión accesibles", async ({
@@ -308,7 +318,13 @@ test("móvil mantiene navegación, formularios y cierre de sesión accesibles", 
     path: ".stitch/qa/login-mobile.png",
     fullPage: true,
   });
-  await login(page, "/explorar");
+  await login(page);
+  await page.goto("/feed#buscar-personas");
+  await page.getByRole("searchbox", { name: "Buscar personas" }).fill("jose");
+  await page
+    .getByRole("button", { name: "Buscar personas", exact: true })
+    .click();
+  await expect(page.getByRole("link", { name: /José Pérez/ })).toBeVisible();
   await page.getByRole("button", { name: "Abrir opciones de cuenta" }).click();
   await page
     .getByRole("link", { name: "Perfil Edita tu nombre y biografía" })

@@ -3,10 +3,8 @@ import { Link, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { useRemote } from "../hooks/useRemote";
 import { users } from "../services/users";
-import { usePeopleSearch } from "../hooks/usePeopleSearch";
 import { Card } from "../components/Card";
 import { Input } from "../components/Input";
-import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { StatusMessage } from "../components/StatusMessage";
 import { UserCard } from "../components/UserCard";
@@ -26,10 +24,10 @@ interface PeoplePageProps {
 
 export function PeoplePage(_props: PeoplePageProps) {
   const location = useLocation();
-  const search = usePeopleSearch();
   const { session } = useAuth();
   const userId = session?.user.id ?? "";
   const [tab, setTab] = useState<PeopleTab>("friends");
+  const [filter, setFilter] = useState("");
   const loadPeople = useCallback(
     async (signal: AbortSignal): Promise<PeopleLists> => {
       const [followers, following] = await Promise.all([
@@ -67,7 +65,12 @@ export function PeoplePage(_props: PeoplePageProps) {
     followers: peopleCopy.followersEmpty,
     following: peopleCopy.followingEmpty,
   };
-  const results = search.data ?? [];
+  const normalizedFilter = filter.trim().replace(/^@/, "").toLocaleLowerCase();
+  const visiblePeople = lists[tab].filter((user) =>
+    (user.nombre + " " + user.username)
+      .toLocaleLowerCase()
+      .includes(normalizedFilter),
+  );
 
   return (
     <div className="people-page">
@@ -81,130 +84,86 @@ export function PeoplePage(_props: PeoplePageProps) {
             <Icon name="people" />
             <span>{peopleCopy.suggestionsShortcut}</span>
           </Link>
-          <form
-            onSubmit={search.submit}
-            className="people-search"
-            role="search"
-          >
+          <div className="people-search" role="search">
             <Input
-              key={search.query}
-              label={copy.search}
-              name="q"
+              label={peopleCopy.filterLabel}
+              name="filter"
               type="search"
-              defaultValue={search.query}
-              placeholder={peopleCopy.placeholder}
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              placeholder={peopleCopy.filterPlaceholder}
             />
-            <Button type="submit" aria-label={peopleCopy.search}>
+            <span className="people-search-icon" aria-hidden="true">
               <Icon name="search" />
-            </Button>
-          </form>
+            </span>
+          </div>
         </div>
       </header>
 
-      {search.query ? (
-        <section
-          className="people-search-results"
-          aria-live="polite"
-          aria-busy={search.loading}
-        >
-          <div className="people-results-heading">
-            <h2>{peopleCopy.results}</h2>
-            {search.data && (
-              <span className="muted text-sm">
-                {results.length}{" "}
-                {results.length === 1 ? peopleCopy.person : peopleCopy.people}
-              </span>
-            )}
-          </div>
-          {search.loading ? (
-            <StatusMessage message={copy.loading} />
-          ) : search.error ? (
-            <StatusMessage
-              message={search.error}
-              error
-              onRetry={search.reload}
-            />
-          ) : results.length ? (
-            <div className="people-grid">
-              {results.map((user) => (
-                <UserCard key={user.id} user={user} compact />
-              ))}
-            </div>
-          ) : (
-            <Card className="people-empty">
-              <Icon name="search" className="h-8 w-8" />
-              <h2>{peopleCopy.emptyTitle}</h2>
-              <p className="muted">{peopleCopy.emptyBody}</p>
-            </Card>
-          )}
-        </section>
-      ) : (
-        <>
-          <nav
-            className="people-tabs"
-            role="tablist"
-            aria-label={peopleCopy.tabsLabel}
+      <nav
+        className="people-tabs"
+        role="tablist"
+        aria-label={peopleCopy.tabsLabel}
+      >
+        {(["friends", "followers", "following"] as const).map((item) => (
+          <button
+            key={item}
+            id={"people-tab-" + item}
+            type="button"
+            role="tab"
+            aria-selected={tab === item}
+            aria-controls="people-tabpanel"
+            className={
+              tab === item ? "people-tab people-tab-active" : "people-tab"
+            }
+            onClick={() => setTab(item)}
           >
-            {(["friends", "followers", "following"] as const).map((item) => (
-              <button
-                key={item}
-                id={"people-tab-" + item}
-                type="button"
-                role="tab"
-                aria-selected={tab === item}
-                aria-controls="people-tabpanel"
-                className={
-                  tab === item ? "people-tab people-tab-active" : "people-tab"
-                }
-                onClick={() => setTab(item)}
-              >
-                <span>{labels[item]}</span>
-                <span className="people-tab-count">
-                  {people.data?.[item].length ?? "—"}
-                </span>
-              </button>
+            <span>{labels[item]}</span>
+            <span className="people-tab-count">
+              {people.data?.[item].length ?? "—"}
+            </span>
+          </button>
+        ))}
+      </nav>
+
+      <section
+        id="people-tabpanel"
+        className="people-connections"
+        role="tabpanel"
+        aria-labelledby={"people-tab-" + tab}
+        aria-busy={people.loading}
+      >
+        <h2 className="sr-only">{labels[tab]}</h2>
+        {people.loading ? (
+          <StatusMessage message={copy.loading} />
+        ) : people.error ? (
+          <StatusMessage message={people.error} error onRetry={people.reload} />
+        ) : visiblePeople.length ? (
+          <div className="people-grid">
+            {visiblePeople.map((user) => (
+              <UserCard key={user.id} user={user} compact />
             ))}
-          </nav>
+          </div>
+        ) : (
+          <Card className="people-empty">
+            <Icon
+              name={normalizedFilter ? "search" : "people"}
+              className="h-8 w-8"
+            />
+            <p>
+              {normalizedFilter ? peopleCopy.filterEmpty : emptyMessages[tab]}
+            </p>
+          </Card>
+        )}
+      </section>
 
-          <section
-            id="people-tabpanel"
-            className="people-connections"
-            role="tabpanel"
-            aria-labelledby={"people-tab-" + tab}
-            aria-busy={people.loading}
-          >
-            <h2 className="sr-only">{labels[tab]}</h2>
-            {people.loading ? (
-              <StatusMessage message={copy.loading} />
-            ) : people.error ? (
-              <StatusMessage
-                message={people.error}
-                error
-                onRetry={people.reload}
-              />
-            ) : lists[tab].length ? (
-              <div className="people-grid">
-                {lists[tab].map((user) => (
-                  <UserCard key={user.id} user={user} compact />
-                ))}
-              </div>
-            ) : (
-              <Card className="people-empty">
-                <Icon name="people" className="h-8 w-8" />
-                <p>{emptyMessages[tab]}</p>
-              </Card>
-            )}
-          </section>
-
-          <section
-            id="sugerencias"
-            className="people-suggestions"
-            aria-label={homeCopy.followTitle}
-          >
-            <NetworkExplorer onFollow={people.reload} />
-          </section>
-        </>
-      )}
+      <section
+        id="sugerencias"
+        className="people-suggestions"
+        aria-label={homeCopy.followTitle}
+      >
+        <NetworkExplorer onFollow={people.reload} />
+      </section>
     </div>
   );
 }

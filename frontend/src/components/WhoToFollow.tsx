@@ -76,7 +76,7 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
         <p className="eyebrow">{homeCopy.communityEyebrow}</p>
         <h2>{homeCopy.communityTitle}</h2>
         <p>{homeCopy.communityDescription}</p>
-        <Link to="/explorar" className="community-link">
+        <Link to="/feed#buscar-personas" className="community-link">
           {homeCopy.findPeople} <span aria-hidden="true">↗</span>
         </Link>
       </section>

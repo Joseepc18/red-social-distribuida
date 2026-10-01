@@ -33,6 +33,7 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
   const navigate = useNavigate();
   const [startingChat, setStartingChat] = useState(false);
   const [chatError, setChatError] = useState("");
+  const [connectionsOpen, setConnectionsOpen] = useState(false);
   if (state.loading) return <StatusMessage message={copy.loading} />;
   if (state.error || !state.data)
     return (
@@ -104,11 +105,69 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
           </div>
           <div>
             <h2 className="break-words text-2xl">{profile.nombre}</h2>
-            <p className="muted mt-1 break-all">@{profile.username}</p>
+            <div className="profile-identity-row">
+              <p className="muted break-all">@{profile.username}</p>
+              <div className="profile-stat-links" aria-label={profileCopy.connections}>
+                <Button
+                  variant="ghost"
+                  className="profile-stat-link"
+                  aria-expanded={connectionsOpen && state.list === "followers"}
+                  aria-controls="profile-connections"
+                  onClick={() => {
+                    if (connectionsOpen && state.list === "followers") {
+                      setConnectionsOpen(false);
+                    } else {
+                      state.selectList("followers");
+                      setConnectionsOpen(true);
+                    }
+                  }}
+                >
+                  <strong>{followers.length}</strong> {profileCopy.followers}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="profile-stat-link"
+                  aria-expanded={connectionsOpen && state.list === "following"}
+                  aria-controls="profile-connections"
+                  onClick={() => {
+                    if (connectionsOpen && state.list === "following") {
+                      setConnectionsOpen(false);
+                    } else {
+                      state.selectList("following");
+                      setConnectionsOpen(true);
+                    }
+                  }}
+                >
+                  <strong>{following.length}</strong> {profileCopy.following}
+                </Button>
+              </div>
+            </div>
             <p className="mt-5 max-w-2xl whitespace-pre-wrap break-words leading-relaxed">
               {profile.bio || profileCopy.noBio}
             </p>
           </div>
+          {connectionsOpen && (
+            <section
+              id="profile-connections"
+              aria-labelledby="profile-connections-heading"
+              className="profile-connections-panel"
+            >
+              <h3 id="profile-connections-heading" className="mb-4 font-semibold">
+                {state.list === "followers"
+                  ? profileCopy.followers
+                  : profileCopy.following}
+              </h3>
+              {list.length ? (
+                <div className="grid gap-3">
+                  {list.map((user) => (
+                    <UserCard key={user.id} user={user} compact />
+                  ))}
+                </div>
+              ) : (
+                <StatusMessage message={profileCopy.empty} />
+              )}
+            </section>
+          )}
           {state.mutationError && (
             <StatusMessage message={state.mutationError} error />
           )}
@@ -134,42 +193,6 @@ function ProfileContent({ userId = "" }: ProfilePageProps) {
       {!state.own && (
         <ProfileGraph key={userId + ":" + state.following} userId={userId} />
       )}
-      <Card>
-        <div
-          className="mb-6 flex flex-wrap gap-3"
-          role="group"
-          aria-label={profileCopy.connections}
-        >
-          <Button
-            variant={state.list === "followers" ? "primary" : "secondary"}
-            aria-pressed={state.list === "followers"}
-            onClick={() => state.selectList("followers")}
-          >
-            {followers.length} {profileCopy.followers}
-          </Button>
-          <Button
-            variant={state.list === "following" ? "primary" : "secondary"}
-            aria-pressed={state.list === "following"}
-            onClick={() => state.selectList("following")}
-          >
-            {following.length} {profileCopy.following}
-          </Button>
-        </div>
-        <h2 className="mb-4">
-          {state.list === "followers"
-            ? profileCopy.followers
-            : profileCopy.following}
-        </h2>
-        {list.length ? (
-          <div className="grid gap-3">
-            {list.map((user) => (
-              <UserCard key={user.id} user={user} compact />
-            ))}
-          </div>
-        ) : (
-          <StatusMessage message={profileCopy.empty} />
-        )}
-      </Card>
     </div>
   );
 }

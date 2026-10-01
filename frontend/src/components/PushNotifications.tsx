@@ -2,7 +2,6 @@ import { usePushNotifications } from "../hooks/usePushNotifications";
 import { pushCopy } from "../content/push-copy";
 import { copy } from "../content/copy";
 import { Button } from "./Button";
-import { Card } from "./Card";
 interface PushNotificationsProps {
   readonly userId: string;
   readonly token: string;
@@ -10,10 +9,9 @@ interface PushNotificationsProps {
 export function PushNotifications({ userId, token }: PushNotificationsProps) {
   const state = usePushNotifications(userId, token);
   return (
-    <Card className="mb-6">
       <section
         aria-labelledby="push-heading"
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        className="settings-option"
       >
         <div className="min-w-0">
           <h2 id="push-heading" className="text-base">
@@ -59,6 +57,5 @@ export function PushNotifications({ userId, token }: PushNotificationsProps) {
           </Button>
         )}
       </section>
-    </Card>
   );
 }

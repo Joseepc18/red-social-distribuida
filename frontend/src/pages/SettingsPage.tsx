@@ -8,15 +8,17 @@ interface SettingsPageProps {
 export function SettingsPage(_props: SettingsPageProps) {
   const { theme, setTheme } = useTheme();
   return (
-    <div className="space-y-6">
-      <header>
+    <div className="settings-page">
+      <header className="settings-heading">
         <h1>Configuración</h1>
         <p className="muted mt-2">Haz de ZENIT tu espacio.</p>
       </header>
-      <section className="card space-y-4">
-        <h2>Apariencia</h2>
-        <p className="muted text-sm">Elige el tema para este navegador.</p>
-        <div className="flex gap-3">
+      <section className="settings-option" aria-labelledby="settings-appearance">
+        <div>
+          <h2 id="settings-appearance">Apariencia</h2>
+          <p className="muted mt-2 text-sm">Elige el tema para este navegador.</p>
+        </div>
+        <div className="flex flex-wrap gap-3">
           <Button
             variant={theme === "light" ? "primary" : "secondary"}
             aria-pressed={theme === "light"}
@@ -35,10 +37,16 @@ export function SettingsPage(_props: SettingsPageProps) {
           </Button>
         </div>
       </section>
-      <Link to="/perfil" className="text-link inline-flex gap-2 items-center">
-        <Icon name="profile" />
-        Editar mi perfil
-      </Link>
+      <section className="settings-option">
+        <div>
+          <h2>Perfil</h2>
+          <p className="muted mt-2 text-sm">Actualiza tu nombre y biografía.</p>
+        </div>
+        <Link to="/perfil" className="text-link inline-flex gap-2 items-center">
+          <Icon name="profile" />
+          Editar mi perfil
+        </Link>
+      </section>
     </div>
   );
 }

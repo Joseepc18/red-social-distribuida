@@ -17,7 +17,7 @@ import io.quarkus.test.junit.QuarkusTest;
 class Neo4jConstraintsTest {
 
     private static final Set<String> EXPECTED = Set.of(
-            "usuario_id", "usuario_username", "usuario_email", "post_id",
+            "usuario_id", "usuario_username", "usuario_email", "post_id", "comentario_id",
             "conversacion_id", "mensaje_id", "suscripcion_endpoint");
 
     @Inject

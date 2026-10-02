@@ -8,5 +8,6 @@ import com.redsocial.posts.PostResponse;
 public record FeedResponse(String id, String texto, String fecha, PostResponse.Author autor,
         String mediaKey, String mediaTipo, String mediaUrl,
         @Schema(description = "Total de reacciones a la publicación") long reacciones,
-        @Schema(description = "El usuario autenticado reaccionó a esta publicación") boolean reaccionado) {
+        @Schema(description = "El usuario autenticado reaccionó a esta publicación") boolean reaccionado,
+        @Schema(description = "Total de comentarios de la publicación, respuestas incluidas") long comentarios) {
 }

@@ -34,7 +34,7 @@ public class FeedService {
             var post = entry.post();
             return new FeedResponse(post.id(), post.text(), post.date(), post.author(),
                     post.mediaKey(), post.mediaType(), post.mediaKey() == null ? null : publicBase + post.mediaKey(),
-                    entry.reactions(), entry.reacted());
+                    entry.reactions(), entry.reacted(), post.comments());
         }).toList();
     }
 }

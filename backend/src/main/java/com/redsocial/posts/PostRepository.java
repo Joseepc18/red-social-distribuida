@@ -10,22 +10,31 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 
+import com.redsocial.comentarios.CommentRepository;
+
 /** Explicit Cypher projections: no user credentials, binaries or public URLs in the graph. */
 @ApplicationScoped
 public class PostRepository {
     private static final String FIELDS = """
             p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
             p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
-            u.id AS authorId, u.username AS username, u.nombre AS nombre
-            """;
+            u.id AS authorId, u.username AS username, u.nombre AS nombre,
+            %s AS comentarios
+            """.formatted(CommentRepository.COUNT_OF_POST);
     private final Driver driver;
 
     public PostRepository(Driver driver) {
         this.driver = driver;
     }
 
+    /** @param comments every comment of the post, replies included */
     public record StoredPost(String id, String text, String date, PostResponse.Author author,
-            String mediaKey, String mediaType) {
+            String mediaKey, String mediaType, long comments) {
+        /** For listings that do not count comments, such as discover (C7). */
+        public StoredPost(String id, String text, String date, PostResponse.Author author,
+                String mediaKey, String mediaType) {
+            this(id, text, date, author, mediaKey, mediaType, 0);
+        }
     }
 
     /** execute() consumes the result and commits before returning to the event producer. */
@@ -103,6 +112,7 @@ public class PostRepository {
         return new StoredPost(row.get("id").asString(), row.get("texto").asString(), row.get("fecha").asString(),
                 new PostResponse.Author(row.get("authorId").asString(), row.get("username").asString(),
                         row.get("nombre").asString()),
-                row.get("mediaKey").asString(null), row.get("mediaTipo").asString(null));
+                row.get("mediaKey").asString(null), row.get("mediaTipo").asString(null),
+                row.get("comentarios").asLong());
     }
 }

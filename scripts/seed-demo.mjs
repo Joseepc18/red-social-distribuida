@@ -27,7 +27,8 @@ const USERS = [
 
 // Designed so that, logged in as ana, every graph query returns data:
 // C2 diego (via bruno and carla), C3 with fabian, C4 up to hector (3 hops, irene is 4),
-// C5 ana -> irene (4 degrees) and ana -> julian (no path), C7 posts reacted by bruno and carla.
+// C5 ana -> irene (4 degrees) and ana -> julian (no path), C7 posts reacted by bruno and carla,
+// C8 a three-level comment thread on carla's exam post.
 const FOLLOWS = [
   ['ana', 'bruno'], ['ana', 'carla'],
   ['bruno', 'ana'], ['bruno', 'diego'], ['bruno', 'elena'],
@@ -64,6 +65,17 @@ const REACTIONS = [
   ['ana', 'bruno1'], ['ana', 'carla1'],
   ['bruno', 'ana1'], ['elena', 'ana1'],
   ['fabian', 'carla2'], ['diego', 'gabriela1'], ['hector', 'irene1'],
+];
+
+// [key, user, post key, text, key of the comment it replies to or null]
+// carla2 holds a three-level thread for C8: ana -> carla -> bruno.
+const COMMENTS = [
+  ['ana-parcial', 'ana', 'carla2', 'Yo sí, repasando consistencia eventual y el teorema CAP.', null],
+  ['carla-grupo', 'carla', 'carla2', '¿Armamos un grupo de estudio el jueves?', 'ana-parcial'],
+  ['bruno-grupo', 'bruno', 'carla2', 'Me sumo, llevo los ejercicios de relojes lógicos.', 'carla-grupo'],
+  ['fabian-parcial', 'fabian', 'carla2', 'Recuerden que también entra replicación.', null],
+  ['carla-grafos', 'carla', 'bruno1', 'Al principio cuesta, pero después las consultas de caminos son mucho más simples.', null],
+  ['bruno-grafos', 'bruno', 'bruno1', 'Totalmente, shortestPath me ahorró media consulta.', 'carla-grafos'],
 ];
 
 async function api(method, path, { token, json, form } = {}) {
@@ -131,15 +143,22 @@ async function main() {
   for (const [user, key] of REACTIONS) {
     await api('POST', `/posts/${posts[key]}/reacciones`, { token: users[user].token });
   }
-  console.log(`Reacciones: ${REACTIONS.length}\n`);
+  console.log(`Reacciones: ${REACTIONS.length}`);
 
-  await verify(users);
+  const comments = {};
+  for (const [key, user, postKey, texto, replyTo] of COMMENTS) {
+    const json = { texto, respondeA: replyTo ? comments[replyTo] : null };
+    comments[key] = (await api('POST', `/posts/${posts[postKey]}/comentarios`, { token: users[user].token, json })).id;
+  }
+  console.log(`Comentarios: ${COMMENTS.length} (${COMMENTS.filter((c) => c[4]).length} respuestas)\n`);
+
+  await verify(users, posts);
 
   console.log(`\nListo. Todos los usuarios usan la contraseña ${PASSWORD}; conviene iniciar sesión como "ana".`);
 }
 
 // Reads back the graph queries as ana so a broken seed fails loudly instead of at the demo.
-async function verify(users) {
+async function verify(users, posts) {
   const token = users.ana.token;
   const suggestions = await api('GET', '/usuarios/me/sugerencias', { token });
   const mutuals = await api('GET', `/usuarios/${users.fabian.id}/en-comun`, { token });
@@ -148,6 +167,10 @@ async function verify(users) {
   const noPath = await api('GET', `/usuarios/${users.julian.id}/separacion`, { token });
   const discover = await api('GET', '/descubrir', { token });
   const feed = await api('GET', '/feed?page=0', { token });
+  const thread = await api('GET', `/posts/${posts.carla2}/comentarios`, { token });
+  const byId = new Map(thread.map((c) => [c.id, c]));
+  const depth = (c) => (c.respondeA ? 1 + depth(byId.get(c.respondeA)) : 1);
+  const levels = Math.max(0, ...thread.map(depth));
 
   const checks = [
     ['C1 feed de ana', feed.length > 0, `${feed.length} publicaciones`],
@@ -160,6 +183,7 @@ async function verify(users) {
     ['C5 sin camino ana/julian', noPath.grados === null, 'grados null'],
     ['C7 descubrir de ana', discover.length > 0,
       discover.map((p) => `${p.autor.username} (${p.amigosQueReaccionaron})`).join(', ')],
+    ['C8 hilo del post de carla', levels === 3, `${thread.length} comentarios en ${levels} niveles`],
   ];
   for (const [name, ok, detail] of checks) {
     console.log(`${ok ? 'OK   ' : 'FALLA'} ${name}: ${detail}`);

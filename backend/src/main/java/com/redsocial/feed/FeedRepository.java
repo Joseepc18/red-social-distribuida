@@ -7,6 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import org.neo4j.driver.Driver;
 
+import com.redsocial.comentarios.CommentRepository;
 import com.redsocial.posts.PostRepository.StoredPost;
 import com.redsocial.posts.PostResponse;
 
@@ -22,7 +23,7 @@ public class FeedRepository {
     }
 
     public List<Entry> find(String userId, int page, int size) {
-        // Query C1: paginate before counting reactions, projecting only public fields.
+        // Query C1: paginate before counting reactions and comments, projecting only public fields.
         return driver.executableQuery("""
                         MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
                         WITH yo, p, autor
@@ -32,16 +33,18 @@ public class FeedRepository {
                                p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
                                autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
                                COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
-                               EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado
+                               EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado,
+                               %s AS comentarios
                         ORDER BY p.fecha DESC, p.id DESC
-                        """)
+                        """.formatted(CommentRepository.COUNT_OF_POST))
                 .withParameters(Map.of("userId", userId, "skip", (long) page * size, "limit", size))
                 .execute().records().stream().map(row -> new Entry(
                         new StoredPost(row.get("id").asString(), row.get("texto").asString(),
                                 row.get("fecha").asString(),
                                 new PostResponse.Author(row.get("autorId").asString(),
                                         row.get("username").asString(), row.get("nombre").asString()),
-                                row.get("mediaKey").asString(null), row.get("mediaTipo").asString(null)),
+                                row.get("mediaKey").asString(null), row.get("mediaTipo").asString(null),
+                                row.get("comentarios").asLong()),
                         row.get("reacciones").asLong(), row.get("reaccionado").asBoolean())).toList();
     }
 }

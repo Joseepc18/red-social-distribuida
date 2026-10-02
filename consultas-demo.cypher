@@ -16,7 +16,8 @@ RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
        p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
        autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
        COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
-       EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado
+       EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado,
+       COUNT { (p)<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(:Comentario) } AS comentarios
 ORDER BY p.fecha DESC, p.id DESC;
 
 // C2. Recomendaciones: amigos de amigos que ana aún no sigue.
@@ -95,16 +96,30 @@ RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
        amigosQueReaccionaron
 ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC;
 
+// C8. Hilo de comentarios del post de carla sobre el parcial: ana comenta,
+// carla le responde y bruno responde a carla (3 niveles); fabian comenta aparte.
+:param postId => head(COLLECT { MATCH (:Usuario {username: 'carla'})-[:PUBLICA]->(p:Post) WHERE p.texto STARTS WITH '¿Alguien más' RETURN p.id });
+
+MATCH (:Post {id: $postId})<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(c:Comentario)
+MATCH (autor:Usuario)-[:COMENTA]->(c)
+OPTIONAL MATCH (c)-[:RESPONDE_A]->(padre:Comentario)
+RETURN c.id AS id, c.texto AS texto, toString(c.fecha) AS fecha,
+       autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
+       padre.id AS respondeA,
+       COUNT { (c)<-[:RESPONDE_A]-(:Comentario) } AS respuestas
+ORDER BY c.fecha ASC, c.id ASC;
+
 // Grafo de demostración: usuarios (también julian, aislado), seguimientos,
-// publicaciones y reacciones. Seleccionar Graph en Neo4j Browser.
+// publicaciones, reacciones y comentarios. Seleccionar Graph en Neo4j Browser.
 // Esta vista administrativa devuelve nodos completos de los usuarios demo;
-// sus propiedades incluyen passwordHash. C1-C7 mantienen los campos del README.
+// sus propiedades incluyen passwordHash. C1-C8 devuelven solo campos proyectados.
 :param demoUsernames => ['ana', 'bruno', 'carla', 'diego', 'elena', 'fabian', 'gabriela', 'hector', 'irene', 'julian'];
 
 MATCH (u:Usuario)
 WHERE u.username IN $demoUsernames
-OPTIONAL MATCH (u)-[r:SIGUE|PUBLICA|REACCIONA]->(destino)
+OPTIONAL MATCH (u)-[r:SIGUE|PUBLICA|REACCIONA|COMENTA]->(destino)
 WHERE (destino:Usuario AND destino.username IN $demoUsernames)
+   OR destino:Comentario
    OR (destino:Post AND EXISTS {
        MATCH (autor:Usuario)-[:PUBLICA]->(destino)
        WHERE autor.username IN $demoUsernames

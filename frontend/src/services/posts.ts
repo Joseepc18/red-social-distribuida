@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { Post } from "../types/posts";
+import type { Comment, Post } from "../types/posts";
 
 export const POST_PAGE_SIZE = 20;
 export const posts = {
@@ -18,6 +18,16 @@ export const posts = {
   setReaction: (id: string, reacted: boolean) =>
     api<void>("/posts/" + encodeURIComponent(id) + "/reacciones", {
       method: reacted ? "DELETE" : "POST",
+    }),
+  comments: (id: string, signal: AbortSignal) =>
+    api<readonly Comment[]>(
+      "/posts/" + encodeURIComponent(id) + "/comentarios",
+      { signal },
+    ),
+  comment: (id: string, text: string, replyTo: string | null) =>
+    api<Comment>("/posts/" + encodeURIComponent(id) + "/comentarios", {
+      method: "POST",
+      body: JSON.stringify({ texto: text.trim(), respondeA: replyTo }),
     }),
 };
 

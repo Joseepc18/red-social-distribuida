@@ -131,3 +131,31 @@ it("opens the post in a new tab with Ctrl or Cmd + click", () => {
   expect(open).toHaveBeenCalledWith("/posts/p1", "_blank", "noopener");
   expect(screen.queryByText("Detalle abierto")).not.toBeInTheDocument();
 });
+
+it("shows the comment count and opens the post from it", () => {
+  renderCard({ ...post, comentarios: 3 });
+
+  fireEvent.click(screen.getByRole("link", { name: "3 comentarios" }));
+
+  expect(screen.getByText("Detalle abierto")).toBeInTheDocument();
+});
+
+it("shows the comment count as plain text on the detail page", () => {
+  renderCard({ ...post, comentarios: 1 }, true);
+
+  expect(screen.getByText("1 comentario")).toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: "1 comentario" }),
+  ).not.toBeInTheDocument();
+});
+
+it("shows the comment count even without reaction data", () => {
+  renderCard({ ...post, reacciones: undefined, comentarios: 0 });
+
+  expect(
+    screen.getByRole("link", { name: "0 comentarios" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: /Me gusta/ }),
+  ).not.toBeInTheDocument();
+});

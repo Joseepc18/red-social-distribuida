@@ -110,7 +110,7 @@ public class PostService {
 
     private PostResponse response(PostRepository.StoredPost post) {
         return new PostResponse(post.id(), post.text(), post.date(), post.author(), post.mediaKey(), post.mediaType(),
-                post.mediaKey() == null ? null : publicBase + post.mediaKey());
+                post.mediaKey() == null ? null : publicBase + post.mediaKey(), post.comments());
     }
 
     private void cleanup(String key) {

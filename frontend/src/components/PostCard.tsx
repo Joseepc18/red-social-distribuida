@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
+import { commentsCopy } from "../content/comments-copy";
 import { postsCopy } from "../content/posts-copy";
 import { postImagePath, posts } from "../services/posts";
 import { textPreview } from "../lib/text";
@@ -117,24 +118,42 @@ export function PostCard({ post, detail = false }: PostCardProps) {
             className="max-h-[32rem] w-full rounded-lg bg-surface-container-low object-contain dark:bg-on-surface"
           />
         ))}
-      {typeof post.reacciones === "number" && (
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant/30 pt-4 text-sm">
-          <button
-            type="button"
-            className={
-              "button button-ghost !min-h-9 !px-2 " +
-              (reacted
-                ? "text-primary-container dark:text-inverse-primary"
-                : "")
-            }
-            aria-pressed={reacted}
-            aria-label={postsCopy.reactionLabel(reacted, reactionCount)}
-            disabled={reactionBusy}
-            onClick={toggleReaction}
-          >
-            <Icon name="heart" filled={reacted} />
-            {postsCopy.reactions(reactionCount)}
-          </button>
+      {(typeof post.reacciones === "number" ||
+        typeof post.comentarios === "number") && (
+        <footer className="flex flex-wrap items-center gap-3 border-t border-outline-variant/30 pt-4 text-sm">
+          {typeof post.reacciones === "number" && (
+            <button
+              type="button"
+              className={
+                "button button-ghost !min-h-9 !px-2 " +
+                (reacted
+                  ? "text-primary-container dark:text-inverse-primary"
+                  : "")
+              }
+              aria-pressed={reacted}
+              aria-label={postsCopy.reactionLabel(reacted, reactionCount)}
+              disabled={reactionBusy}
+              onClick={toggleReaction}
+            >
+              <Icon name="heart" filled={reacted} />
+              {postsCopy.reactions(reactionCount)}
+            </button>
+          )}
+          {typeof post.comentarios === "number" &&
+            (detail ? (
+              <span className="post-comment-count">
+                <Icon name="chat" />
+                {commentsCopy.count(post.comentarios)}
+              </span>
+            ) : (
+              <Link
+                to={postPath}
+                className="button button-ghost post-comment-count !min-h-9 !px-2"
+              >
+                <Icon name="chat" />
+                {commentsCopy.count(post.comentarios)}
+              </Link>
+            ))}
         </footer>
       )}
       {reactionError && (

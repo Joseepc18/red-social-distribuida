@@ -438,6 +438,106 @@
   color: var(--accent);
   font-weight: 650;
 }
+.post-comment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--subtle);
+}
+/* Comments on the post detail (PostComments, CommentThread, CommentComposer). */
+.comments {
+  display: grid;
+  gap: 16px;
+}
+.comments h2 {
+  font-size: 18px;
+}
+.comment-composer {
+  display: grid;
+  gap: 8px;
+}
+.comment-text {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: transparent;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.comment-text::placeholder {
+  color: var(--subtle);
+}
+/* Same treatment as the post composer: no outline box, the border tints instead. */
+.comment-text:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+.comment-composer-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.comment-composer-tools > span {
+  margin-right: auto;
+  white-space: nowrap;
+}
+.comment-composer-tools .button {
+  min-height: 34px;
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+.comment-list,
+.comment-replies {
+  display: grid;
+  gap: 14px;
+}
+.comment-body {
+  display: flex;
+  gap: 10px;
+}
+.comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 12px;
+}
+.comment-meta .text-link {
+  color: var(--ink);
+  font-size: 14px;
+}
+.comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 4px;
+}
+.comment-action {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 650;
+}
+.comment-action:hover {
+  text-decoration: underline;
+}
+.comment-body .comment-composer {
+  margin-top: 8px;
+}
+/* Thread line under the avatar (40px wide); each level moves right until the cap. */
+.comment-replies {
+  margin: 12px 0 0 19px;
+  padding-left: 17px;
+  border-left: 2px solid var(--line);
+}
+.comment-replies-flat {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
+}
 .discovery-reason {
   display: flex;
   align-items: center;

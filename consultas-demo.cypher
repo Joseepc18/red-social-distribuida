@@ -4,19 +4,19 @@
 // Los UUID se buscan por username: cambian cada vez que se recrea la base.
 
 // C1. Feed: publicaciones de bruno y carla, los usuarios que sigue ana.
-:param userId => head(COLLECT { MATCH (u:Usuario {username: 'ana'}) RETURN u.id });
+:param viewerId => head(COLLECT { MATCH (u:Usuario {username: 'ana'}) RETURN u.id });
 :param skip => 0;
 :param limit => 20;
 
-MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
-WITH yo, p, autor
+MATCH (yo:Usuario {id: $viewerId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
+WITH p, autor
 ORDER BY p.fecha DESC, p.id DESC
 SKIP $skip LIMIT $limit
 RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
        p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
        autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
        COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
-       EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado,
+       EXISTS { (:Usuario {id: $viewerId})-[:REACCIONA]->(p) } AS reaccionado,
        COUNT { (p)<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(:Comentario) } AS comentarios
 ORDER BY p.fecha DESC, p.id DESC;
 
@@ -82,17 +82,23 @@ RETURN seg.id AS usuarioId, s.endpoint AS endpoint, s.p256dh AS p256dh, s.auth A
 
 // C7. Descubrir: posts de autores que ana no sigue, reaccionados por su red.
 // El post con imagen de diego aparece con dos amigosQueReaccionaron.
-:param userId => head(COLLECT { MATCH (u:Usuario {username: 'ana'}) RETURN u.id });
+// Pagina como C1 y devuelve los mismos campos y contadores.
+:param viewerId => head(COLLECT { MATCH (u:Usuario {username: 'ana'}) RETURN u.id });
+:param skip => 0;
+:param limit => 20;
 
-MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(amigo:Usuario)
+MATCH (yo:Usuario {id: $viewerId})-[:SIGUE]->(amigo:Usuario)
       -[:REACCIONA]->(p:Post)<-[:PUBLICA]-(autor:Usuario)
 WHERE autor <> yo AND NOT (yo)-[:SIGUE]->(autor)
 WITH p, autor, count(DISTINCT amigo) AS amigosQueReaccionaron
 ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC
-LIMIT 10
+SKIP $skip LIMIT $limit
 RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
        p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
        autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
+       COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
+       EXISTS { (:Usuario {id: $viewerId})-[:REACCIONA]->(p) } AS reaccionado,
+       COUNT { (p)<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(:Comentario) } AS comentarios,
        amigosQueReaccionaron
 ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC;
 

@@ -5,13 +5,12 @@ export const socialCopy = {
   suggestionsIntro:
     "Descubre nuevas conexiones a través de las personas que sigues.",
   suggestionsEmpty:
-    "No hay sugerencias por ahora. Busca compañeros para ampliar tu red.",
+    "No hay sugerencias por ahora. Busca amigos para ampliar tu red.",
   followed: "Ahora sigues a",
   reach: "Hasta dónde llega tu red",
   reachIntro:
     "Personas a las que llegas siguiendo conexiones, hasta tres pasos.",
-  reachEmpty:
-    "Tu red aún no tiene conexiones. Empieza siguiendo a un compañero.",
+  reachEmpty: "Tu red aún no tiene conexiones. Empieza siguiendo a un amigo.",
   mutuals: "Seguidos en común",
   mutualsEmpty: "Todavía no siguen a las mismas personas.",
   separation: "Grados de separación",

@@ -13,7 +13,7 @@ test("registro, sesión, perfil y seguimiento contra el backend real", async ({
   };
   const peer = {
     username: "qa_peer_" + suffix,
-    nombre: "Compañero Validación " + suffix,
+    nombre: "Amigo Validación " + suffix,
     email: "qa_peer_" + suffix + "@example.test",
     password: randomUUID(),
   };

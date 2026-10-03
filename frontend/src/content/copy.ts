@@ -3,7 +3,7 @@ export const copy = {
   brand: "ZENIT",
   community: "Tu comunidad, más cerca.",
   intro:
-    "Un espacio para conectar con tus compañeros y compartir lo que estás construyendo.",
+    "Un espacio para conectar con tus amigos y compartir lo que estás construyendo.",
   navigation: "Navegación principal",
   skip: "Ir al contenido",
   logout: "Cerrar sesión",
@@ -27,7 +27,7 @@ export const copy = {
   search: "Buscar personas",
   feed: "Inicio",
   chat: "Mensajes",
-  member: "Comunidad universitaria",
+  member: "Comunidad ZENIT",
 } as const;
 export const navigation = [
   { to: "/feed", label: copy.feed, icon: "feed" },
@@ -36,7 +36,7 @@ export const navigation = [
 ] as const;
 export const homeCopy = {
   sidebarTagline: "Un espacio para compartir lo que nos conecta.",
-  communityLabel: "ZENIT · Comunidad universitaria",
+  communityLabel: "ZENIT · Red social",
   feedTabsLabel: "Tipo de publicaciones",
   forYou: "Para ti",
   following: "Siguiendo",
@@ -53,42 +53,11 @@ export const homeCopy = {
   searchEmpty: "No encontramos personas con ese nombre o usuario.",
   motto: "ZENIT · Conecta. Comparte. Aprende.",
 } as const;
-export const pages = {
-  feed: {
-    title: copy.feed,
-    description:
-      "Aquí encontrarás las publicaciones de las personas que sigues.",
-  },
-  explore: {
-    title: copy.explore,
-    description: "Encuentra compañeros y amplía tu red universitaria.",
-  },
-  profile: {
-    title: copy.profile,
-    description: "Tu lugar en la comunidad universitaria.",
-  },
-  post: {
-    title: "Publicación",
-    description: "Las publicaciones de tu comunidad estarán disponibles aquí.",
-  },
-  chat: {
-    title: copy.chat,
-    description: "Un espacio para conversar con tus compañeros.",
-  },
-  login: {
-    title: copy.login,
-    description: "Pronto podrás acceder a tu comunidad universitaria.",
-  },
-  register: {
-    title: copy.register,
-    description: "Pronto podrás formar parte de la comunidad.",
-  },
-} as const;
 export const authCopy = {
   eyebrow: "Acceso a ZENIT",
   loginTitle: "Qué bueno verte de nuevo",
   loginIntro:
-    "Inicia sesión para encontrar a tus compañeros y formar parte de la conversación.",
+    "Inicia sesión para encontrar a tus amigos y formar parte de la conversación.",
   registerTitle: "Tu próxima conexión empieza aquí",
   registerIntro: "Crea tu perfil y encuentra tu lugar en la comunidad.",
   name: "Nombre completo",
@@ -100,7 +69,7 @@ export const authCopy = {
   registered:
     "Tu cuenta está lista. Inicia sesión con el usuario y la contraseña que elegiste.",
   required: "Completa los campos obligatorios sin dejarlos en blanco.",
-  footer: "ZENIT · Red social universitaria",
+  footer: "ZENIT · Red social",
 } as const;
 export const profileCopy = {
   title: "Perfil de la comunidad",
@@ -121,7 +90,7 @@ export const profileCopy = {
   empty: "Esta lista todavía está vacía.",
 } as const;
 export const peopleCopy = {
-  eyebrow: "Tu red universitaria",
+  eyebrow: "Tu red",
   title: "Amigos",
   tabsLabel: "Listas de personas",
   suggestionsShortcut: "Sugerencias",

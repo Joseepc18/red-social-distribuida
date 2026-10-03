@@ -26,7 +26,7 @@ export const postsCopy = {
   userPosts: "Publicaciones",
   more: "Cargar más publicaciones",
   emptyFeed: "Tu feed está por comenzar",
-  emptyFeedBody: "Sigue a tus compañeros para ver aquí sus publicaciones.",
+  emptyFeedBody: "Sigue a tus amigos para ver aquí sus publicaciones.",
   emptyProfile: "Este perfil aún no tiene publicaciones.",
   end: "Has visto todas las publicaciones disponibles.",
   invalidText:

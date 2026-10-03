@@ -45,7 +45,7 @@ describe("Service Worker push", () => {
       data: {
         json: () => ({
           titulo: "Publicación",
-          cuerpo: "Tu compañero publicó",
+          cuerpo: "Tu amigo publicó",
           url: "/posts/p1",
         }),
       },
@@ -53,7 +53,7 @@ describe("Service Worker push", () => {
     expect(sw.showNotification).toHaveBeenCalledWith(
       "Publicación",
       expect.objectContaining({
-        body: "Tu compañero publicó",
+        body: "Tu amigo publicó",
         data: { url: "https://nodouni.example/posts/p1", userId: "u1" },
       }),
     );

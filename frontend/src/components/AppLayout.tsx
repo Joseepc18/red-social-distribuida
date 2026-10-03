@@ -29,6 +29,7 @@ function LayoutContent() {
   const total = Object.values(unread).reduce((sum, count) => sum + count, 0);
   const { pathname, search } = useLocation();
   const feed = pathname === "/feed";
+  const suggestions = pathname === "/sugerencias";
   const forYou = new URLSearchParams(search).get("vista") === "para-ti";
   const handleNavigationClick = (to: string) => {
     if (to !== "/feed" || !feed) return;
@@ -50,7 +51,10 @@ function LayoutContent() {
               to={item.to}
               onClick={() => handleNavigationClick(item.to)}
               className={({ isActive }) =>
-                "nav-link " + (isActive ? "nav-active" : "")
+                "nav-link " +
+                (isActive || (suggestions && item.to === "/explorar")
+                  ? "nav-active"
+                  : "")
               }
             >
               <Icon name={item.icon} />
@@ -149,7 +153,10 @@ function LayoutContent() {
             to={item.to}
             onClick={() => handleNavigationClick(item.to)}
             className={({ isActive }) =>
-              "mobile-link " + (isActive ? "mobile-active" : "")
+              "mobile-link " +
+              (isActive || (suggestions && item.to === "/explorar")
+                ? "mobile-active"
+                : "")
             }
           >
             <Icon name={item.icon} />

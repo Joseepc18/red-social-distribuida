@@ -54,13 +54,17 @@ MATCH (a:Usuario {id: $userA})-[:SIGUE]->(comun:Usuario)<-[:SIGUE]-(b:Usuario {i
 RETURN comun.id AS id, comun.username AS username, comun.nombre AS nombre
 ORDER BY username;
 
-// C4. Alcance: usuarios a uno, dos o tres saltos desde ana (irene queda fuera).
+// C4. Alcance: usuarios a uno, dos o tres saltos desde ana (irene queda fuera),
+// con los usuarios intermedios del camino más corto en via.
 :param userId => head(COLLECT { MATCH (u:Usuario {username: 'ana'}) RETURN u.id });
 
 MATCH camino = (yo:Usuario {id: $userId})-[:SIGUE*1..3]->(u:Usuario)
 WHERE u <> yo
-WITH u, min(length(camino)) AS distancia
-RETURN u.id AS id, u.username AS username, u.nombre AS nombre, distancia
+WITH u, length(camino) AS distancia, [n IN nodes(camino)[1..-1] | n.username] AS via
+ORDER BY distancia, via
+WITH u, collect({distancia: distancia, via: via})[0] AS masCorto
+RETURN u.id AS id, u.username AS username, u.nombre AS nombre,
+       masCorto.distancia AS distancia, masCorto.via AS via
 ORDER BY distancia, username;
 
 // C5. Separación: camino más corto, sin dirección, entre ana e irene (4 grados).

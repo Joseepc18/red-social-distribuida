@@ -6,6 +6,8 @@ export interface Suggestion extends UserSummary {
 }
 export interface ReachableUser extends UserSummary {
   readonly distancia: number;
+  // Usernames in between on the shortest path; empty at distance 1.
+  readonly via: readonly string[];
 }
 export interface Separation {
   readonly grados: number | null;

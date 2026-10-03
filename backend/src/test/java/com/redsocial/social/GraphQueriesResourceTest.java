@@ -2,6 +2,7 @@ package com.redsocial.social;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
@@ -105,7 +106,8 @@ class GraphQueriesResourceTest {
         follow(b, c);
         // Fourth level: out of reach.
         follow(c, d);
-        // Second path to b, same length: b appears once with distance 2.
+        // Second path to b, same length: b appears once with distance 2, and via keeps
+        // the path whose usernames sort first (through a, not e).
         follow(me, e);
         follow(e, b);
         // Cycle back to me: never listed.
@@ -116,7 +118,28 @@ class GraphQueriesResourceTest {
                 .contentType(ContentType.JSON)
                 .body("id", contains(a, e, b, c))
                 .body("distancia", contains(1, 1, 2, 3))
-                .body("username", contains(p + "a", p + "e", p + "b", p + "c"));
+                .body("username", contains(p + "a", p + "e", p + "b", p + "c"))
+                .body("via", contains(List.of(), List.of(), List.of(p + "a"), List.of(p + "a", p + "b")));
+    }
+
+    @Test
+    void reachChoosesTheSameShortestPathOnEveryCall() {
+        String p = TestUsers.uniquePrefix();
+        String me = users.create(p + "me");
+        String zeta = users.create(p + "zeta");
+        String alfa = users.create(p + "alfa");
+        String target = users.create(p + "target");
+        follow(me, zeta);
+        follow(zeta, target);
+        follow(me, alfa);
+        follow(alfa, target);
+
+        for (int i = 0; i < 3; i++) {
+            get(me, "/api/usuarios/me/alcance").then()
+                    .statusCode(200)
+                    .body("find { it.id == '%s' }.via".formatted(target), contains(p + "alfa"))
+                    .body("find { it.id == '%s' }.distancia".formatted(target), is(2));
+        }
     }
 
     @Test
@@ -130,7 +153,8 @@ class GraphQueriesResourceTest {
 
         get(me, "/api/usuarios/me/alcance").then()
                 .statusCode(200)
-                .body("distancia", contains(1, 1));
+                .body("distancia", contains(1, 1))
+                .body("via", contains(List.of(), List.of()));
     }
 
     @Test
@@ -142,7 +166,7 @@ class GraphQueriesResourceTest {
                 .statusCode(200)
                 .extract().jsonPath().getMap("[0]");
 
-        assertEquals(Set.of("id", "username", "nombre", "distancia"), user.keySet());
+        assertEquals(Set.of("id", "username", "nombre", "distancia", "via"), user.keySet());
     }
 
     @Test
@@ -249,6 +273,7 @@ class GraphQueriesResourceTest {
                 .body("paths.'/api/usuarios/{id}/en-comun'.get.responses.'404'", notNullValue())
                 .body("paths.'/api/usuarios/me/alcance'.get.summary", is("Usuarios alcanzables"))
                 .body("paths.'/api/usuarios/me/alcance'.get.responses.'200'", notNullValue())
+                .body("paths.'/api/usuarios/me/alcance'.get.description", containsString("via"))
                 .body("paths.'/api/usuarios/{id}/separacion'.get.responses.'400'", notNullValue())
                 .body("paths.'/api/usuarios/{id}/separacion'.get.responses.'404'", notNullValue())
                 .body("paths.'/api/usuarios/{id}/separacion'.get.security[0]", hasKey("SecurityScheme"));

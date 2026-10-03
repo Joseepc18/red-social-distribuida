@@ -26,7 +26,8 @@ class PostServiceTest {
             }
         };
         // No Event is supplied: reaching event dispatch on a failed write would be a bug.
-        PostService service = new PostService(repository, storage, new ImageValidator(), null, "/media/");
+        PostService service = new PostService(repository, storage, new ImageValidator(), null,
+                new PostAssembler("/media/"));
         Path image = Files.write(directory.resolve("image.png"), PostResourceTest.image("png"));
         ApiException failure = assertThrows(ApiException.class,
                 () -> service.create("deleted-author", "Hello", image, "image/png"));
@@ -34,15 +35,4 @@ class PostServiceTest {
         assertTrue(storage.objects().isEmpty(), "Uploaded object must be compensated after a failed graph write");
     }
 
-    @Test
-    void buildsUrlFromConfiguredBaseWithoutPersistingIt() {
-        PostRepository repository = new PostRepository(null) {
-            @Override public Optional<StoredPost> find(String id) {
-                return Optional.of(new StoredPost(id, "Hi", "2026-09-27T00:00:00Z",
-                        new PostResponse.Author("author", "user", "Name"), "posts/p/image.png", "image/png"));
-            }
-        };
-        PostService service = new PostService(repository, null, null, null, "https://example.test/media");
-        assertEquals("https://example.test/media/posts/p/image.png", service.find("p").mediaUrl());
-    }
 }

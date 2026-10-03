@@ -160,9 +160,10 @@ class FeedResourceTest {
                 .body("paths.'/api/feed'.get.parameters.find { it.name == 'page' }.schema.default", is(0))
                 .body("paths.'/api/feed'.get.responses.'200'.content.'application/json'.schema.type", is("array"))
                 .body("paths.'/api/feed'.get.responses.'200'.content.'application/json'.schema.items.'$ref'",
-                        is("#/components/schemas/FeedResponse"))
-                .body("components.schemas.FeedResponse.properties.reacciones.type", is("integer"))
-                .body("components.schemas.FeedResponse.properties.reaccionado.type", is("boolean"));
+                        is("#/components/schemas/PostResponse"))
+                .body("components.schemas.PostResponse.properties.reacciones.type", is("integer"))
+                .body("components.schemas.PostResponse.properties.reaccionado.type", is("boolean"))
+                .body("components.schemas.PostResponse.properties.comentarios.type", is("integer"));
     }
 
     private String user() {

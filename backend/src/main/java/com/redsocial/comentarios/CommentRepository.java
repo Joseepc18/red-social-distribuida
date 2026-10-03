@@ -17,7 +17,10 @@ import com.redsocial.usuarios.UserSummary;
  */
 @ApplicationScoped
 public class CommentRepository {
-    /** Longest reply chain the queries follow: every variable-length path keeps a hop limit. */
+    /**
+     * Deepest level the queries reach, counted in RESPONDE_A hops from the direct comment (level 0):
+     * every variable-length path keeps a hop limit, and replies are never created below it.
+     */
     public static final int MAX_DEPTH = 50;
     /** Every comment of the post bound to {@code p}, replies included; a tree has one path per comment. */
     public static final String COUNT_OF_POST =
@@ -50,7 +53,21 @@ public class CommentRepository {
                 .execute().records().stream().findFirst().map(CommentRepository::map);
     }
 
-    /** Empty when the parent comment does not exist or belongs to another post. */
+    /** Level of the comment inside the post thread; empty when it does not exist or is from another post. */
+    public Optional<Long> level(String commentId, String postId) {
+        return driver.executableQuery("""
+                        MATCH camino = (c:Comentario {id: $commentId})-[:RESPONDE_A*0..%d]->(:Comentario)
+                                       -[:EN]->(:Post {id: $postId})
+                        RETURN length(camino) - 1 AS nivel
+                        """.formatted(MAX_DEPTH))
+                .withParameters(Map.of("commentId", commentId, "postId", postId))
+                .execute().records().stream().findFirst().map(row -> row.get("nivel").asLong());
+    }
+
+    /**
+     * Empty when the parent comment does not exist, belongs to another post or is already at
+     * {@link #MAX_DEPTH}: the parent may be at most MAX_DEPTH - 1 hops deep so the reply stays inside C8.
+     */
     public Optional<CommentResponse> reply(String id, String authorId, String postId, String parentId,
             String text) {
         return driver.executableQuery("""
@@ -59,7 +76,7 @@ public class CommentRepository {
                         CREATE (autor)-[:COMENTA]->(c:Comentario {id: $id, texto: $text, fecha: datetime()})
                                -[:RESPONDE_A]->(padre)
                         RETURN %s, padre.id AS respondeA, 0 AS respuestas
-                        """.formatted(MAX_DEPTH, FIELDS))
+                        """.formatted(MAX_DEPTH - 1, FIELDS))
                 .withParameters(Map.of("id", id, "authorId", authorId, "postId", postId,
                         "parentId", parentId, "text", text))
                 .execute().records().stream().findFirst().map(CommentRepository::map);

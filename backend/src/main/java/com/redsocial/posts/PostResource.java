@@ -56,12 +56,13 @@ public class PostResource {
 
     @GET
     @Path("/{id}")
-    @Operation(summary = "Consulta una publicación y su autor")
+    @Operation(summary = "Consulta una publicación y su autor",
+            description = "Incluye reacciones, reaccionado (por el usuario del JWT) y comentarios.")
     @APIResponseSchema(value = PostResponse.class, responseCode = "200")
     @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
     @APIResponse(responseCode = "404", description = "POST_NO_ENCONTRADO")
     public PostResponse find(@PathParam("id") String id) {
-        return service.find(id);
+        return service.find(id, jwt.getSubject());
     }
 
     @POST

@@ -4,33 +4,32 @@ import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import com.redsocial.posts.PostAssembler;
 import com.redsocial.posts.PostRepository;
+import com.redsocial.posts.PostService;
 import com.redsocial.shared.error.ApiException;
 
 @ApplicationScoped
 public class DiscoverService {
     private final DiscoverRepository repository;
     private final PostRepository posts;
-    private final String publicBase;
+    private final PostAssembler assembler;
 
-    public DiscoverService(DiscoverRepository repository, PostRepository posts,
-            @ConfigProperty(name = "app.media.public-url") String publicBase) {
+    public DiscoverService(DiscoverRepository repository, PostRepository posts, PostAssembler assembler) {
         this.repository = repository;
         this.posts = posts;
-        this.publicBase = publicBase.endsWith("/") ? publicBase : publicBase + "/";
+        this.assembler = assembler;
     }
 
-    public List<DiscoverResponse> find(String userId) {
+    public List<DiscoverResponse> find(String userId, int page) {
+        if (page < 0) {
+            throw ApiException.badRequest("VALIDACION", "page no puede ser negativo");
+        }
         if (!posts.authorExists(userId)) {
             throw ApiException.notFound("USUARIO_NO_ENCONTRADO", "El usuario no existe");
         }
-        return repository.find(userId).stream().map(entry -> {
-            var post = entry.post();
-            return new DiscoverResponse(post.id(), post.text(), post.date(), post.author(),
-                    post.mediaKey(), post.mediaType(), post.mediaKey() == null ? null : publicBase + post.mediaKey(),
-                    entry.friendsWhoReacted());
-        }).toList();
+        return repository.find(userId, page, PostService.PAGE_SIZE).stream()
+                .map(entry -> new DiscoverResponse(assembler.response(entry.post()), entry.friendsWhoReacted()))
+                .toList();
     }
 }

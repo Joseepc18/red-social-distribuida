@@ -10,6 +10,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -24,22 +25,25 @@ import io.quarkus.security.Authenticated;
 @Tag(name = "Publicaciones")
 public class UserPostResource {
     private final PostService service;
+    private final JsonWebToken jwt;
 
-    public UserPostResource(PostService service) {
+    public UserPostResource(PostService service, JsonWebToken jwt) {
         this.service = service;
+        this.jwt = jwt;
     }
 
     @GET
     @Path("/{id}/posts")
     @Operation(summary = "Publicaciones de un usuario",
             description = "Lista de hasta 20 publicaciones, ordenadas por fecha e id descendentes. "
-                    + "page empieza en 0; una lista con menos de 20 elementos indica el final.")
+                    + "page empieza en 0; una lista con menos de 20 elementos indica el final. Cada publicación "
+                    + "incluye reacciones, reaccionado (por el usuario del JWT) y comentarios.")
     @APIResponse(responseCode = "200", description = "Lista de publicaciones; vacía si no hay más")
     @APIResponse(responseCode = "400", description = "Página inválida")
     @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
     @APIResponse(responseCode = "404", description = "USUARIO_NO_ENCONTRADO")
     public List<PostResponse> byAuthor(@PathParam("id") String id,
             @Parameter(description = "Página desde 0") @QueryParam("page") @DefaultValue("0") int page) {
-        return service.byAuthor(id, page);
+        return service.byAuthor(id, jwt.getSubject(), page);
     }
 }

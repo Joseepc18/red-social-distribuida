@@ -41,7 +41,8 @@ public class CommentResource {
                     + "comentario, que debe pertenecer a la misma publicación. El autor se obtiene del JWT.")
     @APIResponseSchema(value = CommentResponse.class, responseCode = "201",
             responseDescription = "Comentario creado")
-    @APIResponse(responseCode = "400", description = "VALIDACION: texto vacío o de más de 280 caracteres")
+    @APIResponse(responseCode = "400", description = "VALIDACION: texto vacío o de más de 280 caracteres, o "
+            + "\"El hilo alcanzó la profundidad máxima\" si respondeA ya está en el nivel 50")
     @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
     @APIResponse(responseCode = "404", description = "POST_NO_ENCONTRADO, COMENTARIO_NO_ENCONTRADO si respondeA "
             + "no existe o es de otra publicación, o USUARIO_NO_ENCONTRADO si el usuario ya no existe")

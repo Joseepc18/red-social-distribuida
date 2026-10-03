@@ -9,7 +9,17 @@ export const socialCopy = {
   followed: "Ahora sigues a",
   reach: "Hasta dónde llega tu red",
   reachIntro:
-    "Personas a las que llegas siguiendo conexiones, hasta tres pasos.",
+    "Las personas que sigues, las que ellas siguen y un nivel más, agrupadas según cuántas conexiones hay entre ustedes y con el camino por el que llegas a cada una.",
+  reachGroup: (distance: number, count: number) =>
+    (distance === 1
+      ? "Personas que sigues"
+      : distance === 2
+        ? "Las siguen personas que sigues"
+        : "A tres conexiones de ti") +
+    " (" +
+    count +
+    ")",
+  you: "Tú",
   reachEmpty: "Tu red aún no tiene conexiones. Empieza siguiendo a un amigo.",
   mutuals: "Seguidos en común",
   mutualsEmpty: "Todavía no siguen a las mismas personas.",

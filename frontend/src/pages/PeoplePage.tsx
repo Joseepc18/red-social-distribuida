@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { useCallback, useState } from "react";
+import { Link } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { useRemote } from "../hooks/useRemote";
 import { users } from "../services/users";
@@ -8,8 +8,7 @@ import { Input } from "../components/Input";
 import { Icon } from "../components/Icon";
 import { StatusMessage } from "../components/StatusMessage";
 import { UserCard } from "../components/UserCard";
-import { NetworkExplorer } from "../components/NetworkExplorer";
-import { copy, homeCopy, peopleCopy, profileCopy } from "../content/copy";
+import { copy, peopleCopy, profileCopy } from "../content/copy";
 import type { UserSummary } from "../types/api";
 
 type PeopleTab = "friends" | "followers" | "following";
@@ -23,7 +22,6 @@ interface PeoplePageProps {
 }
 
 export function PeoplePage(_props: PeoplePageProps) {
-  const location = useLocation();
   const { session } = useAuth();
   const userId = session?.user.id ?? "";
   const [tab, setTab] = useState<PeopleTab>("friends");
@@ -44,12 +42,6 @@ export function PeoplePage(_props: PeoplePageProps) {
     [userId],
   );
   const people = useRemote("people:" + userId, loadPeople);
-  useEffect(() => {
-    if (location.hash !== "#sugerencias" || people.loading) return;
-    document
-      .getElementById("sugerencias")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [location, people.loading]);
   const lists: Record<PeopleTab, UserSummary[]> = {
     friends: people.data?.friends ?? [],
     followers: people.data?.followers ?? [],
@@ -80,7 +72,7 @@ export function PeoplePage(_props: PeoplePageProps) {
           <h1>{peopleCopy.title}</h1>
         </div>
         <div className="people-heading-actions">
-          <Link to="/explorar#sugerencias" className="people-suggestions-link">
+          <Link to="/sugerencias" className="people-suggestions-link">
             <Icon name="people" />
             <span>{peopleCopy.suggestionsShortcut}</span>
           </Link>
@@ -155,14 +147,6 @@ export function PeoplePage(_props: PeoplePageProps) {
             </p>
           </Card>
         )}
-      </section>
-
-      <section
-        id="sugerencias"
-        className="people-suggestions"
-        aria-label={homeCopy.followTitle}
-      >
-        <NetworkExplorer onFollow={people.reload} />
       </section>
     </div>
   );

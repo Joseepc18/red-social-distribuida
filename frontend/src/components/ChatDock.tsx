@@ -89,7 +89,10 @@ export function ChatDock(_props: ChatDockProps) {
             />
           ) : (
             <div className="overflow-y-auto flex-1">
-              <ConversationList onSelect={state.openConversation} />
+              <ConversationList
+                onSelect={state.openConversation}
+                onFindFriends={() => setDockOpen(false)}
+              />
             </div>
           )}
         </div>

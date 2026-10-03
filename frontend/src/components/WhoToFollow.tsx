@@ -3,7 +3,6 @@ import { useSuggestions } from "../hooks/useSuggestions";
 import { Avatar } from "./Avatar";
 import { Button } from "./Button";
 import { StatusMessage } from "./StatusMessage";
-import { Icon } from "./Icon";
 import { copy, homeCopy } from "../content/copy";
 import { socialCopy } from "../content/social-copy";
 interface WhoToFollowProps {
@@ -65,19 +64,8 @@ export function WhoToFollow({ onFollow }: WhoToFollowProps) {
             {socialCopy.suggestionsEmpty}
           </p>
         )}
-        <Link to="/explorar#sugerencias" className="show-more">
+        <Link to="/sugerencias" className="show-more">
           {homeCopy.showSuggestions}
-        </Link>
-      </section>
-      <section className="community-card">
-        <span className="community-mark" aria-hidden="true">
-          <Icon name="people" />
-        </span>
-        <p className="eyebrow">{homeCopy.communityEyebrow}</p>
-        <h2>{homeCopy.communityTitle}</h2>
-        <p>{homeCopy.communityDescription}</p>
-        <Link to="/feed#buscar-personas" className="community-link">
-          {homeCopy.findPeople} <span aria-hidden="true">↗</span>
         </Link>
       </section>
       <p className="home-meta">{homeCopy.motto}</p>

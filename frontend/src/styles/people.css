@@ -180,13 +180,6 @@
 .people-results-heading h2 {
   font-size: 18px;
 }
-.people-suggestions {
-  margin-top: 56px;
-  scroll-margin-top: 100px;
-}
-.people-suggestions #suggestions-heading {
-  font-size: 21px;
-}
 @media (max-width: 1023px) {
   .people-page {
     max-width: 900px;
@@ -251,8 +244,5 @@
   .people-empty {
     min-height: 150px;
     border-radius: 16px;
-  }
-  .people-suggestions {
-    margin-top: 40px;
   }
 }

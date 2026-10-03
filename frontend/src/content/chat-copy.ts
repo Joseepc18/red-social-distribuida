@@ -3,6 +3,7 @@ export const chatCopy = {
   intro: "Conversa en tiempo real con tus compañeros.",
   conversations: "Conversaciones",
   emptyList: "Todavía no tienes conversaciones.",
+  findFriends: "Buscar amigos",
   emptyListHelp: "Visita el perfil de un compañero para iniciar un chat.",
   selectConversation: "Elige una conversación para ver los mensajes.",
   emptyStateTitle: "Tus mensajes",

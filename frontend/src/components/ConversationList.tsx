@@ -7,10 +7,12 @@ import { chatCopy } from "../content/chat-copy";
 interface ConversationListProps {
   readonly selected?: string | null;
   readonly onSelect: (id: string) => void;
+  readonly onFindFriends?: () => void;
 }
 export function ConversationList({
   selected,
   onSelect,
+  onFindFriends,
 }: ConversationListProps) {
   const state = useChat();
   if (state.loading) return <StatusMessage message={copy.loading} />;
@@ -26,8 +28,8 @@ export function ConversationList({
     return (
       <div className="p-6 space-y-4">
         <p className="muted text-sm">{chatCopy.emptyList}</p>
-        <Link className="text-link" to="/feed#buscar-personas">
-          Buscar amigos
+        <Link className="text-link" to="/explorar" onClick={onFindFriends}>
+          {chatCopy.findFriends}
         </Link>
       </div>
     );

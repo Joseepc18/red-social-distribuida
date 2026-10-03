@@ -1,9 +1,9 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router";
-import { copy, homeCopy, navigation } from "../content/copy";
+import { copy, homeCopy, navigation, peopleCopy } from "../content/copy";
 import { useAuth } from "../hooks/useAuth";
 import { ChatProvider } from "../context/ChatProvider";
 import { useChat } from "../context/chat-context";
-import { Brand } from "./Brand";
+import { AnimatedBrandMark } from "./AnimatedBrandMark";
 import { Icon } from "./Icon";
 import { AccountMenu } from "./AccountMenu";
 import { PushNotifications } from "./PushNotifications";
@@ -42,7 +42,7 @@ function LayoutContent() {
         {copy.skip}
       </a>
       <aside className="sidebar">
-        <Brand compact />
+        <AnimatedBrandMark className="sidebar-brand-mark" />
         <nav aria-label={copy.navigation} className="flex flex-col gap-2">
           {navigation.map((item) => (
             <NavLink
@@ -77,7 +77,7 @@ function LayoutContent() {
       <div className="app-main">
         <header className={"topbar " + (feed ? "feed-topbar" : "")}>
           <div className="mobile-brand">
-            <Brand compact />
+            <AnimatedBrandMark className="mobile-brand-mark" />
           </div>
           {feed ? (
             <nav aria-label={homeCopy.feedTabsLabel} className="feed-tabs">
@@ -101,7 +101,9 @@ function LayoutContent() {
               {navigation.find((item) => item.to === pathname)?.label ??
                 (pathname === "/configuracion"
                   ? "Configuración"
-                  : "Tu comunidad")}
+                  : pathname === "/sugerencias"
+                    ? peopleCopy.suggestionsShortcut
+                    : "Tu comunidad")}
             </span>
           )}
           <div className="topbar-account">

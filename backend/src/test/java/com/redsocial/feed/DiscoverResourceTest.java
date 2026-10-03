@@ -60,7 +60,9 @@ class DiscoverResourceTest {
                 .body("id", contains(expected))
                 .body("[0].autor.id", is(author)).body("[0].autor.username", is(author))
                 .body("[0].autor.nombre", is("Discover test"))
-                .body("[0].autor.size()", is(3)).body("[0].size()", is(8))
+                .body("[0].autor.size()", is(3)).body("[0].size()", is(11))
+                .body("[0].reacciones", is(1)).body("[0].reaccionado", is(false))
+                .body("[0].comentarios", is(0))
                 .body("[0].texto", is("Hola"))
                 .body("[0].fecha", startsWith("2026-01-01T00:00"))
                 .body("[0].amigosQueReaccionaron", is(1))
@@ -99,7 +101,35 @@ class DiscoverResourceTest {
     }
 
     @Test
-    void ranksByFriendCountThenDateThenIdAndReturnsAtMostTen() {
+    void discoveredPostsCarryTheSameCountersAsTheFeed() {
+        String viewer = user();
+        String friend = user();
+        String author = user();
+        follow(viewer, friend);
+        String post = post(author, "2026-01-01T00:00:00Z");
+        react(friend, post);
+        react(viewer, post);
+        String comment = UUID.randomUUID().toString();
+        String reply = UUID.randomUUID().toString();
+        ids.addAll(List.of(comment, reply));
+        driver.executableQuery("""
+                        MATCH (u:Usuario {id:$friend}), (p:Post {id:$post})
+                        CREATE (u)-[:COMENTA]->(c:Comentario {id:$comment, texto:'Hola', fecha:datetime()})-[:EN]->(p)
+                        CREATE (u)-[:COMENTA]->(:Comentario {id:$reply, texto:'Otra', fecha:datetime()})
+                               -[:RESPONDE_A]->(c)
+                        """).withParameters(Map.of("friend", friend, "post", post, "comment", comment, "reply", reply))
+                .execute();
+
+        discover(viewer).then().statusCode(200)
+                .body("id", contains(post))
+                .body("[0].reacciones", is(2))
+                .body("[0].reaccionado", is(true))
+                .body("[0].comentarios", is(2))
+                .body("[0].amigosQueReaccionaron", is(1));
+    }
+
+    @Test
+    void ranksByFriendCountThenDateThenIdAndPaginatesByTwenty() {
         String viewer = user();
         String first = user();
         String second = user();
@@ -107,7 +137,7 @@ class DiscoverResourceTest {
         follow(viewer, first);
         follow(viewer, second);
         List<String> tied = new ArrayList<>();
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 22; i++) {
             String post = post(author, "2026-03-01T00:00:00Z");
             react(first, post);
             tied.add(post);
@@ -120,11 +150,18 @@ class DiscoverResourceTest {
         }
         tied.sort(Comparator.reverseOrder());
         List<String> expected = new ArrayList<>(List.of(newerPopular, olderPopular));
-        expected.addAll(tied.subList(0, 8));
-        List<String> actual = discover(viewer).then().statusCode(200).body("size()", is(10))
+        expected.addAll(tied);
+        List<String> pageZero = discover(viewer, 0).then().statusCode(200).body("size()", is(20))
                 .body("[0].amigosQueReaccionaron", is(2)).body("[2].amigosQueReaccionaron", is(1))
                 .extract().path("id");
-        assertEquals(expected, actual);
+        List<String> pageOne = discover(viewer, 1).then().statusCode(200).body("size()", is(4))
+                .extract().path("id");
+        assertEquals(expected.subList(0, 20), pageZero);
+        assertEquals(expected.subList(20, 24), pageOne);
+        assertEquals(pageZero, discover(viewer).then().statusCode(200).extract().path("id"));
+        discover(viewer, 2).then().statusCode(200).body("size()", is(0));
+        discover(viewer, Integer.MAX_VALUE).then().statusCode(200).body("size()", is(0));
+        discover(viewer, -1).then().statusCode(400).body("error", is("VALIDACION"));
     }
 
     @Test
@@ -189,13 +226,17 @@ class DiscoverResourceTest {
                 .body("paths.'/api/descubrir'.get.description", containsString("Consulta C7"))
                 .body("paths.'/api/descubrir'.get.security[0]", hasKey("SecurityScheme"))
                 .body("paths.'/api/descubrir'.get.responses.'200'.content.'application/json'.schema.type", is("array"))
-                .body("paths.'/api/descubrir'.get.responses.'200'.content.'application/json'.schema.maxItems", is(10))
+                .body("paths.'/api/descubrir'.get.parameters.find { it.name == 'page' }.in", is("query"))
+                .body("paths.'/api/descubrir'.get.responses.'400'", notNullValue())
                 .body("paths.'/api/descubrir'.get.responses.'200'.content.'application/json'.schema.items.'$ref'",
                         is("#/components/schemas/DiscoverResponse"))
                 .body("paths.'/api/descubrir'.get.responses.'401'", notNullValue())
                 .body("paths.'/api/descubrir'.get.responses.'404'", notNullValue())
                 .body("components.schemas.DiscoverResponse.properties.amigosQueReaccionaron.type", is("integer"))
-                .body("components.schemas.DiscoverResponse.properties.mediaUrl.type", is("string"));
+                .body("components.schemas.DiscoverResponse.properties.mediaUrl.type", is("string"))
+                .body("components.schemas.DiscoverResponse.properties.reacciones.type", is("integer"))
+                .body("components.schemas.DiscoverResponse.properties.reaccionado.type", is("boolean"))
+                .body("components.schemas.DiscoverResponse.properties.comentarios.type", is("integer"));
     }
 
     private String user() {
@@ -235,5 +276,9 @@ class DiscoverResourceTest {
 
     private static Response discover(String viewer) {
         return given().auth().oauth2(Jwt.subject(viewer).sign()).get("/api/descubrir");
+    }
+
+    private static Response discover(String viewer, int page) {
+        return given().auth().oauth2(Jwt.subject(viewer).sign()).queryParam("page", page).get("/api/descubrir");
     }
 }

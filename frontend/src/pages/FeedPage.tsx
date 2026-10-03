@@ -3,10 +3,12 @@ import { useLocation, useSearchParams } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { PostComposer } from "../components/PostComposer";
 import { PostList } from "../components/PostList";
-import { DiscoverList } from "../components/DiscoverList";
 import { WhoToFollow } from "../components/WhoToFollow";
 import { HomePeopleSearch } from "../components/HomePeopleSearch";
 import { feedRefreshEvent } from "../events/feed-events";
+import { homeCopy } from "../content/copy";
+import { postsCopy } from "../content/posts-copy";
+import type { DiscoveredPost } from "../services/posts";
 interface FeedPageProps {
   readonly children?: never;
 }
@@ -33,7 +35,26 @@ export function FeedPage(_props: FeedPageProps) {
         <h1 className="sr-only">Inicio</h1>
         <PostComposer key={session?.token} onPublished={refresh} />
         {forYou ? (
-          <DiscoverList key={session?.token + ":" + version} />
+          <section
+            aria-label={homeCopy.suggestedPosts}
+            className="timeline-posts"
+          >
+            <PostList<DiscoveredPost>
+              key={session?.token + ":" + version}
+              path="/descubrir"
+              renderContext={(post) => (
+                <p className="discovery-reason">
+                  {postsCopy.reactedByFollowing(post.amigosQueReaccionaron)}
+                </p>
+              )}
+              empty={
+                <div className="empty-panel p-6">
+                  <h2>{postsCopy.discover}</h2>
+                  <p className="muted max-w-sm">{postsCopy.discoverEmpty}</p>
+                </div>
+              }
+            />
+          </section>
         ) : (
           <div className="timeline-posts">
             <PostList key={session?.token + ":" + version} path="/feed" feed />

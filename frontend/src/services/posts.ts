@@ -3,8 +3,11 @@ import type { Comment, Post } from "../types/posts";
 
 export const POST_PAGE_SIZE = 20;
 export const posts = {
-  page: (path: string, page: number, signal: AbortSignal) =>
-    api<readonly Post[]>(path + "?page=" + page, { signal }),
+  page: <T extends Post = Post>(
+    path: string,
+    page: number,
+    signal: AbortSignal,
+  ) => api<readonly T[]>(path + "?page=" + page, { signal }),
   find: (id: string, signal: AbortSignal) =>
     api<Post>("/posts/" + encodeURIComponent(id), { signal }),
   discover: (signal: AbortSignal) =>

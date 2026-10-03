@@ -3,8 +3,8 @@ import { posts, POST_PAGE_SIZE } from "../services/posts";
 import { errorMessage } from "../lib/api";
 import type { Post } from "../types/posts";
 
-export function usePostPages(path: string) {
-  const [items, setItems] = useState<readonly Post[]>([]);
+export function usePostPages<T extends Post = Post>(path: string) {
+  const [items, setItems] = useState<readonly T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [more, setMore] = useState(true);
@@ -17,7 +17,11 @@ export function usePostPages(path: string) {
     setLoading(true);
     setError("");
     try {
-      const batch = await posts.page(path, nextPage.current, controller.signal);
+      const batch = await posts.page<T>(
+        path,
+        nextPage.current,
+        controller.signal,
+      );
       if (controller.signal.aborted) return;
       setItems((previous) => {
         const unique = new Map(previous.map((post) => [post.id, post]));

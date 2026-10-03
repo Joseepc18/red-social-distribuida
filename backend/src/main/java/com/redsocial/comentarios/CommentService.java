@@ -30,9 +30,11 @@ public class CommentService {
         if (parentId == null) {
             return repository.comment(id, authorId, postId, text).orElseThrow(CommentService::postNotFound);
         }
-        return repository.reply(id, authorId, postId, parentId, text)
-                .orElseThrow(() -> ApiException.notFound("COMENTARIO_NO_ENCONTRADO",
-                        "El comentario no existe en esta publicación"));
+        long level = repository.level(parentId, postId).orElseThrow(CommentService::commentNotFound);
+        if (level >= CommentRepository.MAX_DEPTH) {
+            throw ApiException.badRequest("VALIDACION", "El hilo alcanzó la profundidad máxima");
+        }
+        return repository.reply(id, authorId, postId, parentId, text).orElseThrow(CommentService::commentNotFound);
     }
 
     public List<CommentResponse> thread(String postId) {
@@ -44,6 +46,10 @@ public class CommentService {
         if (!repository.postExists(id)) {
             throw postNotFound();
         }
+    }
+
+    private static ApiException commentNotFound() {
+        return ApiException.notFound("COMENTARIO_NO_ENCONTRADO", "El comentario no existe en esta publicación");
     }
 
     private static ApiException postNotFound() {

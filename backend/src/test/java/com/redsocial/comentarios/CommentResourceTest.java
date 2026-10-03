@@ -2,6 +2,7 @@ package com.redsocial.comentarios;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -9,7 +10,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -104,12 +107,19 @@ class CommentResourceTest {
         String reply = commentId(author, post, "Dos", first);
         commentId(reader, post, "Tres", reply);
 
+        driver.executableQuery("""
+                        MATCH (u:Usuario {id:$reader}), (p:Post {id:$post}) CREATE (u)-[:REACCIONA {tipo:'LIKE'}]->(p)
+                        """).withParameters(Map.of("reader", reader, "post", post)).execute();
+
         given().auth().oauth2(token(reader)).get("/api/posts/{id}", post).then().statusCode(200)
-                .body("comentarios", is(3));
+                .body("comentarios", is(3)).body("reacciones", is(1)).body("reaccionado", is(true));
+        given().auth().oauth2(token(author)).get("/api/posts/{id}", post).then().statusCode(200)
+                .body("reacciones", is(1)).body("reaccionado", is(false));
         given().auth().oauth2(token(reader)).get("/api/feed").then().statusCode(200)
                 .body("find { it.id == '%s' }.comentarios".formatted(post), is(3));
         given().auth().oauth2(token(reader)).get("/api/usuarios/{id}/posts", author).then().statusCode(200)
-                .body("find { it.id == '%s' }.comentarios".formatted(post), is(3));
+                .body("find { it.id == '%s' }.comentarios".formatted(post), is(3))
+                .body("find { it.id == '%s' }.reaccionado".formatted(post), is(true));
     }
 
     @Test
@@ -118,6 +128,35 @@ class CommentResourceTest {
 
         given().auth().oauth2(token(user)).multiPart("texto", "Hola").post("/api/posts").then().statusCode(201)
                 .body("comentarios", is(0));
+    }
+
+    @Test
+    void repliesStopAtTheMaximumDepthThatC8Reaches() {
+        String user = createUser();
+        String post = createPost(user);
+        List<String> chain = new ArrayList<>();
+        chain.add(commentId(user, post, "Nivel 0", null));
+        for (int level = 1; level <= CommentRepository.MAX_DEPTH; level++) {
+            String id = UUID.randomUUID().toString();
+            driver.executableQuery("""
+                            MATCH (u:Usuario {id:$user}), (padre:Comentario {id:$parent})
+                            CREATE (u)-[:COMENTA]->(:Comentario {id:$id, texto:$text, fecha:datetime()})
+                                   -[:RESPONDE_A]->(padre)
+                            """).withParameters(Map.of("user", user, "parent", chain.getLast(), "id", id,
+                    "text", "Nivel " + level)).execute();
+            chain.add(id);
+        }
+
+        comment(user, post, "Al límite", chain.get(CommentRepository.MAX_DEPTH - 1)).then().statusCode(201);
+        comment(user, post, "Demasiado profunda", chain.getLast()).then().statusCode(400)
+                .body("error", is("VALIDACION"))
+                .body("mensaje", is("El hilo alcanzó la profundidad máxima"));
+
+        int total = CommentRepository.MAX_DEPTH + 2;
+        thread(user, post).then().statusCode(200).body("size()", is(total))
+                .body("texto", hasItem("Al límite")).body("texto", not(hasItem("Demasiado profunda")));
+        given().auth().oauth2(token(user)).get("/api/posts/{id}", post).then().statusCode(200)
+                .body("comentarios", is(total));
     }
 
     @Test

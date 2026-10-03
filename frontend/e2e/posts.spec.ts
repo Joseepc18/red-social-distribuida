@@ -411,3 +411,56 @@ test("un hilo profundo no desborda el ancho en móvil", async ({ page }) => {
     );
   expect(new Set(indents.slice(1)).size).toBe(1);
 });
+
+test("Para ti usa la misma tarjeta que Siguiendo y pagina con Cargar más", async ({
+  page,
+}) => {
+  await setup(page);
+  const discovered = Array.from({ length: 23 }, (_, index) => ({
+    ...makePost(100 + index),
+    comentarios: index,
+    amigosQueReaccionaron: index < 3 ? 2 : 1,
+  }));
+  const pages: number[] = [];
+  await page.route("**/api/descubrir**", (route) => {
+    const number = Number(
+      new URL(route.request().url()).searchParams.get("page"),
+    );
+    pages.push(number);
+    return route.fulfill({
+      json: discovered.slice(number * 20, (number + 1) * 20),
+    });
+  });
+  await page.goto("/feed?vista=para-ti");
+
+  const section = page.getByRole("region", { name: "Publicaciones para ti" });
+  await expect(section.getByRole("article")).toHaveCount(20);
+  await expect(
+    section.getByText("Reaccionada por 2 personas que sigues"),
+  ).toHaveCount(3);
+  const first = section.getByRole("article").first();
+  await expect(first.getByRole("button", { name: /Me gusta/ })).toBeVisible();
+  await expect(
+    first.getByRole("link", { name: "0 comentarios" }),
+  ).toBeVisible();
+
+  await section
+    .getByRole("button", { name: "Cargar más publicaciones" })
+    .click();
+  await expect(section.getByRole("article")).toHaveCount(23);
+  await expect(
+    section.getByText("Has visto todas las publicaciones disponibles."),
+  ).toBeVisible();
+  // StrictMode mounts twice in development and aborts the first request for page 0.
+  expect([...new Set(pages)]).toEqual([0, 1]);
+});
+
+test("Para ti conserva su estado vacío propio", async ({ page }) => {
+  await setup(page);
+  await page.goto("/feed?vista=para-ti");
+
+  await expect(
+    page.getByText("Todavía no hay publicaciones para descubrir."),
+  ).toBeVisible();
+  await expect(page.getByText("Tu feed está por comenzar")).toHaveCount(0);
+});

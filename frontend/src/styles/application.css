@@ -386,9 +386,6 @@
 .timeline-posts > .space-y-5 > * + * {
   margin-top: 14px;
 }
-.timeline-posts > .discovered-post + .discovered-post {
-  margin-top: 14px;
-}
 .timeline-posts .card {
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -551,7 +548,7 @@
   font-size: 11px;
   font-weight: 650;
 }
-.discovered-post .card {
+.post-with-context .card {
   padding-top: 18px;
 }
 .home-aside {

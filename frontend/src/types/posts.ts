@@ -8,10 +8,10 @@ export interface Post {
   readonly mediaKey: string | null;
   readonly mediaTipo: string | null;
   readonly mediaUrl: string | null;
-  // Only the feed contract currently supplies reaction state.
+  // Every listing (feed, discover, detail and profile) sends the same counters;
+  // comentarios includes the replies. The card hides a counter that is missing.
   readonly reacciones?: number;
   readonly reaccionado?: boolean;
-  // Feed, detail and profile count every comment, replies included; discover does not.
   readonly comentarios?: number;
 }
 

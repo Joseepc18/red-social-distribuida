@@ -7,9 +7,44 @@ const FRAME_ID = 7;
 let reduceMotion = false;
 let requestFrame: Mock<(callback: FrameRequestCallback) => number>;
 let cancelFrame: Mock<(id: number) => void>;
+let intersectionCallback: IntersectionObserverCallback | undefined;
+
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = "0px";
+  readonly scrollMargin = "0px";
+  readonly thresholds = [0];
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn(() => []);
+
+  constructor(callback: IntersectionObserverCallback) {
+    intersectionCallback = callback;
+  }
+}
+
+function notifyIntersection(target: SVGSVGElement, isIntersecting: boolean) {
+  const rect = target.getBoundingClientRect();
+  intersectionCallback?.(
+    [
+      {
+        boundingClientRect: rect,
+        intersectionRect: rect,
+        intersectionRatio: isIntersecting ? 1 : 0,
+        isIntersecting,
+        rootBounds: null,
+        target,
+        time: 0,
+      },
+    ],
+    {} as IntersectionObserver,
+  );
+}
 
 beforeEach(() => {
   reduceMotion = false;
+  intersectionCallback = undefined;
   requestFrame = vi.fn((_callback: FrameRequestCallback) => FRAME_ID);
   cancelFrame = vi.fn((_id: number) => undefined);
   vi.stubGlobal(
@@ -23,6 +58,7 @@ beforeEach(() => {
   );
   vi.stubGlobal("requestAnimationFrame", requestFrame);
   vi.stubGlobal("cancelAnimationFrame", cancelFrame);
+  vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 });
 
 afterEach(() => {
@@ -62,11 +98,25 @@ it("moves the nodes and redraws the links that join them on each frame", () => {
   const link = container.querySelector(".brand-mark-link")!;
   const before = [node.getAttribute("cx"), link.getAttribute("d")];
 
+  notifyIntersection(container.querySelector("svg")!, true);
   const tick = requestFrame.mock.calls[0][0];
   tick(1500);
 
   expect([node.getAttribute("cx"), link.getAttribute("d")]).not.toEqual(before);
   expect(requestFrame).toHaveBeenCalledTimes(2);
+});
+
+it("pauses the animation when the logo is outside the viewport", () => {
+  const { container } = renderMark();
+  const target = container.querySelector("svg")!;
+
+  notifyIntersection(target, true);
+  expect(requestFrame).toHaveBeenCalledTimes(1);
+
+  notifyIntersection(target, false);
+
+  expect(cancelFrame).toHaveBeenCalledWith(FRAME_ID);
+  expect(requestFrame).toHaveBeenCalledTimes(1);
 });
 
 it("does not schedule any frame when reduced motion is requested", () => {
@@ -77,7 +127,9 @@ it("does not schedule any frame when reduced motion is requested", () => {
 });
 
 it("cancels the pending frame when unmounted", () => {
-  const { unmount } = renderMark();
+  const { container, unmount } = renderMark();
+
+  notifyIntersection(container.querySelector("svg")!, true);
 
   unmount();
 

@@ -10,47 +10,61 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 
+import com.redsocial.comentarios.CommentRepository;
+
 /** Explicit Cypher projections: no user credentials, binaries or public URLs in the graph. */
 @ApplicationScoped
 public class PostRepository {
-    private static final String FIELDS = """
+    /**
+     * The only projection of a post, shared by C1, C7, the detail and the profile: public fields and
+     * counters. Needs {@code p} (the post), {@code autor} (its author) and the {@code $viewerId} parameter.
+     * A new field is added here once and reaches every listing.
+     */
+    public static final String PUBLIC_FIELDS = """
             p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
             p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
-            u.id AS authorId, u.username AS username, u.nombre AS nombre
-            """;
+            autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
+            COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
+            EXISTS { (:Usuario {id: $viewerId})-[:REACCIONA]->(p) } AS reaccionado,
+            %s AS comentarios""".formatted(CommentRepository.COUNT_OF_POST);
     private final Driver driver;
 
     public PostRepository(Driver driver) {
         this.driver = driver;
     }
 
+    /**
+     * @param reacted whether the viewer reacted to the post
+     * @param comments every comment of the post, replies included
+     */
     public record StoredPost(String id, String text, String date, PostResponse.Author author,
-            String mediaKey, String mediaType) {
+            String mediaKey, String mediaType, long reactions, boolean reacted, long comments) {
     }
 
     /** execute() consumes the result and commits before returning to the event producer. */
     public Optional<StoredPost> create(String id, String authorId, String text, String key, String type) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("id", id);
-        parameters.put("authorId", authorId);
+        parameters.put("viewerId", authorId);
         parameters.put("text", text);
         parameters.put("key", key);
         parameters.put("type", type);
         return driver.executableQuery("""
-                        MATCH (u:Usuario {id: $authorId})
-                        CREATE (u)-[:PUBLICA]->(p:Post {id: $id, texto: $text, fecha: datetime(),
-                                                      mediaKey: $key, mediaTipo: $type})
+                        MATCH (autor:Usuario {id: $viewerId})
+                        CREATE (autor)-[:PUBLICA]->(p:Post {id: $id, texto: $text, fecha: datetime(),
+                                                          mediaKey: $key, mediaTipo: $type})
                         RETURN %s
-                        """.formatted(FIELDS))
+                        """.formatted(PUBLIC_FIELDS))
                 .withParameters(parameters).execute().records().stream().findFirst().map(PostRepository::map);
     }
 
-    public Optional<StoredPost> find(String id) {
+    public Optional<StoredPost> find(String id, String viewerId) {
         return driver.executableQuery("""
-                        MATCH (u:Usuario)-[:PUBLICA]->(p:Post {id: $id})
+                        MATCH (autor:Usuario)-[:PUBLICA]->(p:Post {id: $id})
                         RETURN %s
-                        """.formatted(FIELDS))
-                .withParameters(Map.of("id", id)).execute().records().stream().findFirst().map(PostRepository::map);
+                        """.formatted(PUBLIC_FIELDS))
+                .withParameters(Map.of("id", id, "viewerId", viewerId))
+                .execute().records().stream().findFirst().map(PostRepository::map);
     }
 
     public boolean exists(String id) {
@@ -88,21 +102,26 @@ public class PostRepository {
                 .withParameters(Map.of("id", id)).execute().records().getFirst().get("exists").asBoolean();
     }
 
-    public List<StoredPost> byAuthor(String id, int page, int size) {
+    public List<StoredPost> byAuthor(String id, String viewerId, int page, int size) {
         return driver.executableQuery("""
-                        MATCH (u:Usuario {id: $id})-[:PUBLICA]->(p:Post)
-                        RETURN %s
+                        MATCH (autor:Usuario {id: $id})-[:PUBLICA]->(p:Post)
+                        WITH autor, p
                         ORDER BY p.fecha DESC, p.id DESC
                         SKIP $skip LIMIT $limit
-                        """.formatted(FIELDS))
-                .withParameters(Map.of("id", id, "skip", (long) page * size, "limit", size))
+                        RETURN %s
+                        ORDER BY p.fecha DESC, p.id DESC
+                        """.formatted(PUBLIC_FIELDS))
+                .withParameters(Map.of("id", id, "viewerId", viewerId, "skip", (long) page * size, "limit", size))
                 .execute().records().stream().map(PostRepository::map).toList();
     }
 
-    private static StoredPost map(Record row) {
+    /** The only mapping from a {@link #PUBLIC_FIELDS} row to a post. */
+    public static StoredPost map(Record row) {
         return new StoredPost(row.get("id").asString(), row.get("texto").asString(), row.get("fecha").asString(),
-                new PostResponse.Author(row.get("authorId").asString(), row.get("username").asString(),
+                new PostResponse.Author(row.get("autorId").asString(), row.get("username").asString(),
                         row.get("nombre").asString()),
-                row.get("mediaKey").asString(null), row.get("mediaTipo").asString(null));
+                row.get("mediaKey").asString(null), row.get("mediaTipo").asString(null),
+                row.get("reacciones").asLong(), row.get("reaccionado").asBoolean(),
+                row.get("comentarios").asLong());
     }
 }

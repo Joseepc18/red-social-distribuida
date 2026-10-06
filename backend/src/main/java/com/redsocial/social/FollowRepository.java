@@ -84,13 +84,17 @@ public class FollowRepository {
             ORDER BY username
             """;
 
-    // C4: users reachable through up to 3 SIGUE hops, with the shortest distance to each.
-    // The upper bound is fixed because Cypher cannot parameterize it.
+    // C4: users reachable through up to 3 SIGUE hops, with the shortest distance to each and the
+    // usernames in between. Among equally short paths it keeps the first by those usernames, so the
+    // answer is deterministic. The upper bound is fixed because Cypher cannot parameterize it.
     static final String REACH = """
             MATCH camino = (yo:Usuario {id: $userId})-[:SIGUE*1..3]->(u:Usuario)
             WHERE u <> yo
-            WITH u, min(length(camino)) AS distancia
-            RETURN u.id AS id, u.username AS username, u.nombre AS nombre, distancia
+            WITH u, length(camino) AS distancia, [n IN nodes(camino)[1..-1] | n.username] AS via
+            ORDER BY distancia, via
+            WITH u, collect({distancia: distancia, via: via})[0] AS masCorto
+            RETURN u.id AS id, u.username AS username, u.nombre AS nombre,
+                   masCorto.distancia AS distancia, masCorto.via AS via
             ORDER BY distancia, username
             """;
 
@@ -152,7 +156,8 @@ public class FollowRepository {
                         r.get("id").asString(),
                         r.get("username").asString(),
                         r.get("nombre").asString(null),
-                        r.get("distancia").asLong()))
+                        r.get("distancia").asLong(),
+                        r.get("via").asList(Value::asString)))
                 .toList();
     }
 

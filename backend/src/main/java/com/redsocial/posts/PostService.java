@@ -7,7 +7,6 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import com.redsocial.media.ImageValidator;
@@ -24,15 +23,15 @@ public class PostService {
     private final MediaStorage storage;
     private final ImageValidator images;
     private final Event<PostCreated> events;
-    private final String publicBase;
+    private final PostAssembler assembler;
 
     public PostService(PostRepository repository, MediaStorage storage, ImageValidator images,
-            Event<PostCreated> events, @ConfigProperty(name = "app.media.public-url") String publicBase) {
+            Event<PostCreated> events, PostAssembler assembler) {
         this.repository = repository;
         this.storage = storage;
         this.images = images;
         this.events = events;
-        this.publicBase = publicBase.endsWith("/") ? publicBase : publicBase + "/";
+        this.assembler = assembler;
     }
 
     public PostResponse create(String authorId, String text, Path file, String declaredType) {
@@ -79,11 +78,11 @@ public class PostService {
             // A committed post remains successful even if event dispatch is unavailable.
             LOG.errorf(failure, "PostCreated dispatch failed for post %s", id);
         }
-        return response(stored);
+        return assembler.response(stored);
     }
 
-    public PostResponse find(String id) {
-        return response(repository.find(id).orElseThrow(PostService::postNotFound));
+    public PostResponse find(String id, String viewerId) {
+        return assembler.response(repository.find(id, viewerId).orElseThrow(PostService::postNotFound));
     }
 
     public void react(String userId, String postId) {
@@ -98,19 +97,14 @@ public class PostService {
         repository.unreact(userId, postId);
     }
 
-    public List<PostResponse> byAuthor(String authorId, int page) {
+    public List<PostResponse> byAuthor(String authorId, String viewerId, int page) {
         if (page < 0) {
             throw ApiException.badRequest("VALIDACION", "page no puede ser negativo");
         }
         if (!repository.authorExists(authorId)) {
             throw missingUser();
         }
-        return repository.byAuthor(authorId, page, PAGE_SIZE).stream().map(this::response).toList();
-    }
-
-    private PostResponse response(PostRepository.StoredPost post) {
-        return new PostResponse(post.id(), post.text(), post.date(), post.author(), post.mediaKey(), post.mediaType(),
-                post.mediaKey() == null ? null : publicBase + post.mediaKey());
+        return repository.byAuthor(authorId, viewerId, page, PAGE_SIZE).stream().map(assembler::response).toList();
     }
 
     private void cleanup(String key) {

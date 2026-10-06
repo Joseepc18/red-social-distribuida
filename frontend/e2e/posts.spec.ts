@@ -298,3 +298,169 @@ test("reaccionar actualiza estado y contador solo tras confirmar el servidor", a
   await expect(like).toContainText("1 reacción");
   expect(methods).toEqual(["POST", "DELETE", "POST"]);
 });
+
+const makeComment = (
+  id: string,
+  texto: string,
+  autor: typeof user,
+  respondeA: string | null = null,
+) => ({
+  id,
+  texto,
+  fecha: "2026-10-02T10:00:00Z",
+  autor,
+  respondeA,
+  respuestas: 0,
+});
+
+async function routeComments(
+  page: Page,
+  initial: ReturnType<typeof makeComment>[],
+) {
+  const sent: unknown[] = [];
+  await page.route("**/api/posts/p1/comentarios", async (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: initial });
+    const body = route.request().postDataJSON() as {
+      texto: string;
+      respondeA: string | null;
+    };
+    sent.push(body);
+    return route.fulfill({
+      status: 201,
+      json: makeComment("n" + sent.length, body.texto, user, body.respondeA),
+    });
+  });
+  return sent;
+}
+
+test("comentar y responder en el detalle actualiza hilo y contador sin recargar", async ({
+  page,
+}) => {
+  await setup(page, [{ ...makePost(1), comentarios: 2 }]);
+  const sent = await routeComments(page, [
+    makeComment("c1", "¿Cuándo es la entrega?", author),
+    makeComment("c2", "El viernes.", user, "c1"),
+  ]);
+  await page.goto("/feed");
+  await page.getByRole("link", { name: "2 comentarios" }).click();
+  await expect(page).toHaveURL(/\/posts\/p1$/);
+
+  await expect(page.getByText("¿Cuándo es la entrega?")).toBeVisible();
+  await expect(page.getByText("El viernes.")).toHaveCount(0);
+  await page.getByRole("button", { name: "Ver 1 respuesta" }).click();
+  await expect(page.getByText("El viernes.")).toBeVisible();
+
+  await page.getByLabel("Texto del comentario").fill("Gracias por avisar");
+  await page.getByRole("button", { name: "Comentar" }).click();
+  await expect(
+    page.getByText("Gracias por avisar", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("3 comentarios")).toBeVisible();
+  await expect(page.getByLabel("Texto del comentario")).toHaveValue("");
+
+  await page
+    .getByRole("article", { name: author.nombre })
+    .getByRole("button", { name: "Responder" })
+    .click();
+  const reply = page.getByLabel("Respuesta a " + author.nombre);
+  await reply.fill("Yo llevo las diapositivas");
+  await page
+    .locator("form", { has: reply })
+    .getByRole("button", { name: "Responder" })
+    .click();
+  await expect(
+    page.getByText("Yo llevo las diapositivas", { exact: true }),
+  ).toBeVisible();
+  await expect(reply).toHaveCount(0);
+  await expect(page.getByText("4 comentarios")).toBeVisible();
+
+  expect(sent).toEqual([
+    { texto: "Gracias por avisar", respondeA: null },
+    { texto: "Yo llevo las diapositivas", respondeA: "c1" },
+  ]);
+});
+
+test("un hilo profundo no desborda el ancho en móvil", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setup(page, [{ ...makePost(1), comentarios: 8 }]);
+  const chain = Array.from({ length: 8 }, (_, level) =>
+    makeComment(
+      "d" + level,
+      "Respuesta de nivel " + level + " con un texto algo largo para el hilo",
+      level % 2 ? user : author,
+      level ? "d" + (level - 1) : null,
+    ),
+  );
+  await routeComments(page, chain);
+  await page.goto("/posts/p1");
+
+  for (let level = 0; level < 7; level++) {
+    await page.getByRole("button", { name: "Ver 1 respuesta" }).click();
+  }
+  await expect(page.getByText(/nivel 7/)).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const indents = await page
+    .getByText(/nivel [3-7] /)
+    .evaluateAll((items) =>
+      items.map((item) => Math.round(item.getBoundingClientRect().left)),
+    );
+  expect(new Set(indents.slice(1)).size).toBe(1);
+});
+
+test("Para ti usa la misma tarjeta que Siguiendo y pagina con Cargar más", async ({
+  page,
+}) => {
+  await setup(page);
+  const discovered = Array.from({ length: 23 }, (_, index) => ({
+    ...makePost(100 + index),
+    comentarios: index,
+    amigosQueReaccionaron: index < 3 ? 2 : 1,
+  }));
+  const pages: number[] = [];
+  await page.route("**/api/descubrir**", (route) => {
+    const number = Number(
+      new URL(route.request().url()).searchParams.get("page"),
+    );
+    pages.push(number);
+    return route.fulfill({
+      json: discovered.slice(number * 20, (number + 1) * 20),
+    });
+  });
+  await page.goto("/feed?vista=para-ti");
+
+  const section = page.getByRole("region", { name: "Publicaciones para ti" });
+  await expect(section.getByRole("article")).toHaveCount(20);
+  await expect(
+    section.getByText("Reaccionada por 2 personas que sigues"),
+  ).toHaveCount(3);
+  const first = section.getByRole("article").first();
+  await expect(first.getByRole("button", { name: /Me gusta/ })).toBeVisible();
+  await expect(
+    first.getByRole("link", { name: "0 comentarios" }),
+  ).toBeVisible();
+
+  await section
+    .getByRole("button", { name: "Cargar más publicaciones" })
+    .click();
+  await expect(section.getByRole("article")).toHaveCount(23);
+  await expect(
+    section.getByText("Has visto todas las publicaciones disponibles."),
+  ).toBeVisible();
+  // StrictMode mounts twice in development and aborts the first request for page 0.
+  expect([...new Set(pages)]).toEqual([0, 1]);
+});
+
+test("Para ti conserva su estado vacío propio", async ({ page }) => {
+  await setup(page);
+  await page.goto("/feed?vista=para-ti");
+
+  await expect(
+    page.getByText("Todavía no hay publicaciones para descubrir."),
+  ).toBeVisible();
+  await expect(page.getByText("Tu feed está por comenzar")).toHaveCount(0);
+});

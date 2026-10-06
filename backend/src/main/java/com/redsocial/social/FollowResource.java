@@ -115,7 +115,9 @@ public class FollowResource {
     @Path("me/alcance")
     @Operation(summary = "Usuarios alcanzables",
             description = "Usuarios a los que llegas siguiendo relaciones SIGUE hasta 3 niveles, con la distancia "
-                    + "mínima a cada uno. Ordenados por distancia y luego por nombre de usuario.")
+                    + "mínima a cada uno y en via los usernames intermedios de ese camino, en orden (vacía a "
+                    + "distancia 1). Si hay varios caminos igual de cortos, devuelve el primero ordenado por "
+                    + "esos usernames. Ordenados por distancia y luego por nombre de usuario.")
     @APIResponse(responseCode = "200", description = "Lista de usuarios alcanzables (puede estar vacía)")
     @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))

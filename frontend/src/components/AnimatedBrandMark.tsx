@@ -92,6 +92,7 @@ function orbitAt(name: NodeName, seconds: number): Point {
 export function AnimatedBrandMark({ className = "" }: AnimatedBrandMarkProps) {
   // Desktop and mobile render this at the same time: ids must be unique per instance.
   const gradientId = useId();
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const nodeRefs = useRef<Partial<Record<NodeName, SVGCircleElement | null>>>(
     {},
   );
@@ -99,9 +100,14 @@ export function AnimatedBrandMark({ className = "" }: AnimatedBrandMarkProps) {
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let frame = 0;
+    let frame: number | null = null;
+    let visible = typeof IntersectionObserver === "undefined";
+    let disposed = false;
+
     // Moves the SVG attributes directly: no React state, so nothing re-renders per frame.
-    const tick = (now: number) => {
+    function tick(now: number) {
+      frame = null;
+      if (!visible || document.hidden || disposed) return;
       const seconds = now / 1000;
       const points = {} as Record<NodeName, Point>;
       for (const name of NODE_NAMES) {
@@ -116,10 +122,47 @@ export function AnimatedBrandMark({ className = "" }: AnimatedBrandMarkProps) {
           linkPath(points[from], points[to]),
         ),
       );
-      frame = window.requestAnimationFrame(tick);
+      schedule();
+    }
+
+    function schedule() {
+      if (frame === null && visible && !document.hidden && !disposed) {
+        frame = window.requestAnimationFrame(tick);
+      }
+    }
+
+    function stop() {
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame);
+        frame = null;
+      }
+    }
+
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(([entry]) => {
+            visible = Boolean(
+              entry?.isIntersecting && entry.intersectionRatio > 0,
+            );
+            if (visible) schedule();
+            else stop();
+          });
+    if (observer && svgRef.current) observer.observe(svgRef.current);
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) stop();
+      else schedule();
     };
-    frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    schedule();
+
+    return () => {
+      disposed = true;
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      stop();
+    };
   }, []);
 
   return (
@@ -129,6 +172,7 @@ export function AnimatedBrandMark({ className = "" }: AnimatedBrandMarkProps) {
       aria-label={copy.brand}
     >
       <svg
+        ref={svgRef}
         className="brand-mark-svg"
         viewBox="120 100 180 220"
         aria-hidden="true"

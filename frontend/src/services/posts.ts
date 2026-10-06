@@ -1,10 +1,13 @@
 import { api } from "../lib/api";
-import type { Post } from "../types/posts";
+import type { Comment, Post } from "../types/posts";
 
 export const POST_PAGE_SIZE = 20;
 export const posts = {
-  page: (path: string, page: number, signal: AbortSignal) =>
-    api<readonly Post[]>(path + "?page=" + page, { signal }),
+  page: <T extends Post = Post>(
+    path: string,
+    page: number,
+    signal: AbortSignal,
+  ) => api<readonly T[]>(path + "?page=" + page, { signal }),
   find: (id: string, signal: AbortSignal) =>
     api<Post>("/posts/" + encodeURIComponent(id), { signal }),
   discover: (signal: AbortSignal) =>
@@ -18,6 +21,16 @@ export const posts = {
   setReaction: (id: string, reacted: boolean) =>
     api<void>("/posts/" + encodeURIComponent(id) + "/reacciones", {
       method: reacted ? "DELETE" : "POST",
+    }),
+  comments: (id: string, signal: AbortSignal) =>
+    api<readonly Comment[]>(
+      "/posts/" + encodeURIComponent(id) + "/comentarios",
+      { signal },
+    ),
+  comment: (id: string, text: string, replyTo: string | null) =>
+    api<Comment>("/posts/" + encodeURIComponent(id) + "/comentarios", {
+      method: "POST",
+      body: JSON.stringify({ texto: text.trim(), respondeA: replyTo }),
     }),
 };
 

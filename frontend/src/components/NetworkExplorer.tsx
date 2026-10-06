@@ -7,6 +7,7 @@ import { StatusMessage } from "./StatusMessage";
 import { SuggestionCard } from "./SuggestionCard";
 import { UserCard } from "./UserCard";
 import { Card } from "./Card";
+import { connectionChain, groupByDistance } from "../lib/reach";
 interface NetworkExplorerProps {
   readonly onFollow?: () => void;
   readonly children?: never;
@@ -63,16 +64,33 @@ export function NetworkExplorer({ onFollow }: NetworkExplorerProps) {
           ) : reach.error ? (
             <StatusMessage message={reach.error} error onRetry={reach.reload} />
           ) : reach.data?.length ? (
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {reach.data.map((user) => (
-                <li key={user.id} className="min-w-0">
-                  <p className="eyebrow mb-2">
-                    {socialCopy.distance(user.distancia)}
-                  </p>
-                  <UserCard user={user} compact />
-                </li>
+            <div className="space-y-6">
+              {groupByDistance(reach.data).map((group) => (
+                <section
+                  key={group.distance}
+                  aria-labelledby={"reach-group-" + group.distance}
+                >
+                  <h3
+                    id={"reach-group-" + group.distance}
+                    className="mb-3 font-bold"
+                  >
+                    {socialCopy.reachGroup(group.distance, group.users.length)}
+                  </h3>
+                  <ul className="grid gap-4 sm:grid-cols-2">
+                    {group.users.map((user) => (
+                      <li key={user.id} className="min-w-0">
+                        {group.distance > 1 && (
+                          <p className="muted mb-2 break-words text-xs">
+                            {connectionChain(user)}
+                          </p>
+                        )}
+                        <UserCard user={user} compact />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           ) : (
             <StatusMessage message={socialCopy.reachEmpty} />
           )}

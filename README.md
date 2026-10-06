@@ -12,7 +12,7 @@ Proyecto de la asignatura **Sistemas Distribuidos y Cloud Computing**.
 
 ## Descripción
 
-Aplicación web distribuida con las funcionalidades esenciales de una red social: registro e inicio de sesión, perfiles, seguimiento entre usuarios, publicaciones con imagen, feed, reacciones, recomendaciones, chat en tiempo real y notificaciones push.
+Aplicación web distribuida con las funcionalidades esenciales de una red social: registro e inicio de sesión, perfiles, seguimiento entre usuarios, publicaciones con imagen, feed, reacciones, comentarios con hilos de respuestas, recomendaciones, chat en tiempo real y notificaciones push.
 
 Cada componente tiene una responsabilidad propia. El navegador se comunica por REST, WebSocket y Web Push; los datos y sus relaciones viven en Neo4j; los archivos, en un almacenamiento compatible con S3 (MinIO). Dos instancias del backend se coordinan mediante Redis, y todo el entorno se levanta con Docker Compose.
 
@@ -160,7 +160,7 @@ Para ver el balanceo, repetir `curl http://localhost:8080/api/info`: responden `
 
 ### Datos de demostración
 
-`scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen) y reacciones **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j y MinIO.
+`scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen), reacciones y comentarios **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j y MinIO.
 
 ```sh
 docker compose down -v
@@ -168,7 +168,7 @@ docker compose up -d --build
 node scripts/seed-demo.mjs
 ```
 
-Todos los usuarios usan la contraseña `Demo2026!`. `ana` es la usuaria principal: sigue a `bruno` y `carla`. `diego` es su mejor sugerencia (2 conexiones en común), `gabriela` y `hector` están a 3 niveles, `irene` a 4 grados y `julian` no tiene conexiones.
+Todos los usuarios usan la contraseña `Demo2026!`. `ana` es la usuaria principal: sigue a `bruno` y `carla`. `diego` es su mejor sugerencia (2 conexiones en común), `gabriela` y `hector` están a 3 niveles, `irene` a 4 grados y `julian` no tiene conexiones. La publicación de `carla` sobre el parcial tiene un hilo de comentarios de 3 niveles (C8).
 
 ### Acceso remoto por HTTPS
 
@@ -205,6 +205,9 @@ flowchart LR
     U1(("Usuario")) -- "SIGUE {desde}" --> U2(("Usuario"))
     U1 -- "PUBLICA" --> P["Post"]
     U1 -- "REACCIONA {tipo, fecha}" --> P
+    U1 -- "COMENTA" --> K["Comentario"]
+    K -- "EN" --> P
+    K -- "RESPONDE_A" --> K
     U1 -- "PARTICIPA" --> C["Conversacion"]
     U1 -- "ENVIA" --> M["Mensaje"]
     M -- "PERTENECE_A" --> C
@@ -215,6 +218,7 @@ flowchart LR
 |---|---|
 | `Usuario` | `id` (UUID), `username`, `email`, `passwordHash`, `nombre`, `bio`, `creadoEn` |
 | `Post` | `id`, `texto`, `fecha`, `mediaKey?`, `mediaTipo?` |
+| `Comentario` | `id`, `texto`, `fecha` |
 | `Conversacion` | `id`, `creadaEn` |
 | `Mensaje` | `id`, `texto`, `fecha` |
 | `SuscripcionPush` | `endpoint`, `p256dh`, `auth`, `creadaEn` |
@@ -224,6 +228,8 @@ flowchart LR
 | `(:Usuario)-[:SIGUE {desde}]->(:Usuario)` | Relación social principal |
 | `(:Usuario)-[:PUBLICA]->(:Post)` | Autoría |
 | `(:Usuario)-[:REACCIONA {tipo, fecha}]->(:Post)` | Reacción, una por usuario y post |
+| `(:Usuario)-[:COMENTA]->(:Comentario)-[:EN]->(:Post)` | Autor de un comentario directo a la publicación |
+| `(:Usuario)-[:COMENTA]->(:Comentario)-[:RESPONDE_A]->(:Comentario)` | Respuesta a otro comentario; solo apunta a su comentario padre |
 | `(:Usuario)-[:PARTICIPA]->(:Conversacion)` | Integrantes de un chat uno a uno |
 | `(:Usuario)-[:ENVIA]->(:Mensaje)-[:PERTENECE_A]->(:Conversacion)` | Autor e historial de cada mensaje |
 | `(:Usuario)-[:TIENE_SUSCRIPCION]->(:SuscripcionPush)` | Dispositivos que reciben Web Push |
@@ -251,8 +257,9 @@ Todas las rutas usan el prefijo `/api` y requieren `Authorization: Bearer <JWT>`
 | POST | `/posts` | Crea una publicación (`multipart/form-data`: `texto`, `archivo?`) |
 | GET | `/posts/{id}` | Detalle de una publicación (destino de la notificación) |
 | POST, DELETE | `/posts/{id}/reacciones` | Reaccionar y quitar la reacción |
+| GET, POST | `/posts/{id}/comentarios` | Hilo de comentarios (C8) y comentar o responder con `{ texto, respondeA? }` |
 | GET | `/feed?page=` | Feed personalizado (C1) |
-| GET | `/descubrir` | Publicaciones que reaccionó mi red (C7) |
+| GET | `/descubrir?page=` | Publicaciones que reaccionó mi red (C7), en páginas de 20 como el feed |
 | GET, POST | `/conversaciones` | Mis conversaciones e iniciar una con `{ usuarioId }` |
 | GET | `/conversaciones/{id}/mensajes?antes=` | Historial paginado del chat |
 | GET | `/push/clave-publica` | Clave pública VAPID (público) |
@@ -294,7 +301,7 @@ Redis es necesario porque cada instancia solo conoce sus propios sockets: si los
 
 ## Consultas Cypher
 
-Las siete consultas respaldan endpoints o flujos reales de la aplicación. Todas usan parámetros, devuelven campos proyectados (nunca el nodo completo, que incluye `passwordHash`) y fijan un límite de saltos en los caminos de largo variable.
+Las ocho consultas respaldan endpoints o flujos reales de la aplicación. Todas usan parámetros, devuelven campos proyectados (nunca el nodo completo, que incluye `passwordHash`) y fijan un límite de saltos en los caminos de largo variable.
 
 | Problema que pide el enunciado | Consulta |
 |---|---|
@@ -304,6 +311,7 @@ Las siete consultas respaldan endpoints o flujos reales de la aplicación. Todas
 | Usuarios alcanzables | C4 |
 | Seguidores de un usuario | C6 |
 | Extra: grados de separación | C5 |
+| Extra: hilos de comentarios | C8 |
 
 **Ejecutarlas:** con los datos de demostración cargados, abrir Neo4j Browser y ejecutar [`consultas-demo.cypher`](consultas-demo.cypher) en orden: primero cada `:param` (busca los UUID por nombre de usuario) y después su consulta. La última consulta del archivo dibuja el grafo completo en la vista **Graph**.
 
@@ -314,17 +322,20 @@ Las siete consultas respaldan endpoints o flujos reales de la aplicación. Todas
 ### C1. Feed (2 niveles: usuario → seguidos → publicaciones)
 
 ```cypher
-MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
-WITH yo, p, autor
+MATCH (yo:Usuario {id: $viewerId})-[:SIGUE]->(autor:Usuario)-[:PUBLICA]->(p:Post)
+WITH p, autor
 ORDER BY p.fecha DESC, p.id DESC
 SKIP $skip LIMIT $limit
 RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
        p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
        autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
        COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
-       EXISTS { (yo)-[:REACCIONA]->(p) } AS reaccionado
+       EXISTS { (:Usuario {id: $viewerId})-[:REACCIONA]->(p) } AS reaccionado,
+       COUNT { (p)<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(:Comentario) } AS comentarios
 ORDER BY p.fecha DESC, p.id DESC
 ```
+
+El `RETURN` es la proyección única de una publicación (`PostRepository.PUBLIC_FIELDS`): C1, C7, el detalle y el perfil la reutilizan, así que todas las vistas devuelven los mismos campos y contadores, y un campo nuevo se agrega una sola vez. `comentarios` cuenta también las respuestas: en un árbol hay un solo camino hasta cada comentario.
 
 ### C2. Recomendaciones (2 niveles)
 
@@ -356,10 +367,15 @@ ORDER BY username
 ```cypher
 MATCH camino = (yo:Usuario {id: $userId})-[:SIGUE*1..3]->(u:Usuario)
 WHERE u <> yo
-WITH u, min(length(camino)) AS distancia
-RETURN u.id AS id, u.username AS username, u.nombre AS nombre, distancia
+WITH u, length(camino) AS distancia, [n IN nodes(camino)[1..-1] | n.username] AS via
+ORDER BY distancia, via
+WITH u, collect({distancia: distancia, via: via})[0] AS masCorto
+RETURN u.id AS id, u.username AS username, u.nombre AS nombre,
+       masCorto.distancia AS distancia, masCorto.via AS via
 ORDER BY distancia, username
 ```
+
+`via` lista los usuarios intermedios del camino más corto (vacía a distancia 1). Si hay varios caminos igual de cortos, se queda con el primero ordenado por esos usernames, así la respuesta no cambia entre llamadas.
 
 ### C5. Grados de separación entre dos usuarios
 
@@ -379,18 +395,38 @@ RETURN seg.id AS usuarioId, s.endpoint AS endpoint, s.p256dh AS p256dh, s.auth A
 ### C7. Descubrir: publicaciones que reaccionó mi red, de autores que no sigo
 
 ```cypher
-MATCH (yo:Usuario {id: $userId})-[:SIGUE]->(amigo:Usuario)
+MATCH (yo:Usuario {id: $viewerId})-[:SIGUE]->(amigo:Usuario)
       -[:REACCIONA]->(p:Post)<-[:PUBLICA]-(autor:Usuario)
 WHERE autor <> yo AND NOT (yo)-[:SIGUE]->(autor)
 WITH p, autor, count(DISTINCT amigo) AS amigosQueReaccionaron
 ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC
-LIMIT 10
+SKIP $skip LIMIT $limit
 RETURN p.id AS id, p.texto AS texto, toString(p.fecha) AS fecha,
        p.mediaKey AS mediaKey, p.mediaTipo AS mediaTipo,
        autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
+       COUNT { (p)<-[:REACCIONA]-() } AS reacciones,
+       EXISTS { (:Usuario {id: $viewerId})-[:REACCIONA]->(p) } AS reaccionado,
+       COUNT { (p)<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(:Comentario) } AS comentarios,
        amigosQueReaccionaron
 ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC
 ```
+
+Pagina igual que C1: ordena y aplica `SKIP`/`LIMIT` antes de contar reacciones y comentarios, y devuelve los mismos campos más `amigosQueReaccionaron`.
+
+### C8. Hilo de comentarios (hasta 50 niveles de respuestas)
+
+```cypher
+MATCH (:Post {id: $postId})<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(c:Comentario)
+MATCH (autor:Usuario)-[:COMENTA]->(c)
+OPTIONAL MATCH (c)-[:RESPONDE_A]->(padre:Comentario)
+RETURN c.id AS id, c.texto AS texto, toString(c.fecha) AS fecha,
+       autor.id AS autorId, autor.username AS username, autor.nombre AS nombre,
+       padre.id AS respondeA,
+       COUNT { (c)<-[:RESPONDE_A]-(:Comentario) } AS respuestas
+ORDER BY c.fecha ASC, c.id ASC
+```
+
+Parte de los comentarios directos y baja por las respuestas; `*0..` incluye al propio comentario directo. Devuelve una lista plana: el frontend arma el árbol con `respondeA`. Al responder, el backend comprueba con el mismo recorrido, hacia arriba, que el comentario padre pertenezca a la publicación. Un comentario directo está en el nivel 0; si el padre ya está en el nivel 50, la respuesta quedaría fuera del alcance de C8 y del contador, así que se rechaza con `400 VALIDACION`.
 
 ## Decisiones técnicas
 
@@ -403,4 +439,6 @@ ORDER BY amigosQueReaccionaron DESC, p.fecha DESC, p.id DESC
 | `Post.mediaKey` como única referencia al archivo; Nginx sirve las imágenes desde MinIO | El grafo no guarda binarios y el backend no retransmite cada imagen | Guardar el binario en Neo4j o que el backend sirva las imágenes |
 | La identidad sale siempre del JWT (firmado con RSA, mismo par en ambas instancias) | Cualquier instancia valida el token sin estado compartido, y nadie opera sobre otro usuario cambiando un `{id}` | Sesiones en servidor o recibir el id del usuario en la URL |
 | Recomendación por amigos de amigos con arranque en frío por seguidores | Sale del grafo, es explicable y siempre devuelve algo | Recomendaciones aleatorias o por fecha de registro |
+| Un único contrato de publicación: una proyección Cypher, un armado de la fila, un DTO (`PostResponse`) y un solo cálculo de `mediaUrl` | Siguiendo, Para ti, el detalle y el perfil muestran la misma tarjeta, y un campo nuevo no puede quedar solo en una vista | Repetir la proyección y la respuesta en cada consulta, como antes |
+| Las respuestas solo se enlazan a su comentario padre (`RESPONDE_A`), no a la publicación | Un hilo es un árbol en el grafo y se recorre con un camino de largo variable (C8); no hay que mantener dos relaciones sincronizadas | Guardar en cada respuesta el id de la publicación o una relación `EN` duplicada |
 | Web Push desacoplado con el evento asíncrono `PostCreated`, emitido después de guardar | `POST /api/posts` no espera a los servicios push y nunca se notifica algo que no se guardó | Enviar las notificaciones dentro de la misma petición |

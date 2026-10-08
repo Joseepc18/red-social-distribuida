@@ -136,11 +136,57 @@ El primer arranque tarda más porque descarga dependencias y compila MinIO desde
 
 Para ver el balanceo, repetir `curl http://localhost:8080/api/info`: responden `backend-1` y `backend-2` alternadamente. Para detener el entorno conservando los datos: `docker compose down`.
 
-La aplicación se publica solo en `localhost` (`127.0.0.1:8080`); para compartirla fuera del equipo se usa el túnel HTTPS descrito más abajo. Nginx añade cabeceras de seguridad básicas y limita `/api/auth/*` a 20 peticiones por minuto y cliente (ráfaga de 40), con respuesta `429` al superarlo.
+La aplicación se publica solo en `localhost` (`127.0.0.1:8080`); para compartirla fuera del equipo se usa el túnel HTTPS descrito más abajo. Nginx añade cabeceras de seguridad básicas y aplica estos límites por dirección IP observada:
+
+| Operación | Límite | Al superarlo |
+|---|---|---|
+| `/api/auth/*` | 20 peticiones por minuto, ráfaga de 40 | HTTP `429` |
+| Métodos distintos de GET en `/api/`, excepto `/api/auth/*` | 120 peticiones por minuto, ráfaga de 60 | HTTP `429` |
+
+Las lecturas GET no consumen la cuota de escritura. Los clientes que comparten una dirección IP también comparten la cuota correspondiente. Cada usuario puede registrar hasta **10 suscripciones Web Push**, configurable mediante `app.push.max-subscriptions-per-user` en `backend/src/main/resources/application.properties`; una suscripción repetida es idempotente y la número 11 devuelve `409 LIMITE_SUSCRIPCIONES`. El hilo de comentarios muestra hasta **200 comentarios recientes** por publicación, como se detalla en C8.
+
+### Respaldo y restauración de datos
+
+Los datos persistentes están en los volúmenes `neo4j_data` (grafo), `minio_data` (imágenes) y `app_keys` (claves JWT y VAPID). Redis solo conserva mensajes transitorios. Los siguientes comandos son para **PowerShell**, desde la raíz del repositorio, con Docker Compose v2. Detén la aplicación antes de copiar los volúmenes para obtener un respaldo coherente. `docker compose down` conserva los volúmenes; **no uses `down -v`** para este procedimiento.
+
+Para crear el respaldo, elige una carpeta fuera del repositorio y conserva juntos los tres archivos:
+
+```powershell
+$sourceProject = (docker compose config --format json | ConvertFrom-Json).name
+$backupDir = Join-Path $env:USERPROFILE ("red-social-respaldo-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+docker compose down
+foreach ($name in @('neo4j_data', 'minio_data', 'app_keys')) {
+    $volume = "${sourceProject}_${name}"
+    docker run --rm --mount "type=volume,source=$volume,target=/source,readonly" --mount "type=bind,source=$backupDir,target=/backup" alpine:3.20 sh -ec "tar -C /source -czf /backup/$name.tar.gz ."
+    if ($LASTEXITCODE -ne 0) { throw "Falló el respaldo de $volume" }
+}
+Get-ChildItem -LiteralPath $backupDir -Filter '*.tar.gz' | Select-Object Name, Length
+docker compose up -d
+```
+
+Para restaurar, copia la carpeta de respaldo a este equipo, define su ruta en `$backupDir` y usa un nombre de proyecto Compose nuevo. Así los archivos se extraen en volúmenes vacíos; el proyecto original debe estar detenido para liberar los puertos. Mantén el mismo `.env` si habías cambiado las credenciales de Neo4j o MinIO.
+
+```powershell
+$backupDir = 'C:\ruta\al\red-social-respaldo-AAAAmmdd-HHMMSS'
+$restoreProject = "red-social-restaurado-$(Get-Date -Format yyyyMMddHHmmss)"
+docker compose down
+foreach ($name in @('neo4j_data', 'minio_data', 'app_keys')) {
+    $volume = "${restoreProject}_${name}"
+    docker volume create $volume | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "No se pudo crear $volume" }
+    docker run --rm --mount "type=volume,source=$volume,target=/dest" --mount "type=bind,source=$backupDir,target=/backup,readonly" alpine:3.20 sh -ec "tar -C /dest -xzf /backup/$name.tar.gz"
+    if ($LASTEXITCODE -ne 0) { throw "Falló la restauración de $volume" }
+}
+docker compose -p $restoreProject up -d --build
+docker compose -p $restoreProject ps -a
+```
+
+Comprueba que Neo4j, MinIO y ambos backends estén `healthy`, inicia sesión y abre una publicación con imagen. Para detener este proyecto restaurado, usa `docker compose -p $restoreProject down`. La carpeta de respaldo contiene **claves privadas y datos de usuarios**: guárdala con acceso restringido, fuera de Git. Si se pierde el respaldo de `app_keys`, los JWT emitidos y las suscripciones push anteriores dejarán de ser válidos.
 
 ### Datos de demostración
 
-`scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen), reacciones y comentarios **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j y MinIO.
+`scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen), reacciones y comentarios **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j, MinIO y `app_keys`, por lo que también invalida los JWT y las suscripciones push anteriores.
 
 ```sh
 docker compose down -v

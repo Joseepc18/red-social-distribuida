@@ -5,6 +5,7 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import org.neo4j.driver.exceptions.Neo4jException;
+import org.jboss.logging.Logger;
 
 import com.redsocial.auth.AuthRepository.Credentials;
 import com.redsocial.shared.error.ApiException;
@@ -18,6 +19,7 @@ import io.smallrye.jwt.build.Jwt;
 public class AuthService {
 
     private static final String CONSTRAINT_VIOLATION = "Neo.ClientError.Schema.ConstraintValidationFailed";
+    private static final Logger LOG = Logger.getLogger(AuthService.class);
 
     private final AuthRepository repository;
     private final UserService users;
@@ -49,12 +51,20 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         Credentials credentials = repository.findCredentials(request.username())
                 .filter(c -> BcryptUtil.matches(request.password(), c.passwordHash()))
-                .orElseThrow(() -> ApiException.unauthorized("CREDENCIALES_INVALIDAS",
-                        "Usuario o contraseña incorrectos"));
+                .orElseThrow(() -> {
+                    LOG.warnf("Inicio de sesión fallido usuario=%s", safeUsername(request.username()));
+                    return ApiException.unauthorized("CREDENCIALES_INVALIDAS",
+                            "Usuario o contraseña incorrectos");
+                });
         // Issuer and 24 h lifespan come from smallrye.jwt.new-token.* in application.properties.
         String token = Jwt.subject(credentials.id())
                 .upn(credentials.username())
                 .sign();
         return new LoginResponse(token);
+    }
+
+    private static String safeUsername(String username) {
+        String clean = username.replaceAll("[\\p{Cntrl}]", "?");
+        return clean.length() > 80 ? clean.substring(0, 80) : clean;
     }
 }

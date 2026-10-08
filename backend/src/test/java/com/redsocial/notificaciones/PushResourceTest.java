@@ -12,6 +12,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -71,6 +74,75 @@ class PushResourceTest {
     }
 
     @Test
+    void subscriptionsStopAtTheConfiguredLimitWithoutBlockingAnExistingEndpoint() {
+        String user = createUser();
+        String first = endpoint();
+        subscribe(user, first, "key", "auth").then().statusCode(204);
+        for (int i = 1; i < 10; i++) {
+            subscribe(user, endpoint(), "key", "auth").then().statusCode(204);
+        }
+
+        subscribe(user, endpoint(), "key", "auth").then().statusCode(409)
+                .body("error", is("LIMITE_SUSCRIPCIONES"))
+                .body("mensaje", notNullValue());
+        subscribe(user, first, "new-key", "new-auth").then().statusCode(204);
+
+        long count = driver.executableQuery("""
+                        MATCH (:Usuario {id: $user})-[:TIENE_SUSCRIPCION]->(s:SuscripcionPush)
+                        RETURN count(s) AS total
+                        """).withParameters(Map.of("user", user)).execute().records().getFirst().get("total").asLong();
+        assertEquals(10, count);
+    }
+
+    @Test
+    void transferringAnEndpointCannotBypassTheLimit() {
+        String fullUser = createUser();
+        String other = createUser();
+        String first = endpoint();
+        subscribe(fullUser, first, "key", "auth").then().statusCode(204);
+        for (int i = 1; i < 10; i++) {
+            subscribe(fullUser, endpoint(), "key", "auth").then().statusCode(204);
+        }
+        String transferred = endpoint();
+        subscribe(other, transferred, "key", "auth").then().statusCode(204);
+
+        subscribe(fullUser, transferred, "key", "auth").then().statusCode(409)
+                .body("error", is("LIMITE_SUSCRIPCIONES"));
+        assertEquals(other, subscriptions(transferred).getFirst().get("owner").asString());
+
+        unsubscribe(fullUser, first).then().statusCode(204);
+        subscribe(fullUser, transferred, "key", "auth").then().statusCode(204);
+        assertEquals(fullUser, subscriptions(transferred).getFirst().get("owner").asString());
+    }
+
+    @Test
+    void concurrentSubscriptionsCannotExceedTheLimit() throws Exception {
+        String user = createUser();
+        for (int i = 0; i < 9; i++) {
+            subscribe(user, endpoint(), "key", "auth").then().statusCode(204);
+        }
+        CountDownLatch start = new CountDownLatch(1);
+        try (var workers = Executors.newFixedThreadPool(2)) {
+            var first = workers.submit(() -> {
+                start.await();
+                return subscribe(user, endpoint(), "key", "auth").statusCode();
+            });
+            var second = workers.submit(() -> {
+                start.await();
+                return subscribe(user, endpoint(), "key", "auth").statusCode();
+            });
+            start.countDown();
+            assertEquals(List.of(204, 409), List.of(first.get(30, TimeUnit.SECONDS),
+                    second.get(30, TimeUnit.SECONDS)).stream().sorted().toList());
+        }
+        long count = driver.executableQuery("""
+                        MATCH (:Usuario {id: $user})-[:TIENE_SUSCRIPCION]->(s:SuscripcionPush)
+                        RETURN count(s) AS total
+                        """).withParameters(Map.of("user", user)).execute().records().getFirst().get("total").asLong();
+        assertEquals(10, count);
+    }
+
+    @Test
     void existingEndpointMovesToTheAuthenticatedUser() {
         String previous = createUser();
         String current = createUser();
@@ -106,6 +178,32 @@ class PushResourceTest {
                 .statusCode(400)
                 .body("error", is("VALIDACION"));
         assertEquals(0, subscriptions(endpoint).size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "https://localhost/push", "https://localhost./push", "https://sub.localhost/push",
+            "https://127.0.0.1/push", "https://10.1.2.3/push", "https://172.16.0.2/push",
+            "https://192.168.1.2/push", "https://169.254.2.3/push", "https://[::1]/push",
+            "https://[fc00::1]/push", "https://[fe80::1]/push", "https://neo4j/push",
+            "https://127.1/push", "https://0x7f.0x1/push", "https://minio.local/push",
+            "https://user@push.test/push", "https://push.test/push#fragment"})
+    void subscribeRejectsLocalOrMalformedHttpsEndpoints(String endpoint) {
+        String user = createUser();
+
+        subscribe(user, endpoint, "key", "auth").then()
+                .statusCode(400)
+                .body("error", is("VALIDACION"));
+        assertEquals(0, subscriptions(endpoint).size());
+    }
+
+    @Test
+    void subscribeAcceptsPublicHttpsHostnameWithPortAndQuery() {
+        String user = createUser();
+        String endpoint = "https://push.example.org:8443/subscribe?token=opaque";
+
+        subscribe(user, endpoint, "key", "auth").then().statusCode(204);
+        assertEquals(1, subscriptions(endpoint).size());
     }
 
     @Test

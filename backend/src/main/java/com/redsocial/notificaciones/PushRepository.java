@@ -8,10 +8,29 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 
 /** Cypher access to {@code (:Usuario)-[:TIENE_SUSCRIPCION]->(:SuscripcionPush)}. */
 @ApplicationScoped
 public class PushRepository {
+
+    public enum SubscribeResult {
+        SUBSCRIBED, USER_NOT_FOUND, LIMIT_REACHED
+    }
+
+    // A write on the user serializes concurrent subscriptions from both backend replicas.
+    private static final String LOCK_USER = """
+            MATCH (u:Usuario {id: $userId})
+            SET u.pushSubscriptionVersion = coalesce(u.pushSubscriptionVersion, 0) + 1
+            RETURN u.id AS id
+            """;
+
+    private static final String COUNT_USER_SUBSCRIPTIONS = """
+            MATCH (u:Usuario {id: $userId})
+            OPTIONAL MATCH (u)-[:TIENE_SUSCRIPCION]->(s:SuscripcionPush)
+            RETURN count(s) AS total,
+                   count(CASE WHEN s.endpoint = $endpoint THEN 1 END) AS existing
+            """;
 
     // MERGE by endpoint (unique constraint). A browser subscription belongs to whoever
     // registered it last, so a shared computer stops notifying the previous user.
@@ -57,10 +76,23 @@ public class PushRepository {
         this.driver = driver;
     }
 
-    /** @return {@code false} when the user does not exist */
-    public boolean subscribe(String userId, String endpoint, String p256dh, String auth) {
-        return !run(SUBSCRIBE, Map.of("userId", userId, "endpoint", endpoint, "p256dh", p256dh, "auth", auth))
-                .isEmpty();
+    public SubscribeResult subscribe(String userId, String endpoint, String p256dh, String auth,
+            int maxSubscriptions) {
+        try (Session session = driver.session()) {
+            return session.executeWrite(tx -> {
+                if (!tx.run(LOCK_USER, Map.of("userId", userId)).hasNext()) {
+                    return SubscribeResult.USER_NOT_FOUND;
+                }
+                Record count = tx.run(COUNT_USER_SUBSCRIPTIONS,
+                        Map.of("userId", userId, "endpoint", endpoint)).single();
+                if (count.get("existing").asLong() == 0 && count.get("total").asLong() >= maxSubscriptions) {
+                    return SubscribeResult.LIMIT_REACHED;
+                }
+                tx.run(SUBSCRIBE, Map.of("userId", userId, "endpoint", endpoint,
+                        "p256dh", p256dh, "auth", auth)).consume();
+                return SubscribeResult.SUBSCRIBED;
+            });
+        }
     }
 
     public void unsubscribe(String userId, String endpoint) {

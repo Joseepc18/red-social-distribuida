@@ -55,8 +55,9 @@ public class CommentResource {
     @GET
     @Path("/{id}/comentarios")
     @Operation(summary = "Comentarios de una publicación con sus hilos de respuestas",
-            description = "Lista plana de todos los comentarios del hilo, respuestas incluidas, ordenada por fecha "
-                    + "ascendente. respondeA indica de qué comentario cuelga cada respuesta.")
+            description = "Lista plana de los 200 comentarios más recientes, respuestas incluidas, presentada "
+                    + "en orden ascendente. respondeA indica el comentario padre. El contador de la publicación "
+                    + "puede superar la cantidad de elementos devueltos.")
     @APIResponse(responseCode = "200", description = "Comentarios del hilo; vacía si no hay")
     @APIResponse(responseCode = "401", description = "JWT ausente o inválido")
     @APIResponse(responseCode = "404", description = "POST_NO_ENCONTRADO")

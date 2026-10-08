@@ -136,6 +136,8 @@ El primer arranque tarda más porque descarga dependencias y compila MinIO desde
 
 Para ver el balanceo, repetir `curl http://localhost:8080/api/info`: responden `backend-1` y `backend-2` alternadamente. Para detener el entorno conservando los datos: `docker compose down`.
 
+La aplicación se publica solo en `localhost` (`127.0.0.1:8080`); para compartirla fuera del equipo se usa el túnel HTTPS descrito más abajo. Nginx añade cabeceras de seguridad básicas y limita `/api/auth/*` a 20 peticiones por minuto y cliente (ráfaga de 40), con respuesta `429` al superarlo.
+
 ### Datos de demostración
 
 `scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen), reacciones y comentarios **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j y MinIO.

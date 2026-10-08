@@ -22,6 +22,7 @@ public class CommentRepository {
      * every variable-length path keeps a hop limit, and replies are never created below it.
      */
     public static final int MAX_DEPTH = 50;
+    public static final int MAX_THREAD_COMMENTS = 200;
     /** Every comment of the post bound to {@code p}, replies included; a tree has one path per comment. */
     public static final String COUNT_OF_POST =
             "COUNT { (p)<-[:EN]-(:Comentario)<-[:RESPONDE_A*0.." + MAX_DEPTH + "]-(:Comentario) }";
@@ -88,11 +89,14 @@ public class CommentRepository {
                         MATCH (:Post {id: $postId})<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..%d]-(c:Comentario)
                         MATCH (autor:Usuario)-[:COMENTA]->(c)
                         OPTIONAL MATCH (c)-[:RESPONDE_A]->(padre:Comentario)
+                        WITH c, autor, padre
+                        ORDER BY c.fecha DESC, c.id DESC
+                        LIMIT $max
                         RETURN %s, padre.id AS respondeA,
                                COUNT { (c)<-[:RESPONDE_A]-(:Comentario) } AS respuestas
                         ORDER BY c.fecha ASC, c.id ASC
                         """.formatted(MAX_DEPTH, FIELDS))
-                .withParameters(Map.of("postId", postId))
+                .withParameters(Map.of("postId", postId, "max", MAX_THREAD_COMMENTS))
                 .execute().records().stream().map(CommentRepository::map).toList();
     }
 

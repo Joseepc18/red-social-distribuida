@@ -104,41 +104,19 @@ flowchart LR
 ### Requisitos
 
 - Docker Desktop (contenedores Linux) o Docker Engine con Compose v2.
-- Node.js 18 o superior para generar las claves VAPID y cargar los datos de demostración.
+- Node.js 18 o superior, solo para cargar los datos de demostración.
 
-### Configuración inicial (una sola vez)
+### Configuración
 
-1. Copiar la plantilla de variables. Los valores predeterminados sirven para desarrollo local; `.env` no se sube a Git.
+No requiere pasos manuales. Compose usa valores de desarrollo por defecto, y el servicio `keys-init` genera una sola vez el par de claves JWT y las claves VAPID de Web Push en el volumen `app_keys`, que comparten ambas instancias del backend. Los arranques siguientes las conservan, así que los tokens y las suscripciones push siguen siendo válidos.
 
-   ```sh
-   cp .env.example .env
-   ```
+Para cambiar contraseñas, puertos o usar claves VAPID propias, copiar la plantilla y editarla (`.env` no se sube a Git):
 
-   En PowerShell: `Copy-Item .env.example .env`.
+```sh
+cp .env.example .env
+```
 
-2. Generar el par de claves JWT en `backend/keys/`. Ambas instancias del backend lo comparten; no se versiona y no debe regenerarse en cada arranque, porque invalidaría los tokens emitidos.
-
-   ```sh
-   cd backend && mkdir -p keys
-   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/privateKey.pem
-   openssl pkey -in keys/privateKey.pem -pubout -out keys/publicKey.pem
-   ```
-
-   Alternativa en PowerShell 7, desde `backend/` y sin OpenSSL:
-
-   ```powershell
-   New-Item -ItemType Directory -Force keys | Out-Null
-   $rsa = [System.Security.Cryptography.RSA]::Create(2048)
-   [IO.File]::WriteAllText((Join-Path $PWD 'keys/privateKey.pem'), $rsa.ExportPkcs8PrivateKeyPem())
-   [IO.File]::WriteAllText((Join-Path $PWD 'keys/publicKey.pem'), $rsa.ExportSubjectPublicKeyInfoPem())
-   $rsa.Dispose()
-   ```
-
-3. Generar las claves VAPID y copiarlas en `.env` (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT=mailto:<correo>`). Sin ellas la aplicación arranca igual, pero no envía notificaciones.
-
-   ```sh
-   npx web-push generate-vapid-keys
-   ```
+En PowerShell: `Copy-Item .env.example .env`.
 
 ### Levantar la aplicación
 
@@ -153,10 +131,12 @@ El primer arranque tarda más porque descarga dependencias y compila MinIO desde
 |---|---|---|
 | Aplicación | `http://localhost:8080` | Cuenta registrada o usuarios de demostración |
 | Swagger UI | `http://localhost:8080/api/docs` | Botón **Authorize** con el JWT de `POST /api/auth/login` |
-| Neo4j Browser | `http://localhost:7474` | Usuario `neo4j` y `NEO4J_PASSWORD` de `.env` |
-| Consola MinIO | `http://localhost:9001` | `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` de `.env` |
+| Neo4j Browser | `http://localhost:7474` | Usuario `neo4j` y `NEO4J_PASSWORD` (`devpassword` por defecto) |
+| Consola MinIO | `http://localhost:9001` | `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` (`redsocial` y `redsocial-minio-local` por defecto) |
 
 Para ver el balanceo, repetir `curl http://localhost:8080/api/info`: responden `backend-1` y `backend-2` alternadamente. Para detener el entorno conservando los datos: `docker compose down`.
+
+La aplicación se publica solo en `localhost` (`127.0.0.1:8080`); para compartirla fuera del equipo se usa el túnel HTTPS descrito más abajo. Nginx añade cabeceras de seguridad básicas y limita `/api/auth/*` a 20 peticiones por minuto y cliente (ráfaga de 40), con respuesta `429` al superarlo.
 
 ### Datos de demostración
 
@@ -185,15 +165,15 @@ GitHub Actions ejecuta ambas suites y `docker compose config` en cada PR y en ca
 
 ## Variables de entorno
 
-Se definen en `.env` (plantilla en `.env.example`). Compose las pasa a los servicios y a ambos backends.
+Todas son opcionales: Compose trae valores de desarrollo por defecto. Para cambiarlas se define un `.env` (plantilla en `.env.example`) y Compose las pasa a los servicios y a ambos backends.
 
 | Variables | Uso |
 |---|---|
-| `NEO4J_PASSWORD` | Contraseña de Neo4j |
-| `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | Credenciales de MinIO; el backend las usa como claves S3 |
+| `NEO4J_PASSWORD` | Contraseña de Neo4j (`devpassword` por defecto) |
+| `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | Credenciales de MinIO; el backend las usa como claves S3 (`redsocial` y `redsocial-minio-local` por defecto) |
 | `NEO4J_HTTP_PORT`, `NEO4J_BOLT_PORT`, `MINIO_CONSOLE_PORT` | Puertos de administración (7474, 7687 y 9001 por defecto) |
 | `MEDIA_PUBLIC_URL` | Prefijo público de las imágenes (`/media/` por defecto) |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Claves de Web Push; vacías por defecto |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Claves de Web Push; si se dejan vacías se usan las generadas por `keys-init` |
 | `SEED_BASE_URL` | URL del script de demostración (`http://localhost:8080` por defecto) |
 
 Compose define además las variables internas de cada backend: `INSTANCE_ID`, `NEO4J_URI`, `REDIS_HOST`, `MINIO_ENDPOINT` y la ubicación de las claves JWT (`/keys`).

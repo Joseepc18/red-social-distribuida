@@ -186,7 +186,7 @@ Comprueba que Neo4j, MinIO y ambos backends estén `healthy`, inicia sesión y a
 
 ### Datos de demostración
 
-`scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen), reacciones y comentarios **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j y MinIO.
+`scripts/seed-demo.mjs` crea 10 usuarios, seguimientos, 12 publicaciones (4 con imagen), reacciones y comentarios **usando la API REST**, igual que un usuario real. Parte de una base vacía; `down -v` borra los volúmenes de Neo4j, MinIO y `app_keys`, por lo que también invalida los JWT y las suscripciones push anteriores.
 
 ```sh
 docker compose down -v

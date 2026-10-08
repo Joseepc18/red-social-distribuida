@@ -180,6 +180,32 @@ class PushResourceTest {
         assertEquals(0, subscriptions(endpoint).size());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "https://localhost/push", "https://localhost./push", "https://sub.localhost/push",
+            "https://127.0.0.1/push", "https://10.1.2.3/push", "https://172.16.0.2/push",
+            "https://192.168.1.2/push", "https://169.254.2.3/push", "https://[::1]/push",
+            "https://[fc00::1]/push", "https://[fe80::1]/push", "https://neo4j/push",
+            "https://127.1/push", "https://0x7f.0x1/push", "https://minio.local/push",
+            "https://user@push.test/push", "https://push.test/push#fragment"})
+    void subscribeRejectsLocalOrMalformedHttpsEndpoints(String endpoint) {
+        String user = createUser();
+
+        subscribe(user, endpoint, "key", "auth").then()
+                .statusCode(400)
+                .body("error", is("VALIDACION"));
+        assertEquals(0, subscriptions(endpoint).size());
+    }
+
+    @Test
+    void subscribeAcceptsPublicHttpsHostnameWithPortAndQuery() {
+        String user = createUser();
+        String endpoint = "https://push.example.org:8443/subscribe?token=opaque";
+
+        subscribe(user, endpoint, "key", "auth").then().statusCode(204);
+        assertEquals(1, subscriptions(endpoint).size());
+    }
+
     @Test
     void subscribeWithTokenOfDeletedUserReturns404() {
         String endpoint = endpoint();

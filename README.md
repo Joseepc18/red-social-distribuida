@@ -395,6 +395,12 @@ Pagina igual que C1: ordena y aplica `SKIP`/`LIMIT` antes de contar reacciones y
 
 ### C8. Hilo de comentarios (hasta 50 niveles de respuestas)
 
+`GET /api/posts/{id}/comentarios` devuelve como máximo los **200 comentarios más recientes**,
+ordenados de antiguo a nuevo dentro de ese recorte. El JSON sigue siendo una lista plana.
+El contador `comentarios` de la publicación incluye todos los comentarios, por lo que puede
+ser mayor que la lista visible. Si el padre de una respuesta quedó fuera del recorte,
+el frontend la presenta como comentario principal para no ocultarla.
+
 ```cypher
 MATCH (:Post {id: $postId})<-[:EN]-(:Comentario)<-[:RESPONDE_A*0..50]-(c:Comentario)
 MATCH (autor:Usuario)-[:COMENTA]->(c)

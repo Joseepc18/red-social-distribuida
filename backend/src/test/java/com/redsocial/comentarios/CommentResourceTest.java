@@ -91,6 +91,27 @@ class CommentResourceTest {
     }
 
     @Test
+    void threadReturnsAtMostTheMostRecent200Comments() {
+        String user = createUser();
+        String post = createPost(user);
+        driver.executableQuery("""
+                        MATCH (author:Usuario {id: $user}), (p:Post {id: $post})
+                        UNWIND range(0, 204) AS i
+                        CREATE (author)-[:COMENTA]->(c:Comentario {
+                            id: randomUUID(), texto: toString(i),
+                            fecha: datetime({epochMillis: 1700000000000 + i * 1000})
+                        })-[:EN]->(p)
+                        """).withParameters(Map.of("user", user, "post", post)).execute();
+
+        thread(user, post).then().statusCode(200)
+                .body("size()", is(200))
+                .body("texto[0]", is("5"))
+                .body("texto[199]", is("204"));
+        given().auth().oauth2(token(user)).get("/api/posts/{id}", post).then().statusCode(200)
+                .body("comentarios", is(205));
+    }
+
+    @Test
     void threadOfAPostWithoutCommentsIsEmpty() {
         String user = createUser();
 

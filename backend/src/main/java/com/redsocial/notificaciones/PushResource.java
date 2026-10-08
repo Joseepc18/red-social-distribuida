@@ -61,6 +61,8 @@ public class PushResource {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @APIResponse(responseCode = "401", description = "Falta el token o no es válido",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(responseCode = "409", description = "Máximo de suscripciones del usuario alcanzado (LIMITE_SUSCRIPCIONES)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @APIResponse(responseCode = "404", description = "El usuario del token no existe (USUARIO_NO_ENCONTRADO)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public void subscribe(@Valid @NotNull(message = "el cuerpo es obligatorio") SuscripcionRequest request) {

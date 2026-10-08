@@ -35,6 +35,7 @@ public class PushSubscriptionService {
     }
 
     public void subscribe(String userId, SuscripcionRequest request) {
+        PushEndpointValidator.validate(request.endpoint());
         switch (repository.subscribe(userId, request.endpoint(), request.p256dh(), request.auth(), maxSubscriptions)) {
             case USER_NOT_FOUND -> throw ApiException.notFound("USUARIO_NO_ENCONTRADO", "El usuario no existe");
             case LIMIT_REACHED -> throw ApiException.conflict("LIMITE_SUSCRIPCIONES",

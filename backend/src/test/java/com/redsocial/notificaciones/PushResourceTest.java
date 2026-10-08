@@ -12,6 +12,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -68,6 +71,75 @@ class PushResourceTest {
         assertEquals(1, subscriptions.size());
         assertEquals(created, subscriptions.getFirst().get("creadaEn").asZonedDateTime());
         assertEquals("key-2", subscriptions.getFirst().get("p256dh").asString());
+    }
+
+    @Test
+    void subscriptionsStopAtTheConfiguredLimitWithoutBlockingAnExistingEndpoint() {
+        String user = createUser();
+        String first = endpoint();
+        subscribe(user, first, "key", "auth").then().statusCode(204);
+        for (int i = 1; i < 10; i++) {
+            subscribe(user, endpoint(), "key", "auth").then().statusCode(204);
+        }
+
+        subscribe(user, endpoint(), "key", "auth").then().statusCode(409)
+                .body("error", is("LIMITE_SUSCRIPCIONES"))
+                .body("mensaje", notNullValue());
+        subscribe(user, first, "new-key", "new-auth").then().statusCode(204);
+
+        long count = driver.executableQuery("""
+                        MATCH (:Usuario {id: $user})-[:TIENE_SUSCRIPCION]->(s:SuscripcionPush)
+                        RETURN count(s) AS total
+                        """).withParameters(Map.of("user", user)).execute().records().getFirst().get("total").asLong();
+        assertEquals(10, count);
+    }
+
+    @Test
+    void transferringAnEndpointCannotBypassTheLimit() {
+        String fullUser = createUser();
+        String other = createUser();
+        String first = endpoint();
+        subscribe(fullUser, first, "key", "auth").then().statusCode(204);
+        for (int i = 1; i < 10; i++) {
+            subscribe(fullUser, endpoint(), "key", "auth").then().statusCode(204);
+        }
+        String transferred = endpoint();
+        subscribe(other, transferred, "key", "auth").then().statusCode(204);
+
+        subscribe(fullUser, transferred, "key", "auth").then().statusCode(409)
+                .body("error", is("LIMITE_SUSCRIPCIONES"));
+        assertEquals(other, subscriptions(transferred).getFirst().get("owner").asString());
+
+        unsubscribe(fullUser, first).then().statusCode(204);
+        subscribe(fullUser, transferred, "key", "auth").then().statusCode(204);
+        assertEquals(fullUser, subscriptions(transferred).getFirst().get("owner").asString());
+    }
+
+    @Test
+    void concurrentSubscriptionsCannotExceedTheLimit() throws Exception {
+        String user = createUser();
+        for (int i = 0; i < 9; i++) {
+            subscribe(user, endpoint(), "key", "auth").then().statusCode(204);
+        }
+        CountDownLatch start = new CountDownLatch(1);
+        try (var workers = Executors.newFixedThreadPool(2)) {
+            var first = workers.submit(() -> {
+                start.await();
+                return subscribe(user, endpoint(), "key", "auth").statusCode();
+            });
+            var second = workers.submit(() -> {
+                start.await();
+                return subscribe(user, endpoint(), "key", "auth").statusCode();
+            });
+            start.countDown();
+            assertEquals(List.of(204, 409), List.of(first.get(30, TimeUnit.SECONDS),
+                    second.get(30, TimeUnit.SECONDS)).stream().sorted().toList());
+        }
+        long count = driver.executableQuery("""
+                        MATCH (:Usuario {id: $user})-[:TIENE_SUSCRIPCION]->(s:SuscripcionPush)
+                        RETURN count(s) AS total
+                        """).withParameters(Map.of("user", user)).execute().records().getFirst().get("total").asLong();
+        assertEquals(10, count);
     }
 
     @Test
